@@ -1,0 +1,267 @@
+/*
+ * Copyright (C) 2022 Intel Corporation
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+package http
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+
+	"intel/amber/kbs/v1/clients/constant"
+	"intel/amber/kbs/v1/model"
+	"intel/amber/kbs/v1/service"
+
+	"github.com/go-kit/kit/endpoint"
+	httpTransport "github.com/go-kit/kit/transport/http"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+)
+
+func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption) error {
+
+	keyTransferPolicyIdExpr := "/key-transfer-policies/" + idReg
+
+	CreateKeyTransferPolicyHandler := httpTransport.NewServer(
+		makeCreateKeyTransferPolicyEndpoint(svc),
+		decodeCreateKeyTransferPolicyHTTPRequest,
+		encodeCreateKeyTransferPolicyHTTPResponse,
+		options...,
+	)
+
+	router.Handle("/key-transfer-policies", CreateKeyTransferPolicyHandler).Methods(http.MethodPost)
+
+	GetKeyTransferPolicyHandler := httpTransport.NewServer(
+		makeRetrieveKeyTransferPolicyEndpoint(svc),
+		decodeRetrieveHTTPRequest,
+		encodeRetrieveHTTPResponse,
+		options...,
+	)
+
+	router.Handle(keyTransferPolicyIdExpr, GetKeyTransferPolicyHandler).Methods(http.MethodGet)
+
+	DeleteKeyTransferPolicyHandler := httpTransport.NewServer(
+		makeDeleteKeyTransferPolicyEndpoint(svc),
+		decodeDeleteHTTPRequest,
+		encodeDeleteHTTPResponse,
+		options...,
+	)
+
+	router.Handle(keyTransferPolicyIdExpr, DeleteKeyTransferPolicyHandler).Methods(http.MethodDelete)
+
+	SearchKeyTransferPoliciesHandler := httpTransport.NewServer(
+		makeSearchKeyTransferPoliciesEndpoint(svc),
+		decodeSearchKeyTransferPoliciesHTTPRequest,
+		encodeSearchKeyTransferPoliciesHTTPResponse,
+		options...,
+	)
+
+	router.Handle("/key-transfer-policies", SearchKeyTransferPoliciesHandler).Methods(http.MethodGet)
+
+	return nil
+}
+
+func makeCreateKeyTransferPolicyEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(model.KeyTransferPolicy)
+		return svc.CreateKeyTransferPolicy(ctx, req)
+	}
+}
+
+func makeSearchKeyTransferPoliciesEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		filter := request.(*model.KeyTransferPolicyFilterCriteria)
+		return svc.SearchKeyTransferPolicies(ctx, filter)
+	}
+}
+
+func makeDeleteKeyTransferPolicyEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		id := request.(uuid.UUID)
+		return svc.DeleteKeyTransferPolicy(ctx, id)
+	}
+}
+
+func makeRetrieveKeyTransferPolicyEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		id := request.(uuid.UUID)
+		return svc.RetrieveKeyTransferPolicy(ctx, id)
+	}
+}
+
+func decodeCreateKeyTransferPolicyHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+
+	if r.Header.Get(constant.HTTPHeaderKeyContentType) != constant.HTTPHeaderValueApplicationJson {
+		log.Error(ErrInvalidContentTypeHeader.Error())
+		return nil, ErrInvalidContentTypeHeader
+	}
+
+	if r.Header.Get(constant.HTTPHeaderKeyAccept) != constant.HTTPHeaderValueApplicationJson {
+		log.Error(ErrInvalidAcceptHeader.Error())
+		return nil, ErrInvalidAcceptHeader
+	}
+
+	if r.ContentLength == 0 {
+		log.Error(ErrEmptyRequestBody.Error())
+		return nil, ErrEmptyRequestBody
+	}
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	var policyCreateReq model.KeyTransferPolicy
+	err := dec.Decode(&policyCreateReq)
+	if err != nil {
+		log.WithError(err).Error(ErrJsonDecodeFailed.Error())
+		return nil, ErrJsonDecodeFailed
+	}
+
+	if err := validateKeyTransferPolicy(policyCreateReq); err != nil {
+		log.WithError(err).Error(ErrInvalidRequest.Error())
+		return nil, ErrInvalidRequest
+	}
+
+	return policyCreateReq, nil
+}
+
+func decodeSearchKeyTransferPoliciesHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+
+	if r.Header.Get(constant.HTTPHeaderKeyAccept) != constant.HTTPHeaderValueApplicationJson {
+		log.Error(ErrInvalidAcceptHeader.Error())
+		return nil, ErrInvalidAcceptHeader
+	}
+
+	// search query params not yet supported
+	var criteria *model.KeyTransferPolicyFilterCriteria
+	return criteria, nil
+}
+
+func encodeCreateKeyTransferPolicyHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(*model.KeyTransferPolicy)
+
+	header := w.Header()
+	header.Set(constant.HTTPHeaderKeyContentType, constant.HTTPHeaderValueApplicationJson)
+	w.WriteHeader(http.StatusCreated)
+
+	return encodeJsonResponse(ctx, w, resp)
+}
+
+func encodeSearchKeyTransferPoliciesHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.([]model.KeyTransferPolicy)
+
+	header := w.Header()
+	header.Set(constant.HTTPHeaderKeyContentType, constant.HTTPHeaderValueApplicationJson)
+	w.WriteHeader(http.StatusOK)
+
+	return encodeJsonResponse(ctx, w, resp)
+}
+
+func validateKeyTransferPolicy(policyCreateReq model.KeyTransferPolicy) error {
+
+	if policyCreateReq.AttestationType == nil {
+		return errors.New("Attestation_type must be specified")
+	}
+
+	if len(policyCreateReq.AttestationType) != 1 {
+		return errors.New("Only one attestation type is supported in key transfer policy")
+	}
+
+	if !policyCreateReq.AttestationType[0].Valid() {
+		return errors.New("Invalid attestation type")
+	}
+
+	if policyCreateReq.AttestationType[0] == model.SGX && policyCreateReq.SGX.Attributes != nil {
+		if policyCreateReq.SGX.Attributes.MrSigner == nil || policyCreateReq.SGX.Attributes.IsvProductId == nil {
+			return errors.New("MrSigner and IsvProductId must be specified for SGX policy")
+		}
+		if err := validateSGXAttributes(policyCreateReq.SGX.Attributes); err != nil {
+			return errors.Wrap(err, "Input validation failed for SGX Attributes")
+		}
+	}
+
+	if policyCreateReq.AttestationType[0] == model.TDX && policyCreateReq.TDX.Attributes != nil {
+		if policyCreateReq.TDX.Attributes.MrSignerSeam == nil || policyCreateReq.TDX.Attributes.MrSeam == nil {
+			return errors.New("MrSignerSeam and MrSeam must be specified for TDX policy")
+		}
+		if err := validateTDXAttributes(policyCreateReq.TDX.Attributes); err != nil {
+			return errors.Wrap(err, "Input validation failed for TDX Attributes")
+		}
+	}
+	return nil
+}
+
+func validateSGXAttributes(sgxPolicyAttributes *model.SgxAttributes) error {
+
+	for _, mrSigner := range sgxPolicyAttributes.MrSigner {
+		if err := ValidateSha256HexString(mrSigner); err != nil {
+			return errors.Wrap(err, "Input validation failed for MR Signer")
+		}
+	}
+
+	if sgxPolicyAttributes.MrEnclave != nil {
+		for _, mrEnclave := range sgxPolicyAttributes.MrEnclave {
+			if err := ValidateSha256HexString(mrEnclave); err != nil {
+				return errors.Wrap(err, "Input validation failed for MR Enclave")
+			}
+		}
+	}
+
+	if sgxPolicyAttributes.ClientPermissions != nil {
+		if err := ValidateStrings(sgxPolicyAttributes.ClientPermissions); err != nil {
+			return errors.Wrap(err, "Input validation failed for client permissions")
+		}
+	}
+	return nil
+}
+
+func validateTDXAttributes(tdxPolicyAttributes *model.TdxAttributes) error {
+
+	for _, mrSignerSeam := range tdxPolicyAttributes.MrSignerSeam {
+		if err := ValidateSha384HexString(mrSignerSeam); err != nil {
+			return errors.Wrap(err, "Input validation failed for MR Signer seam")
+		}
+	}
+
+	for _, mrSeam := range tdxPolicyAttributes.MrSeam {
+		if err := ValidateSha384HexString(mrSeam); err != nil {
+			return errors.Wrap(err, "Input validation failed for MR Seam")
+		}
+	}
+
+	if tdxPolicyAttributes.MRTD != nil {
+		for _, mrTd := range tdxPolicyAttributes.MRTD {
+			if err := ValidateSha384HexString(mrTd); err != nil {
+				return errors.Wrap(err, "Input validation failed for MRTD")
+			}
+		}
+	}
+
+	if tdxPolicyAttributes.RTMR0 != "" {
+		if err := ValidateSha384HexString(tdxPolicyAttributes.RTMR0); err != nil {
+			return errors.Wrap(err, "Input validation failed for RTMR0")
+		}
+	}
+
+	if tdxPolicyAttributes.RTMR1 != "" {
+		if err := ValidateSha384HexString(tdxPolicyAttributes.RTMR1); err != nil {
+			return errors.Wrap(err, "Input validation failed for RTMR1")
+		}
+	}
+
+	if tdxPolicyAttributes.RTMR2 != "" {
+		if err := ValidateSha384HexString(tdxPolicyAttributes.RTMR2); err != nil {
+			return errors.Wrap(err, "Input validation failed for RTMR2")
+		}
+	}
+
+	if tdxPolicyAttributes.RTMR3 != "" {
+		if err := ValidateSha384HexString(tdxPolicyAttributes.RTMR3); err != nil {
+			return errors.Wrap(err, "Input validation failed for RTMR3")
+		}
+	}
+
+	return nil
+}
