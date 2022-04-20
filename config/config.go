@@ -22,11 +22,9 @@ const (
 	LogLevel    = "log-level"
 	LogCaller   = "log-caller"
 
-	ApsBaseUrl  = "aps-base-url"
-	CustomToken = "custom-token"
-
-	EndpointUrl = "endpoint-url"
-	KeyManager  = "key-manager"
+	ASBaseUrl  = "as-base-url"
+	ASApiKey   = "as-api-key"
+	KeyManager = "key-manager"
 
 	KmipVersion        = "kmip.version"
 	KmipServerIP       = "kmip.server-ip"
@@ -44,11 +42,9 @@ type Configuration struct {
 	LogLevel    string `yaml:"log-level" mapstructure:"log-level"`
 	LogCaller   bool   `yaml:"log-caller" mapstructure:"log-caller"`
 
-	ASBaseUrl string `yaml:"aps-base-url" mapstructure:"aps-base-url"`
-	ASApiKey  string `yaml:"custom-token" mapstructure:"custom-token"`
-
-	EndpointURL string `yaml:"endpoint-url" mapstructure:"endpoint-url"`
-	KeyManager  string `yaml:"key-manager" mapstructure:"key-manager"`
+	ASBaseUrl  string `yaml:"as-base-url" mapstructure:"as-base-url"`
+	ASApiKey   string `yaml:"as-api-key" mapstructure:"as-api-key"`
+	KeyManager string `yaml:"key-manager" mapstructure:"key-manager"`
 
 	Kmip KmipConfig `yaml:"kmip"`
 }

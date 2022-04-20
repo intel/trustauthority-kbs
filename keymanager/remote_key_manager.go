@@ -6,7 +6,6 @@ package keymanager
 
 import (
 	"fmt"
-	"strings"
 
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/repository"
@@ -15,16 +14,14 @@ import (
 )
 
 type RemoteManager struct {
-	store       repository.KeyStore
-	manager     KeyManager
-	endpointURL string
+	store   repository.KeyStore
+	manager KeyManager
 }
 
-func NewRemoteManager(ks repository.KeyStore, km KeyManager, url string) *RemoteManager {
+func NewRemoteManager(ks repository.KeyStore, km KeyManager) *RemoteManager {
 	return &RemoteManager{
-		store:       ks,
-		manager:     km,
-		endpointURL: url,
+		store:   ks,
+		manager: km,
 	}
 }
 
@@ -35,7 +32,7 @@ func (rm *RemoteManager) CreateKey(request *model.KeyRequest) (*model.KeyRespons
 		return nil, err
 	}
 
-	keyAttributes.TransferLink = rm.getTransferLink(keyAttributes.ID)
+	keyAttributes.TransferLink = getTransferLink(keyAttributes.ID)
 	storedKey, err := rm.store.Create(keyAttributes)
 	if err != nil {
 		return nil, err
@@ -90,7 +87,7 @@ func (rm *RemoteManager) RegisterKey(request *model.KeyRequest) (*model.KeyRespo
 		return nil, err
 	}
 
-	keyAttributes.TransferLink = rm.getTransferLink(keyAttributes.ID)
+	keyAttributes.TransferLink = getTransferLink(keyAttributes.ID)
 	storedKey, err := rm.store.Create(keyAttributes)
 	if err != nil {
 		return nil, err
@@ -109,11 +106,6 @@ func (rm *RemoteManager) TransferKey(keyId uuid.UUID) ([]byte, error) {
 	return rm.manager.TransferKey(keyAttributes)
 }
 
-func (rm *RemoteManager) getTransferLink(keyId uuid.UUID) string {
-
-	if strings.HasSuffix(rm.endpointURL, "/") {
-		return fmt.Sprintf("%skeys/%s/transfer", rm.endpointURL, keyId.String())
-	} else {
-		return fmt.Sprintf("%s/keys/%s/transfer", rm.endpointURL, keyId.String())
-	}
+func getTransferLink(keyId uuid.UUID) string {
+	return fmt.Sprintf("/kbs/v1/keys/%s/transfer", keyId.String())
 }
