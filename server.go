@@ -29,7 +29,8 @@ import (
 
 func (app *App) startServer() error {
 
-	configuration := app.configuration()
+	configuration := app.Config
+	log.Infof("configuration: %v", configuration)
 	if configuration == nil {
 		return errors.New("Failed to load configuration")
 	}
@@ -63,7 +64,7 @@ func (app *App) startServer() error {
 
 	// Create repository layer and remote manager
 	repository := repository.NewDirectoryRepository(constant.HomeDir)
-	remoteManager := keymanager.NewRemoteManager(repository.KeyStore, keyManager, configuration.EndpointURL)
+	remoteManager := keymanager.NewRemoteManager(repository.KeyStore, keyManager)
 
 	svc, err := service.NewService(asClient, repository, remoteManager)
 	if err != nil {

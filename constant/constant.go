@@ -15,7 +15,6 @@ const (
 	HomeDir      = "/opt/" + ServiceDir
 	RunDirPath   = "/run/" + ServiceDir
 	ExecLinkPath = "/usr/bin/" + ServiceName
-	LogDir       = "/var/log/" + ServiceDir
 	ConfigDir    = "/etc/" + ServiceDir
 	ConfigFile   = "config"
 
@@ -41,10 +40,15 @@ const (
 	DefaultLogLevel = "info"
 
 	// server constants
-	DefaultKBSListenerPort = 9443
+	DefaultHttpPort = 9443
 
-	// keymanager constants
-	KmipKeyManager = "kmip"
+	// kmipmanager constants
+	KmipKeyManager     = "kmip"
+	DefaultKmipPort    = 5696
+	KmipCertsPath      = ConfigDir + "certs/kmip/"
+	KmipClientKeyPath  = KmipCertsPath + "client_key.pem"
+	KmipClientCertPath = KmipCertsPath + "client_certificate.pem"
+	KmipRootCertPath   = KmipCertsPath + "root_certificate.pem"
 
 	// algorithm constants
 	CRYPTOALGAES = "AES"

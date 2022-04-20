@@ -65,6 +65,11 @@ func (app *App) Run(args []string) error {
 		if len(args) != 2 {
 			return errInvalidCmd
 		}
+		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+		viper.AutomaticEnv()
+		if app.configuration() == nil {
+			app.Config = defaultConfig()
+		}
 		return app.startServer()
 	case "start":
 		if len(args) != 2 {

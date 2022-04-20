@@ -29,7 +29,7 @@ import (
 	"intel/amber/kbs/v1/keymanager"
 	"intel/amber/kbs/v1/model"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

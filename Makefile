@@ -3,17 +3,31 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+ORGNAME := taas
+APPNAME := key-broker-service
+REPO := localhost:5000
+SHELL := /bin/bash
+
 GITTAG := $(shell git describe --tags --abbrev=0 2> /dev/null)
 GITCOMMIT := $(shell git describe --always)
-VERSION := v1.0.0
+VERSION := $(or ${GITTAG}, v0.0.0)
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%S%z)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 DOCKER_PROXY_FLAGS := ""
 ifeq ($(PROXY_EXISTS),1)
-        DOCKER_PROXY_FLAGS = --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy}
+        DOCKER_PROXY_FLAGS = --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} --build-arg no_proxy="${no_proxy}"
 else
         undefine DOCKER_PROXY_FLAGS
 endif
+
+makefile_path := $(realpath $(lastword $(MAKEFILE_LIST)))
+makefile_dir := $(dir $(makefile_path))
+OUTDIR := $(addprefix $(makefile_dir),out)
+TMPDIR := $(addprefix $(makefile_dir),tmp)
+
+.PHONY: all installer docker test clean help
+
+all: docker
 
 kbs:
 	cd cmd && go mod tidy && \
@@ -27,9 +41,35 @@ installer: kbs
 	makeself installer kbs-$(VERSION).bin "kbs $(VERSION)" ./install.sh
 	rm -rf installer
 
-all: clean installer
+docker: docker.timestamp
+
+docker.timestamp: Dockerfile go.mod go.sum $(shell find $(makefile_dir) -type f -name '*.go')
+	pushd "$(makefile_dir)"
+	docker build ${DOCKER_PROXY_FLAGS} -f Dockerfile --target final -t $(ORGNAME)/$(APPNAME):$(VERSION) .
+	touch $@
+
+test: test-image
+	docker run -i --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "CGO_CFLAGS_ALLOW='-f.*' GOOS=linux GOSUMDB=off /usr/local/go/bin/go test ./... -coverprofile=cover.out;/usr/local/go/bin/go tool cover -func cover.out"
+
+test-image:
+	docker build ${DOCKER_PROXY_FLAGS} -f Dockerfile --target builder -t $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) .
+
+go-fmt: test-image
+	docker run -i --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) env GOOS=linux GOSUMDB=off /usr/local/go/bin/gofmt -l .
+
+push-commit: push
+	docker tag $(ORGNAME)/$(APPNAME):$(VERSION) $(REPO)/$(ORGNAME)/$(APPNAME):$(VERSION)-$(GITCOMMIT)
+	docker push $(REPO)/$(ORGNAME)/$(APPNAME):$(VERSION)-$(GITCOMMIT)
+
+push: docker.timestamp
+	docker tag $(ORGNAME)/$(APPNAME):$(VERSION) $(REPO)/$(ORGNAME)/$(APPNAME):$(VERSION)
+	docker push $(REPO)/$(ORGNAME)/$(APPNAME):$(VERSION)
 
 clean:
-	rm -rf *.bin
+	if pushd $(makefile_dir); then \
+		rm -rf $(OUTDIR) $(TMPDIR); \
+		rm -f *.bin docker.timestamp cmd/kbs; \
+	fi;
 
-.PHONY: installer all clean
+help:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'

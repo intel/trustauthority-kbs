@@ -13,15 +13,18 @@ import (
 
 // This init function sets the default values for viper keys.
 func init() {
-	viper.SetDefault(config.ServicePort, constant.DefaultKBSListenerPort)
+	viper.SetDefault(config.ServicePort, constant.DefaultHttpPort)
 	viper.SetDefault(config.LogLevel, constant.DefaultLogLevel)
 	viper.SetDefault(config.LogCaller, false)
 
-	viper.SetDefault(config.EndpointUrl, constant.DefaultEndpointUrl)
 	viper.SetDefault(config.KeyManager, constant.DefaultKeyManager)
 
-	// Set default value for kmip version
+	// Set default value for kmip config
 	viper.SetDefault(config.KmipVersion, constant.KMIP20)
+	viper.SetDefault(config.KmipServerPort, constant.DefaultKmipPort)
+	viper.SetDefault(config.KmipClientKeyPath, constant.KmipClientKeyPath)
+	viper.SetDefault(config.KmipClientCertPath, constant.KmipClientCertPath)
+	viper.SetDefault(config.KmipRootCertPath, constant.KmipRootCertPath)
 }
 
 func defaultConfig() *config.Configuration {
@@ -29,9 +32,8 @@ func defaultConfig() *config.Configuration {
 		ServicePort: viper.GetInt(config.ServicePort),
 		LogLevel:    viper.GetString(config.LogLevel),
 		LogCaller:   viper.GetBool(config.LogCaller),
-		ASBaseUrl:   viper.GetString(config.ApsBaseUrl),
-		ASApiKey:    viper.GetString(config.CustomToken),
-		EndpointURL: viper.GetString(config.EndpointUrl),
+		ASBaseUrl:   viper.GetString(config.ASBaseUrl),
+		ASApiKey:    viper.GetString(config.ASApiKey),
 		KeyManager:  viper.GetString(config.KeyManager),
 
 		Kmip: config.KmipConfig{
