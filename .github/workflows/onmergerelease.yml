@@ -1,0 +1,84 @@
+name: OnMergeRelease
+
+on:
+  push:
+    branches:
+    - 'release/*'
+
+jobs:
+  docker-push:
+    runs-on: [ self-hosted ]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build Image
+      run: make
+
+    - name: Push Image
+      run: |
+        make REPO=amr-registry.caas.intel.com/cassini push-commit
+
+  style-check:
+    runs-on: [ self-hosted ]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Style Checker
+      run: |
+        make go-fmt
+        if [ "$(make go-fmt | tail -n 1 | grep gofmt | wc -l)"  -eq 0 ]; then
+           exit 1
+        fi
+
+  snyk-scan:
+   runs-on: [ self-hosted ]
+   env:
+     http_proxy: ${{ secrets.HTTP_PROXY }}
+     https_proxy: ${{ secrets.HTTPS_PROXY }}
+     no_proxy: ${{ secrets.NO_PROXY }}
+   steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Snyk Scan
+      run: |
+         snyk config set endpoint=${{ secrets.SNYK_URL }}
+         snyk config set api=${{ secrets.SYNK_API_TOKEN }}
+         snyk config set org=${{ secrets.ORG_NAME }}
+         snyk auth ${{ secrets.SNYK_AUTH_TOKEN }}
+         snyk monitor --insecure --all-projects
+   
+  checkmarx:
+    runs-on: [ self-hosted ]
+    container: amr-registry.caas.intel.com/cassini/checkmarx:isecl
+    env:
+     HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
+     HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
+     NO_PROXY: ${{ secrets.NO_PROXY }}
+     PROJECT: ${{ secrets.CHECKMARX_PROJECT }}
+     TEAM:  ${{ secrets.CHECKMARX_TEAM }}                 
+     CHECKMARX_BASE_URL: ${{ secrets.CHECKMARX_URL }}
+     CHECKMARX_USERNAME: ${{ secrets.CHECKMARX_USERNAME }}
+     CHECKMARX_PASSWORD: ${{ secrets.CHECKMARX_PASSWORD }}
+     CHECKMARX_CLIENT_SECRET: ${{ secrets.CHECKMARX_CLIENT_SECRET }}
+     GITHUB_TOKEN: ${{secrets.GH_TOKEN}}
+     CX_FLOW_BREAK_BUILD: false
+     CX_FLOW_ENABLED_VULNERABILITY_SCANNERS: sast
+     CX_FLOW_BUG_TRACKER: Sarif
+     CHECKMARX_SCAN_PRESET: IntelDefault
+     CXFLOW_PARAMS: "--namespace=${{ github.repository_owner }} --repo-name=${{ github.event.repository.name }} --branch=${{ github.ref }} --cx-flow.filterSeverity --cx-flow.filterCategory"
+
+    steps:
+     - name: Checkmarx CxFlow Action
+       uses: actions/checkout@v2
+
+     - name: Checkmarx CxFlow run
+       run: |
+        echo "Project - ${PROJECT}"
+        echo "scanner ${CX_FLOW_ENABLED_VULNERABILITY_SCANNERS}"
+        java ${JAVA_OPTS} -jar /app/cx-flow.jar --spring.profiles.active="${CX_FLOW_ENABLED_VULNERABILITY_SCANNERS}" --scan --github.api-url="${GITHUB_API_URL}/repos/" --cx-team="${TEAM}" --cx-project="${PROJECT}" --app="${APP}" --f=. ${CXFLOW_PARAMS}

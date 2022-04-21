@@ -1,0 +1,18 @@
+name: Manually push image to Harbor
+on:
+  workflow_dispatch:
+
+jobs:
+  docker-push:
+    runs-on: [ self-hosted ]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build Image
+      run: make
+
+    - name: Push Image
+      run: |
+        make REPO=amr-registry.caas.intel.com/cassini push-commit
