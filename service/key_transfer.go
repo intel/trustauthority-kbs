@@ -5,7 +5,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -14,9 +13,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"hash"
 	"io"
 	"math/big"
@@ -29,7 +26,6 @@ import (
 	"intel/amber/kbs/v1/keymanager"
 	"intel/amber/kbs/v1/model"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -126,7 +122,7 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 		return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving token from appraisal service"}
 	}
 
-	claims, err := parseToken(string(token))
+	claims, err := svc.authenticateToken(string(token))
 	if err != nil {
 		log.WithError(err).Error("Failed to authenticate attestation-token")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "Failed to authenticate attestation-token"}
@@ -143,19 +139,13 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 	return resp, nil
 }
 
-func parseToken(token string) (interface{}, error) {
+func (svc service) authenticateToken(token string) (interface{}, error) {
 
 	claims := &model.AttestationTokenClaim{}
-	parts := strings.Split(token, ".")
-
-	// parse Claims
-	var claimBytes []byte
-	var err error
-	if claimBytes, err = jwt.DecodeSegment(parts[1]); err != nil {
-		return nil, fmt.Errorf("could not decode claims part of the jwt token")
+	_, err := svc.jwtVerifier.ValidateTokenAndGetClaims(strings.TrimSpace(token), &claims)
+	if err != nil {
+		return nil, errors.Wrap(err, "token validation failure")
 	}
-	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
-	err = dec.Decode(claims)
 
 	return claims, nil
 }

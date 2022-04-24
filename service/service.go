@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"intel/amber/kbs/v1/clients/as"
+	"intel/amber/kbs/v1/jwt"
 	"intel/amber/kbs/v1/keymanager"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/repository"
@@ -32,16 +33,18 @@ type Service interface {
 
 type service struct {
 	asClient      as.ASClient
+	jwtVerifier   jwt.Verifier
 	repository    *repository.Repository
 	remoteManager *keymanager.RemoteManager
 }
 
-func NewService(asClient as.ASClient, repo *repository.Repository, remoteManager *keymanager.RemoteManager) (Service, error) {
+func NewService(asClient as.ASClient, jwtVerifier jwt.Verifier, repo *repository.Repository, remoteManager *keymanager.RemoteManager) (Service, error) {
 
 	var svc Service
 	{
 		svc = service{
 			asClient:      asClient,
+			jwtVerifier:   jwtVerifier,
 			repository:    repo,
 			remoteManager: remoteManager,
 		}

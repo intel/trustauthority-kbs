@@ -22,8 +22,8 @@ const (
 	KeysTransferPolicyDir = "keys-transfer-policy/"
 
 	// certificates' path
-	ApsJWTSigningCertsDir = ConfigDir + "certs/apsjwt/"
-	TrustedCaCertsDir     = ConfigDir + "certs/trustedca/"
+	TrustedJWTSigningCertsDir = ConfigDir + "certs/trustedjwt/"
+	TrustedCACertsDir         = ConfigDir + "certs/trustedca/"
 
 	// defaults
 	DefaultKeyManager     = "Kmip"
