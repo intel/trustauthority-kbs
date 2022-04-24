@@ -7,17 +7,22 @@ package kbs
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
+	"path"
+	"path/filepath"
 	"syscall"
 	"time"
 
 	"intel/amber/kbs/v1/clients"
 	"intel/amber/kbs/v1/clients/as"
+	"intel/amber/kbs/v1/config"
 	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/crypt"
+	"intel/amber/kbs/v1/jwt"
 	"intel/amber/kbs/v1/keymanager"
 	"intel/amber/kbs/v1/repository"
 	"intel/amber/kbs/v1/service"
@@ -45,28 +50,25 @@ func (app *App) startServer() error {
 		return err
 	}
 
-	asBaseUrl, err := url.Parse(configuration.ASBaseUrl)
-	if err != nil {
-		log.WithError(err).Error("Error parsing APS url")
-		return err
-	}
-
-	// Load trusted CA certificates
-	caCerts, err := crypt.GetCertsFromDir(constant.TrustedCaCertsDir)
-	if err != nil {
-		log.WithError(err).Error("Error loading CA certificates")
-		return err
-	}
-
-	// Initialize the APS client
-	client := clients.HTTPClientWithCA(caCerts)
-	asClient := as.NewASClient(client, asBaseUrl, configuration.ASApiKey)
-
 	// Create repository layer and remote manager
 	repository := repository.NewDirectoryRepository(constant.HomeDir)
 	remoteManager := keymanager.NewRemoteManager(repository.KeyStore, keyManager)
 
-	svc, err := service.NewService(asClient, repository, remoteManager)
+	// Initialize AS client
+	asClient, err := initASClient(configuration)
+	if err != nil {
+		return err
+	}
+
+	// Initialize JwtVerifier
+	var cacheTime, _ = time.ParseDuration(constant.JWTCertsCacheTime)
+	jwtVerifier, err := initJwtVerifier(constant.TrustedJWTSigningCertsDir, constant.TrustedCACertsDir, cacheTime)
+	if err != nil {
+		return err
+	}
+
+	// Initialize the Service
+	svc, err := service.NewService(asClient, jwtVerifier, repository, remoteManager)
 	if err != nil {
 		msg := "Failed to initialize Service"
 		log.WithError(err).Error(msg)
@@ -110,4 +112,68 @@ func (app *App) startServer() error {
 	}
 	log.Info("service stopped")
 	return nil
+}
+
+func initASClient(cfg *config.Configuration) (as.ASClient, error) {
+
+	asBaseUrl, err := url.Parse(cfg.ASBaseUrl)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error parsing AS url")
+	}
+
+	caCerts, err := crypt.GetCertsFromDir(constant.TrustedCACertsDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error loading CA certificates")
+	}
+
+	client := clients.HTTPClientWithCA(caCerts)
+	asClient := as.NewASClient(client, asBaseUrl, cfg.ASApiKey)
+
+	return asClient, nil
+}
+
+func initJwtVerifier(signingCertsDir, trustedCAsDir string, cacheTime time.Duration) (jwt.Verifier, error) {
+
+	certPems, err := GetDirFileContents(signingCertsDir, "*.pem")
+	if err != nil {
+		return nil, err
+	}
+
+	rootPems, err := GetDirFileContents(trustedCAsDir, "*.pem")
+	if err != nil {
+		return nil, err
+	}
+
+	return jwt.NewVerifier(certPems, rootPems, cacheTime)
+}
+
+func GetDirFileContents(dir, pattern string) ([][]byte, error) {
+	dirContents := make([][]byte, 0)
+	//if we are passed in an empty pattern, set pattern to * to match all files
+	if pattern == "" {
+		pattern = "*"
+	}
+
+	err := filepath.Walk(dir, func(fPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if matched, _ := path.Match(pattern, info.Name()); matched == true {
+			if content, err := ioutil.ReadFile(fPath); err == nil {
+				dirContents = append(dirContents, content)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(dirContents) == 0 {
+		return nil, fmt.Errorf("no files found with matching pattern %s under directory %s", pattern, dir)
+	}
+	return dirContents, nil
 }

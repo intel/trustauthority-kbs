@@ -5,13 +5,19 @@
 package crypt
 
 import (
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,7 +25,7 @@ func GetCertsFromDir(path string) ([]x509.Certificate, error) {
 	var certificates []x509.Certificate
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		return certificates, errors.Wrap(err, "Error while reading certs from dir "+path)
+		return certificates, fmt.Errorf("Error while reading certs from dir %s", path)
 	}
 	if !strings.HasSuffix(path, "/") {
 		path = path + "/"
@@ -94,4 +100,74 @@ func GetCertPool(certs []x509.Certificate) *x509.CertPool {
 		rootCAs.AddCert(&certs[i])
 	}
 	return rootCAs
+}
+
+func GetCertAndChainFromPem(certPem []byte) (cert *x509.Certificate, chain *x509.CertPool, err error) {
+	block, rest := pem.Decode(certPem)
+	if block == nil || block.Type != "CERTIFICATE" {
+		return nil, nil, fmt.Errorf("failed to decode PEM certificate")
+	}
+
+	if cert, err = x509.ParseCertificate(block.Bytes); err != nil {
+		return nil, nil, fmt.Errorf("failed to parse X509 certificate")
+	}
+
+	if chain = x509.NewCertPool(); chain.AppendCertsFromPEM(rest) {
+		return
+	}
+	return cert, nil, nil
+}
+
+func GetCertHashInHex(cert *x509.Certificate, hashAlg crypto.Hash) (string, error) {
+	hash, err := GetHashData(cert.Raw, hashAlg)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(hash), nil
+}
+
+// GetHash returns a byte array to the hash of the data.
+// alg indicates the hashing algorithm. Currently, the only supported hashing algorithms
+// are SHA1, SHA256, SHA384 and SHA512
+func GetHashData(data []byte, alg crypto.Hash) ([]byte, error) {
+
+	if data == nil {
+		return nil, fmt.Errorf("data is nil")
+	}
+
+	switch alg {
+	case crypto.SHA1:
+		s := sha1.Sum(data)
+		return s[:], nil
+	case crypto.SHA256:
+		s := sha256.Sum256(data)
+		return s[:], nil
+	case crypto.SHA384:
+		s := sha512.Sum384(data)
+		return s[:], nil
+	case crypto.SHA512:
+		s := sha512.Sum512(data)
+		return s[:], nil
+	}
+
+	return nil, fmt.Errorf("Unsupported hashing function %d. Only SHA1, SHA256, SHA384 and SHA512 supported", alg)
+}
+
+// GetPublicKeyFromCert retrieve the public key from a certificate
+// We only support ECDSA and RSA public key
+func GetPublicKeyFromCert(cert *x509.Certificate) (crypto.PublicKey, error) {
+	switch cert.PublicKeyAlgorithm {
+	case x509.RSA:
+		if key, ok := cert.PublicKey.(*rsa.PublicKey); ok {
+			return key, nil
+		}
+		return nil, fmt.Errorf("public key algorithm of cert reported as RSA cert does not match RSA public key struct")
+	case x509.ECDSA:
+		if key, ok := cert.PublicKey.(*ecdsa.PublicKey); ok {
+			return key, nil
+		}
+		return nil, fmt.Errorf("public key algorithm of cert reported as ECDSA cert does not match ECDSA public key struct")
+	}
+	return nil, fmt.Errorf("only RSA and ECDSA public keys are supported")
 }
