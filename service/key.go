@@ -23,7 +23,7 @@ const (
 func (mw loggingMiddleware) CreateKey(ctx context.Context, req model.KeyRequest) (*model.KeyResponse, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("CreateKey took %s since %s", time.Since(begin), begin)
+		log.Tracef("CreateKey took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
@@ -72,7 +72,7 @@ func (svc service) CreateKey(_ context.Context, keyCreateReq model.KeyRequest) (
 func (mw loggingMiddleware) SearchKeys(ctx context.Context, kfc *model.KeyFilterCriteria) ([]*model.KeyResponse, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("SearchKey took %s since %s", time.Since(begin), begin)
+		log.Tracef("SearchKey took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
@@ -94,7 +94,7 @@ func (svc service) SearchKeys(_ context.Context, filter *model.KeyFilterCriteria
 func (mw loggingMiddleware) DeleteKey(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("DeleteKey took %s since %s", time.Since(begin), begin)
+		log.Tracef("DeleteKey took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
@@ -120,7 +120,7 @@ func (svc service) DeleteKey(_ context.Context, keyId uuid.UUID) (interface{}, e
 func (mw loggingMiddleware) RetrieveKey(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("RetrieveKey took %s since %s", time.Since(begin), begin)
+		log.Tracef("RetrieveKey took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}

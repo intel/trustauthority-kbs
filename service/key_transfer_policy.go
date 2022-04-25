@@ -18,7 +18,7 @@ import (
 func (mw loggingMiddleware) CreateKeyTransferPolicy(ctx context.Context, ktp model.KeyTransferPolicy) (*model.KeyTransferPolicy, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("CreateKeyTransferPolicy took %s since %s", time.Since(begin), begin)
+		log.Tracef("CreateKeyTransferPolicy took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
@@ -41,7 +41,7 @@ func (svc service) CreateKeyTransferPolicy(_ context.Context, policyCreateReques
 func (mw loggingMiddleware) RetrieveKeyTransferPolicy(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("RetrieveKeyTransferPolicy took %s since %s", time.Since(begin), begin)
+		log.Tracef("RetrieveKeyTransferPolicy took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
@@ -69,7 +69,7 @@ func (svc service) RetrieveKeyTransferPolicy(_ context.Context, id uuid.UUID) (i
 func (mw loggingMiddleware) DeleteKeyTransferPolicy(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("DeleteKeyTransferPolicy took %s since %s", time.Since(begin), begin)
+		log.Tracef("DeleteKeyTransferPolicy took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
@@ -112,7 +112,7 @@ func (svc service) DeleteKeyTransferPolicy(_ context.Context, id uuid.UUID) (int
 func (mw loggingMiddleware) SearchKeyTransferPolicies(ctx context.Context, pfc *model.KeyTransferPolicyFilterCriteria) ([]model.KeyTransferPolicy, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("SearchKeyTransferPolicy took %s since %s", time.Since(begin), begin)
+		log.Tracef("SearchKeyTransferPolicy took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
