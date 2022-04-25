@@ -30,6 +30,11 @@ const (
 	DefaultEndpointUrl    = "http://localhost"
 	DefaultConfigFilePath = ConfigDir + "config.yml"
 
+	// default locations for tls certificate and key
+	TLSCertsPath       = ConfigDir + "certs/tls/"
+	DefaultTLSCertPath = TLSCertsPath + "tls.crt"
+	DefaultTLSKeyPath  = TLSCertsPath + "tls.key"
+
 	// service remove command
 	ServiceRemoveCmd = "systemctl disable kbs"
 

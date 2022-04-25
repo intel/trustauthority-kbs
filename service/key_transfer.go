@@ -52,7 +52,7 @@ type TransferKeyResponse struct {
 func (mw loggingMiddleware) TransferKey(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Infof("TransferKey took %s since %s", time.Since(begin), begin)
+		log.Tracef("TransferKey took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}

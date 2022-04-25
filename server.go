@@ -6,6 +6,7 @@ package kbs
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -55,14 +56,14 @@ func (app *App) startServer() error {
 	remoteManager := keymanager.NewRemoteManager(repository.KeyStore, keyManager)
 
 	// Initialize AS client
-	asClient, err := initASClient(configuration)
+	asClient, err := newASClient(configuration)
 	if err != nil {
 		return err
 	}
 
 	// Initialize JwtVerifier
 	var cacheTime, _ = time.ParseDuration(constant.JWTCertsCacheTime)
-	jwtVerifier, err := initJwtVerifier(constant.TrustedJWTSigningCertsDir, constant.TrustedCACertsDir, cacheTime)
+	jwtVerifier, err := newJwtVerifier(constant.TrustedJWTSigningCertsDir, constant.TrustedCACertsDir, cacheTime)
 	if err != nil {
 		return err
 	}
@@ -76,9 +77,9 @@ func (app *App) startServer() error {
 	}
 
 	// Associate the service to rest endpoints/http
-	httpHandlers, err := httpTransport.InitHTTPHandlers(svc, configuration)
+	httpHandlers, err := httpTransport.NewHTTPHandler(svc, configuration)
 	if err != nil {
-		return errors.Wrap(err, "Failed to initialize HTTP handlers")
+		return errors.Wrap(err, "Failed to initialize HTTP handler")
 	}
 
 	// Setup signal handlers to gracefully handle termination
@@ -92,8 +93,25 @@ func (app *App) startServer() error {
 	// Dispatch web server go routine
 	log.Info("Starting server")
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil {
-			if err != http.ErrServerClosed {
+		var serveErr error
+		if _, err := os.Stat(constant.DefaultTLSCertPath); os.IsNotExist(err) {
+			log.Debugf("Starting HTTP server as TLS cert %s does not exist", constant.DefaultTLSCertPath)
+			serveErr = httpServer.ListenAndServe()
+		} else {
+			log.Debugf("Starting HTTPS server with TLS cert: %s", constant.DefaultTLSCertPath)
+			tlsConfig := &tls.Config{
+				MinVersion: tls.VersionTLS12,
+				CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
+			}
+			httpServer.TLSConfig = tlsConfig
+			serveErr = httpServer.ListenAndServeTLS(constant.DefaultTLSCertPath, constant.DefaultTLSKeyPath)
+		}
+
+		if serveErr != nil {
+			if serveErr != http.ErrServerClosed {
 				log.WithError(err).Fatal("Failed to start HTTP server")
 			}
 			stop <- syscall.SIGTERM
@@ -114,7 +132,7 @@ func (app *App) startServer() error {
 	return nil
 }
 
-func initASClient(cfg *config.Configuration) (as.ASClient, error) {
+func newASClient(cfg *config.Configuration) (as.ASClient, error) {
 
 	asBaseUrl, err := url.Parse(cfg.ASBaseUrl)
 	if err != nil {
@@ -132,7 +150,7 @@ func initASClient(cfg *config.Configuration) (as.ASClient, error) {
 	return asClient, nil
 }
 
-func initJwtVerifier(signingCertsDir, trustedCAsDir string, cacheTime time.Duration) (jwt.Verifier, error) {
+func newJwtVerifier(signingCertsDir, trustedCAsDir string, cacheTime time.Duration) (jwt.Verifier, error) {
 
 	certPems, err := GetDirFileContents(signingCertsDir, "*.pem")
 	if err != nil {

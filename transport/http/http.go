@@ -21,7 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func InitHTTPHandlers(svc service.Service, conf *config.Configuration) (http.Handler, error) {
+func NewHTTPHandler(svc service.Service, conf *config.Configuration) (http.Handler, error) {
 	r := mux.NewRouter()
 	r.SkipClean(true)
 
