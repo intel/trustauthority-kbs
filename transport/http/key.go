@@ -57,7 +57,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 		options...,
 	)
 
-	router.Handle(keyIdExpr, getKeyHandler).Methods(http.MethodPost)
+	router.Handle(keyIdExpr, getKeyHandler).Methods(http.MethodGet)
 
 	deleteKeyHandler := httpTransport.NewServer(
 		makeDeleteKeyEndpoint(svc),

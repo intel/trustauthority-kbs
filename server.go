@@ -112,7 +112,7 @@ func (app *App) startServer() error {
 
 		if serveErr != nil {
 			if serveErr != http.ErrServerClosed {
-				log.WithError(err).Fatal("Failed to start HTTP server")
+				log.WithError(serveErr).Fatal("Failed to start HTTP server")
 			}
 			stop <- syscall.SIGTERM
 		}
@@ -190,8 +190,5 @@ func GetDirFileContents(dir, pattern string) ([][]byte, error) {
 		return nil, err
 	}
 
-	if len(dirContents) == 0 {
-		return nil, fmt.Errorf("no files found with matching pattern %s under directory %s", pattern, dir)
-	}
 	return dirContents, nil
 }
