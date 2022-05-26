@@ -114,6 +114,7 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 		UserData:    req.KeyTransferRequest.UserData,
 		PolicyIds:   policyIds,
 		EventLog:    req.KeyTransferRequest.EventLog,
+		TenantId:    uuid.MustParse("7110194b-a703-4657-9d7f-3e02b62f2ed8"),
 	}
 
 	token, err := svc.asClient.GetAttestationToken(&tokenRequest)
@@ -128,7 +129,7 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "Failed to authenticate attestation-token"}
 	}
 	tokenClaims := claims.(*model.AttestationTokenClaim)
-	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.EnclaveHeldData, req.KeyId)
+	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.TeeHeldData, req.KeyId)
 	if err != nil {
 		return nil, &HandledError{Code: httpStatus, Message: err.Error()}
 	}
