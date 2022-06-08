@@ -15,9 +15,11 @@ BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%S%z)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 DOCKER_PROXY_FLAGS := ""
 ifeq ($(PROXY_EXISTS),1)
-        DOCKER_PROXY_FLAGS = --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} --build-arg no_proxy="${no_proxy}"
+    DOCKER_PROXY_FLAGS = --build-arg http_proxy="${http_proxy}" --build-arg https_proxy="${https_proxy}" --build-arg no_proxy="${no_proxy}"
+    DOCKER_RUN_PROXY_FLAGS = -e HTTP_PROXY="${http_proxy}" -e HTTPS_PROXY="${https_proxy}" -e NO_PROXY="${no_proxy}"
 else
         undefine DOCKER_PROXY_FLAGS
+        undefine DOCKER_RUN_PROXY_FLAGS
 endif
 
 makefile_path := $(realpath $(lastword $(MAKEFILE_LIST)))
@@ -49,10 +51,15 @@ docker.timestamp: Dockerfile go.mod go.sum $(shell find $(makefile_dir) -type f 
 	touch $@
 
 test: test-image
-	docker run -i --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "CGO_CFLAGS_ALLOW='-f.*' GOOS=linux GOSUMDB=off /usr/local/go/bin/go test ./... -coverprofile=cover.out;/usr/local/go/bin/go tool cover -func cover.out"
+	docker run -i ${DOCKER_RUN_PROXY_FLAGS} \
+	           --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) \
+		           /usr/local/go/bin/go tool cover -func=/app/cover.out
+
 
 test-image:
-	docker build ${DOCKER_PROXY_FLAGS} -f Dockerfile --target builder -t $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) .
+	DOCKER_BUILDKIT=1 docker build ${DOCKER_PROXY_FLAGS} \
+                                  -f Dockerfile --target tester \
+                                          -t $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) .
 
 go-fmt: test-image
 	docker run -i --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) env GOOS=linux GOSUMDB=off /usr/local/go/bin/gofmt -l .

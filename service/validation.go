@@ -23,9 +23,9 @@ func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, tr
 			if isPolicyIdMatched(tokenClaims.PolicyIds, transferPolicy.SGX.PolicyIds) {
 				return nil
 			}
-			if transferPolicy.SGX.Attributes == nil {
-				return errors.New("None of the policy-id in token matched with policy-id in key-transfer policy")
-			}
+		}
+		if transferPolicy.SGX.Attributes == nil {
+			return errors.New("None of the policy-id in token matched with policy-id in key-transfer policy")
 		}
 		return validateSGXTokenClaims(tokenClaims, transferPolicy.SGX.Attributes)
 
@@ -34,9 +34,10 @@ func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, tr
 			if isPolicyIdMatched(tokenClaims.PolicyIds, transferPolicy.TDX.PolicyIds) {
 				return nil
 			}
-			if transferPolicy.TDX.Attributes == nil {
-				return errors.New("None of the policy-id in token matched with policy-id in key-transfer policy")
-			}
+		}
+
+		if transferPolicy.TDX.Attributes == nil {
+			return errors.New("None of the policy-id in token matched with policy-id in key-transfer policy")
 		}
 		return validateTDXTokenClaims(tokenClaims, transferPolicy.TDX.Attributes)
 

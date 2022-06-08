@@ -60,6 +60,10 @@ func decodeTransferKeyHTTPRequest(_ context.Context, r *http.Request) (interface
 			log.Error(ErrInvalidContentTypeHeader.Error())
 			return nil, ErrInvalidContentTypeHeader
 		}
+		if attestType != "SGX" && attestType != "TDX" {
+			log.Error(ErrInvalidAttestationType.Error())
+			return nil, ErrInvalidAttestationType
+		}
 
 		if r.ContentLength == 0 {
 			log.Error(ErrEmptyRequestBody.Error())

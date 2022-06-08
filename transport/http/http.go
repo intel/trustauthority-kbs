@@ -94,7 +94,7 @@ func errorDecoder(r *http.Response) error {
 
 func errToCode(err error) int {
 	switch err {
-	case ErrInvalidRequest, ErrJsonDecodeFailed, ErrEmptyRequestBody, ErrTooManyQueryParams, ErrInvalidQueryParam, ErrInvalidFilterCriteria, ErrBase64DecodeFailed:
+	case ErrInvalidRequest, ErrJsonDecodeFailed, ErrEmptyRequestBody, ErrTooManyQueryParams, ErrInvalidQueryParam, ErrInvalidFilterCriteria, ErrBase64DecodeFailed, ErrInvalidAttestationType:
 		return http.StatusBadRequest
 	case ErrInvalidContentTypeHeader, ErrInvalidAcceptHeader:
 		return http.StatusUnsupportedMediaType

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -37,7 +38,8 @@ func ValidateStrings(strings []string) error {
 
 // ValidatePemEncodedKey method is used to validate input keys in PEM format
 func ValidatePemEncodedKey(key string) error {
-	if !pemEncodedKeyReg.MatchString(key) {
+	in := strings.TrimSpace(key)
+	if in == "" || !pemEncodedKeyReg.MatchString(in) {
 		return errors.New("Invalid pem format")
 	}
 	return nil
@@ -45,7 +47,8 @@ func ValidatePemEncodedKey(key string) error {
 
 // ValidateSha256HexString method checks if a string is a valid hex string of 32 bytes
 func ValidateSha256HexString(value string) error {
-	if !sha256HexStringReg.MatchString(value) {
+	in := strings.TrimSpace(value)
+	if in == "" || !sha256HexStringReg.MatchString(in) {
 		return errors.New("invalid SHA256 hex string format")
 	}
 	return nil
@@ -53,7 +56,8 @@ func ValidateSha256HexString(value string) error {
 
 // ValidateSha384HexString method checks if a string is a valid hex string of 48 bytes
 func ValidateSha384HexString(value string) error {
-	if !sha384HexStringReg.MatchString(value) {
+	in := strings.TrimSpace(value)
+	if in == "" || !sha384HexStringReg.MatchString(value) {
 		return errors.New("invalid SHA384 hex string format")
 	}
 	return nil
