@@ -18,4 +18,5 @@ var (
 	ErrTooManyQueryParams       = errors.New("Invalid query parameters provided. Number of query parameters exceeded maximum value")
 	ErrInvalidQueryParam        = errors.New("Invalid query parameter provided. Refer to API doc for details.")
 	ErrInvalidFilterCriteria    = errors.New("Invalid filter criteria")
+	ErrInvalidAttestationType   = errors.New("Invalid attestion type header")
 )

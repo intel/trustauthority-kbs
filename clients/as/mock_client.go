@@ -19,13 +19,13 @@ func NewMockClient() *MockClient {
 }
 
 // GetAttestationToken mocks base method
-func (m *MockClient) GetAttestationToken(req *AttestationTokenRequest) ([]byte, int, error) {
+func (m *MockClient) GetAttestationToken(req *AttestationTokenRequest) ([]byte, error) {
 	args := m.Called(req)
-	return args.Get(0).([]byte), args.Int(1), args.Error(2)
+	return args.Get(0).([]byte), args.Error(1)
 }
 
 // GetNonce mocks base method
-func (m *MockClient) GetNonce() (*SignedNonce, int, error) {
+func (m *MockClient) GetNonce() (*SignedNonce, error) {
 	args := m.Called()
-	return args.Get(0).(*SignedNonce), args.Int(1), args.Error(2)
+	return args.Get(0).(*SignedNonce), args.Error(1)
 }
