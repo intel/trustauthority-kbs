@@ -50,16 +50,16 @@ docker.timestamp: Dockerfile go.mod go.sum $(shell find $(makefile_dir) -type f 
 	docker build ${DOCKER_PROXY_FLAGS} -f Dockerfile --target final -t $(ORGNAME)/$(APPNAME):$(VERSION) .
 	touch $@
 
-test: test-image
-	docker run -i ${DOCKER_RUN_PROXY_FLAGS} \
-	           --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) \
-		           /usr/local/go/bin/go tool cover -func=/app/cover.out
-
-
 test-image:
 	DOCKER_BUILDKIT=1 docker build ${DOCKER_PROXY_FLAGS} \
                                   -f Dockerfile --target tester \
                                           -t $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) .
+
+test: test-image
+	docker run -i ${DOCKER_RUN_PROXY_FLAGS} --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "/usr/local/go/bin/go test ./..."
+
+test-coverage: test-image
+	docker run -i ${DOCKER_RUN_PROXY_FLAGS} --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "/usr/local/go/bin/go test ./... -coverprofile=cover.out; /usr/local/go/bin/go tool cover -func cover.out"
 
 go-fmt: test-image
 	docker run -i --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) env GOOS=linux GOSUMDB=off /usr/local/go/bin/gofmt -l .
