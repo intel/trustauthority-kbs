@@ -105,7 +105,12 @@ func (app *App) Run(args []string) error {
 			app.Config = defaultConfig()
 		}
 
-		err := app.Config.Save(constant.DefaultConfigFilePath)
+		err := app.Config.Validate()
+		if err != nil {
+			return errors.Wrap(err, "Invalid configuration")
+		}
+
+		err = app.Config.Save(constant.DefaultConfigFilePath)
 		if err != nil {
 			return errors.Wrap(err, "Failed to save configuration")
 		}
