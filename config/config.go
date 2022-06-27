@@ -5,7 +5,9 @@
 package config
 
 import (
+	"net/url"
 	"os"
+	"regexp"
 
 	"intel/amber/kbs/v1/constant"
 
@@ -35,6 +37,10 @@ const (
 	KmipClientKeyPath  = "kmip.client-key-path"
 	KmipClientCertPath = "kmip.client-cert-path"
 	KmipRootCertPath   = "kmip.root-cert-path"
+)
+
+var (
+	hexStringReg = regexp.MustCompile("^[a-fA-F0-9]+$")
 )
 
 type Configuration struct {
@@ -100,6 +106,37 @@ func (config *Configuration) Save(filename string) error {
 	err = yaml.NewEncoder(configFile).Encode(config)
 	if err != nil {
 		return errors.Wrap(err, "Failed to encode config structure")
+	}
+	return nil
+}
+
+func (conf *Configuration) Validate() error {
+
+	if conf.ServicePort < 1024 || conf.ServicePort > 65535 {
+		return errors.New("Configured port is not valid")
+	}
+
+	if conf.ASBaseUrl == "" || conf.ASApiKey == "" {
+		return errors.New("Either AS URL or APIKey is missing")
+	}
+
+	_, err := url.Parse(conf.ASBaseUrl)
+	if err != nil {
+		return errors.Wrap(err, "AS URL is not a valid url")
+	}
+
+	err = ValidateHexString(conf.ASApiKey)
+	if err != nil {
+		return errors.Wrap(err, "AS ApiKey is not a valid hex string")
+	}
+
+	return nil
+}
+
+// ValidateHexString method checks if a string has a valid hex format
+func ValidateHexString(value string) error {
+	if !hexStringReg.MatchString(value) {
+		return errors.New("Invalid hex string format")
 	}
 	return nil
 }
