@@ -8,9 +8,8 @@ APPNAME := key-broker-service
 REPO := localhost:5000
 SHELL := /bin/bash
 
-GITTAG := $(shell git describe --tags --abbrev=0 2> /dev/null)
 GITCOMMIT := $(shell git describe --always)
-VERSION := $(or ${GITTAG}, v0.0.0)
+VERSION := v0.3.0
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%S%z)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 DOCKER_PROXY_FLAGS := ""
