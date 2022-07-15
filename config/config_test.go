@@ -5,6 +5,7 @@
 package config
 
 import (
+	"github.com/onsi/gomega"
 	"github.com/spf13/viper"
 	"intel/amber/kbs/v1/constant"
 	"os"
@@ -101,4 +102,40 @@ func TestSaveConf(t *testing.T) {
 		t.Log(err)
 	}
 	clearEnv()
+}
+
+func TestValidate(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	err = cfg.Save("./../test/resource/tmp")
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.Validate()
+	if err != nil {
+		t.Log(err)
+	}
+	clearEnv()
+}
+
+func TestValidateHexString(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	// valid hex string
+	err := ValidateHexString("74657374537472696e67")
+	if err != nil {
+		t.Log(err)
+	}
+	g.Expect(err).To(gomega.BeNil())
+
+	//invalid hex string
+	err = ValidateHexString("InvalidString")
+	if err != nil {
+		t.Log(err)
+	}
+	g.Expect(err).To(gomega.HaveOccurred())
+
 }

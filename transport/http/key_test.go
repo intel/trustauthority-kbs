@@ -357,3 +357,36 @@ func TestKeySearchHandlerInvalidECData(t *testing.T) {
 	}
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 }
+
+func TestKeyRetrieveHandler(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	resp := &model.KeyResponse{}
+
+	keyId := uuid.New()
+
+	mockService := &MockService{}
+	mockService.On("RetrieveKey", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	options := []httpTransport.ServerOption{
+		httpTransport.ServerErrorEncoder(errorEncoder),
+	}
+
+	err := setKeyHandler(mockService, mux.NewRouter(), options)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	req, _ := http.NewRequest(http.MethodGet, "/kbs/v1/keys/"+keyId.String(), nil)
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusOK))
+}
