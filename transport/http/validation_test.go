@@ -49,3 +49,21 @@ func TestValidateStrings(t *testing.T) {
 	err = ValidateStrings(in)
 	g.Expect(err).To(gomega.HaveOccurred())
 }
+
+func TestValidateQueryParamKeys(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	queryValues := make(map[string][]string)
+
+	queryValues["algorithm"] = []string{"RSA"}
+	queryValues["keyLength"] = []string{"3072"}
+	queryKeys := map[string]bool{
+		Algorithm:        true,
+		KeyLength:        true,
+		CurveType:        true,
+		TransferPolicyId: true,
+	}
+
+	err := ValidateQueryParamKeys(queryValues, queryKeys)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+}

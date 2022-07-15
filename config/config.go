@@ -37,6 +37,9 @@ const (
 	KmipClientKeyPath  = "kmip.client-key-path"
 	KmipClientCertPath = "kmip.client-cert-path"
 	KmipRootCertPath   = "kmip.root-cert-path"
+	VaultClientToken   = "vault.client-token"
+	VaultServerIP      = "vault.server-ip"
+	VaultServerPort    = "vault.server-port"
 )
 
 var (
@@ -52,7 +55,8 @@ type Configuration struct {
 	ASApiKey   string `yaml:"as-api-key" mapstructure:"as-api-key"`
 	KeyManager string `yaml:"key-manager" mapstructure:"key-manager"`
 
-	Kmip KmipConfig `yaml:"kmip"`
+	Kmip  KmipConfig  `yaml:"kmip"`
+	Vault VaultConfig `yaml:"vault"`
 }
 
 type KmipConfig struct {
@@ -65,6 +69,12 @@ type KmipConfig struct {
 	ClientKeyFilePath         string `yaml:"client-key-path" mapstructure:"client-key-path"`
 	ClientCertificateFilePath string `yaml:"client-cert-path" mapstructure:"client-cert-path"`
 	RootCertificateFilePath   string `yaml:"root-cert-path" mapstructure:"root-cert-path"`
+}
+
+type VaultConfig struct {
+	ServerIP    string `yaml:"server-ip" mapstructure:"server-ip"`
+	ServerPort  string `yaml:"server-port" mapstructure:"server-port"`
+	ClientToken string `yaml:"client-token" mapstructure:"client-token"`
 }
 
 // init sets the configuration file name and type

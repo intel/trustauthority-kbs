@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestNewKeyManager(t *testing.T) {
+func TestNewKmipKeyManager(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	cfg := &config.Configuration{}
 	_, errObj := NewKeyManager(cfg)
@@ -20,4 +20,15 @@ func TestNewKeyManager(t *testing.T) {
 	cfg.KeyManager = constant.KmipKeyManager
 	_, errObj = NewKeyManager(cfg)
 	g.Expect(errObj).To(gomega.HaveOccurred())
+}
+
+func TestNewVaultKeyManager(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	cfg := &config.Configuration{}
+	_, errObj := NewKeyManager(cfg)
+	g.Expect(errObj).To(gomega.HaveOccurred())
+
+	cfg.KeyManager = constant.VaultKeyManager
+	_, errObj = NewKeyManager(cfg)
+	g.Expect(errObj).To(gomega.BeNil())
 }

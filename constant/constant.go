@@ -49,7 +49,9 @@ const (
 
 	// kmipmanager constants
 	KmipKeyManager     = "kmip"
+	VaultKeyManager    = "vault"
 	DefaultKmipPort    = 5696
+	DefaultVaultPort   = 8200
 	KmipCertsPath      = ConfigDir + "certs/kmip/"
 	KmipClientKeyPath  = KmipCertsPath + "client_key.pem"
 	KmipClientCertPath = KmipCertsPath + "client_certificate.pem"
@@ -65,4 +67,7 @@ const (
 	KMIP20 = "2.0"
 
 	TCBStatusUpToDate = "OK"
+
+	// vault constants
+	VAULT_KEY_ROOT_PATH = "keybroker/"
 )

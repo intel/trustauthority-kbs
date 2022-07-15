@@ -5,6 +5,7 @@
 package keymanager
 
 import (
+	"intel/amber/kbs/v1/vaultclient"
 	"strings"
 
 	"intel/amber/kbs/v1/config"
@@ -24,6 +25,13 @@ func NewKeyManager(cfg *config.Configuration) (KeyManager, error) {
 			return nil, errors.Wrap(err, "Failed to initialize KmipManager")
 		}
 		return NewKmipManager(kmipClient), nil
+	} else if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {
+		vaultClient := vaultclient.NewVaultClient()
+		err := vaultClient.InitializeClient(cfg.Vault.ServerIP, cfg.Vault.ServerPort, cfg.Vault.ClientToken)
+		if err != nil {
+			return nil, errors.Wrap(err, "keymanager/key_manager:NewKeyManager() Failed to initialize vault client")
+		}
+		return &VaultManager{vaultClient}, nil
 	} else {
 		return nil, errors.Errorf("No Key Manager supported for provider: %s", cfg.KeyManager)
 	}

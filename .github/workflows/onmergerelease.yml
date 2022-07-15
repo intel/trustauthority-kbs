@@ -56,7 +56,7 @@ jobs:
 
   checkmarx:
     runs-on: [ self-hosted ]
-    container: amr-registry.caas.intel.com/cassini/checkmarx:isecl
+    container: container: amr-registry.caas.intel.com/amber/checkmarx:isecl
     env:
       HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
       HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
@@ -97,7 +97,7 @@ jobs:
 
       - name: Push Image
         run: |
-          make REPO=amr-registry.caas.intel.com/cassini push-commit
+          make REPO=amr-registry.caas.intel.com/amber push-commit
 
   docker-prune:
     runs-on: [ self-hosted ]

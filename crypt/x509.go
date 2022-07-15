@@ -7,6 +7,7 @@ package crypt
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -15,10 +16,10 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func GetCertsFromDir(path string) ([]x509.Certificate, error) {
@@ -89,6 +90,21 @@ func GetX509CertsFromPem(certBytes []byte) ([]x509.Certificate, error) {
 		log.Debugf("CommonName %s", cert.Subject.CommonName)
 	}
 	return certificates, nil
+}
+
+// GetPrivateKeyFromPem retrieve the private key from a private pem block
+func GetPrivateKeyFromPem(keyPem []byte) (crypto.PrivateKey, error) {
+	block, _ := pem.Decode(keyPem)
+	if block == nil {
+		log.Error("failed to parse private key PEM")
+		return nil, errors.New("failed to decode PEM formatted key")
+	}
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		log.WithError(err).Error("failed to parse private key")
+		return nil, errors.Wrap(err, "failed to parse private key")
+	}
+	return key, nil
 }
 
 func GetCertPool(certs []x509.Certificate) *x509.CertPool {
@@ -170,4 +186,13 @@ func GetPublicKeyFromCert(cert *x509.Certificate) (crypto.PublicKey, error) {
 		return nil, fmt.Errorf("public key algorithm of cert reported as ECDSA cert does not match ECDSA public key struct")
 	}
 	return nil, fmt.Errorf("only RSA and ECDSA public keys are supported")
+}
+
+// GetRandomBytes retrieves a byte array of 'length'
+func GetRandomBytes(length int) ([]byte, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }
