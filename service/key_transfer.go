@@ -79,48 +79,53 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 		return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key transfer policy"}
 	}
 
+	var token []byte
 	if req.AttestationType == "" {
-		nonce, err := svc.asClient.GetNonce()
+		if req.KeyTransferRequest.AttestationToken == "" {
+			nonce, err := svc.asClient.GetNonce()
+			if err != nil {
+				log.WithError(err).Error("Error retrieving nonce from appraisal service")
+				return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving nonce from appraisal service"}
+			}
+
+			resp := &TransferKeyResponse{
+				SignedNonce:         nonce,
+				AttestationType:     transferPolicy.AttestationType[0].String(),
+				KeyTransferResponse: nil,
+			}
+			return resp, nil
+		} else {
+			token = []byte(req.KeyTransferRequest.AttestationToken)
+		}
+	} else {
+		if req.AttestationType != transferPolicy.AttestationType[0].String() {
+			log.Error("attestation-type in request header does not match with attestation-type in key-transfer policy")
+			return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-type in request header does not match with attestation-type in key-transfer policy"}
+		}
+
+		var policyIds []uuid.UUID
+		switch transferPolicy.AttestationType[0] {
+		case model.SGX:
+			policyIds = transferPolicy.SGX.PolicyIds
+
+		case model.TDX:
+			policyIds = transferPolicy.TDX.PolicyIds
+		}
+
+		tokenRequest := as.AttestationTokenRequest{
+			Quote:       req.KeyTransferRequest.Quote,
+			SignedNonce: req.KeyTransferRequest.SignedNonce,
+			UserData:    req.KeyTransferRequest.UserData,
+			PolicyIds:   policyIds,
+			EventLog:    req.KeyTransferRequest.EventLog,
+			TenantId:    uuid.MustParse("7110194b-a703-4657-9d7f-3e02b62f2ed8"),
+		}
+
+		token, err = svc.asClient.GetAttestationToken(&tokenRequest)
 		if err != nil {
-			log.WithError(err).Error("Error retrieving nonce from appraisal service")
-			return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving nonce from appraisal service"}
+			log.WithError(err).Error("Error retrieving token from appraisal service")
+			return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving token from appraisal service"}
 		}
-
-		resp := &TransferKeyResponse{
-			SignedNonce:         nonce,
-			AttestationType:     transferPolicy.AttestationType[0].String(),
-			KeyTransferResponse: nil,
-		}
-		return resp, nil
-	}
-
-	if req.AttestationType != transferPolicy.AttestationType[0].String() {
-		log.Error("attestation-type in request header does not match with attestation-type in key-transfer policy")
-		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-type in request header does not match with attestation-type in key-transfer policy"}
-	}
-
-	var policyIds []uuid.UUID
-	switch transferPolicy.AttestationType[0] {
-	case model.SGX:
-		policyIds = transferPolicy.SGX.PolicyIds
-
-	case model.TDX:
-		policyIds = transferPolicy.TDX.PolicyIds
-	}
-
-	tokenRequest := as.AttestationTokenRequest{
-		Quote:       req.KeyTransferRequest.Quote,
-		SignedNonce: req.KeyTransferRequest.SignedNonce,
-		UserData:    req.KeyTransferRequest.UserData,
-		PolicyIds:   policyIds,
-		EventLog:    req.KeyTransferRequest.EventLog,
-		TenantId:    uuid.MustParse("7110194b-a703-4657-9d7f-3e02b62f2ed8"),
-	}
-
-	token, err := svc.asClient.GetAttestationToken(&tokenRequest)
-	if err != nil {
-		log.WithError(err).Error("Error retrieving token from appraisal service")
-		return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving token from appraisal service"}
 	}
 
 	claims, err := svc.authenticateToken(string(token))
@@ -128,7 +133,13 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 		log.WithError(err).Error("Failed to authenticate attestation-token")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "Failed to authenticate attestation-token"}
 	}
+
 	tokenClaims := claims.(*model.AttestationTokenClaim)
+	if tokenClaims.Tee != transferPolicy.AttestationType[0] {
+		log.Error("attestation-token is not valid for attestation-type in key-transfer policy")
+		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-token is not valid for attestation-type in key-transfer policy"}
+	}
+
 	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.TeeHeldData, req.KeyId)
 	if err != nil {
 		return nil, &HandledError{Code: httpStatus, Message: err.Error()}

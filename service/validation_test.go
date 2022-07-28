@@ -74,7 +74,6 @@ func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 		Version:      "1",
 	}
 
-	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy)
 	err = validateAttestationTokenClaims(tokenClaims, transferPolicy)
 	g.Expect(err).To(gomega.HaveOccurred())
 
@@ -130,45 +129,6 @@ func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 	err = validateAttestationTokenClaims(tokenClaims, transferPolicy)
 	g.Expect(err).To(gomega.HaveOccurred())
 
-	tokenClaims = &model.AttestationTokenClaim{
-		MrEnclave:    cns.ValidMrEnclave,
-		MrSigner:     cns.ValidMrSigner,
-		IsvProductId: &oneVal,
-		IsvSvn:       &oneVal,
-		TcbStatus:    "OK",
-		Tee:          "SGX2",
-		Version:      "1",
-	}
-	policyReqJsonStr = string(`{
-					"id": "` + tmpId + `",
-					"attestation_type":[
-                                           "SGX4"
-                                        ],
-                                        "sgx":{
-                                           "attributes":{
-                                                  "mrsigner":[
-                                                         "` + cns.ValidMrSigner + `"
-                                                  ],
-                                                  "isvprodid":[
-                                                         1
-                                                  ],
-                                                  "mrenclave":[
-                                                         "` + cns.ValidMrEnclave + `"
-                                                  ],
-                                                  "isvsvn":1,
-                                                  "client_permissions":[
-                                                         "nginx",
-                                                         "USA"
-                                                  ],
-                                                  "enforce_tcb_upto_date":false
-                                           }
-                                        }
-				}`)
-
-	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy)
-	err = validateAttestationTokenClaims(tokenClaims, transferPolicy)
-	g.Expect(err).To(gomega.HaveOccurred())
-
 	policyReqJsonStr = string(`{
 					"id": "` + tmpId + `",
 					"attestation_type":[
@@ -180,18 +140,6 @@ func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 
 	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy)
 	err = validateAttestationTokenClaims(tokenClaims, transferPolicy)
-	g.Expect(err).To(gomega.HaveOccurred())
-
-	transferPolicy2 := &model.KeyTransferPolicy{}
-	policyReqJsonStr = string(`{
-					"attestation_type":[
-                                           "SGX"
-                                        ],
-					"sgx": {}
-				}`)
-
-	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy2)
-	err = validateAttestationTokenClaims(tokenClaims, transferPolicy2)
 	g.Expect(err).To(gomega.HaveOccurred())
 }
 
@@ -390,15 +338,34 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 	err = validateAttestationTokenClaims(tokenClaims, transferPolicy)
 	g.Expect(err).To(gomega.HaveOccurred())
 
-	transferPolicy2 := &model.KeyTransferPolicy{}
-	policyReqJsonStr = string(`{
-					"attestation_type":[
-                                           "TDX"
-                                        ],
-					"tdx": {}
-				}`)
+	policyReqJsonStr = `{
+		"id": "3b9d565a-6ff5-4e5a-a0a8-64f3183d1722",
+		"attestation_type": [
+		  "TDX"
+		],
+		"tdx": {
+			  "attributes": {}
+		}
+	}`
 
-	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy2)
-	err = validateAttestationTokenClaims(tokenClaims, transferPolicy2)
+	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy)
+	err = validateAttestationTokenClaims(tokenClaims, transferPolicy)
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestValidateAttestationTokenClaims(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	policyReqJsonStr := string(`{
+		"attestation_type":[
+							   "TPM"
+							]
+	}`)
+
+	tokenClaims := &model.AttestationTokenClaim{}
+	transferPolicy := &model.KeyTransferPolicy{}
+
+	json.Unmarshal([]byte(policyReqJsonStr), transferPolicy)
+	err := validateAttestationTokenClaims(tokenClaims, transferPolicy)
 	g.Expect(err).To(gomega.HaveOccurred())
 }
