@@ -56,7 +56,7 @@ jobs:
 
   checkmarx:
     runs-on: [ self-hosted ]
-    container: container: amr-registry.caas.intel.com/amber/checkmarx:isecl
+    container: amr-registry.caas.intel.com/amber/checkmarx:isecl
     env:
       HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
       HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
