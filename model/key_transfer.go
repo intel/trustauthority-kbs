@@ -7,10 +7,11 @@ package model
 import "intel/amber/kbs/v1/clients/as"
 
 type KeyTransferRequest struct {
-	Quote       []byte          `json:"quote"`
-	SignedNonce *as.SignedNonce `json:"signed_nonce"`
-	UserData    []byte          `json:"user_data"`
-	EventLog    []byte          `json:"event_log,omitempty"`
+	AttestationToken string          `json:"attestation_token,omitempty"`
+	Quote            []byte          `json:"quote,omitempty"`
+	SignedNonce      *as.SignedNonce `json:"signed_nonce,omitempty"`
+	UserData         []byte          `json:"user_data,omitempty"`
+	EventLog         []byte          `json:"event_log,omitempty"`
 }
 
 type KeyTransferResponse struct {

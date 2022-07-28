@@ -55,19 +55,10 @@ func decodeTransferKeyHTTPRequest(_ context.Context, r *http.Request) (interface
 	id := uuid.MustParse(mux.Vars(r)["id"])
 	attestType := r.Header.Get(constant.HTTPHeaderKeyAttestationType)
 
-	if attestType != "" {
+	if r.ContentLength != 0 {
 		if r.Header.Get(constant.HTTPHeaderKeyContentType) != constant.HTTPHeaderValueApplicationJson {
 			log.Error(ErrInvalidContentTypeHeader.Error())
 			return nil, ErrInvalidContentTypeHeader
-		}
-		if attestType != "SGX" && attestType != "TDX" {
-			log.Error(ErrInvalidAttestationType.Error())
-			return nil, ErrInvalidAttestationType
-		}
-
-		if r.ContentLength == 0 {
-			log.Error(ErrEmptyRequestBody.Error())
-			return nil, ErrEmptyRequestBody
 		}
 
 		dec := json.NewDecoder(r.Body)
@@ -77,6 +68,18 @@ func decodeTransferKeyHTTPRequest(_ context.Context, r *http.Request) (interface
 		if err != nil {
 			log.WithError(err).Error(ErrJsonDecodeFailed.Error())
 			return nil, ErrJsonDecodeFailed
+		}
+
+		if attestType != "" {
+			if attestType != "SGX" && attestType != "TDX" {
+				log.Error(ErrInvalidAttestationType.Error())
+				return nil, ErrInvalidAttestationType
+			}
+		} else {
+			if keyTransferReq.AttestationToken == "" {
+				log.Error(ErrInvalidRequest.Error())
+				return nil, ErrInvalidRequest
+			}
 		}
 	}
 
