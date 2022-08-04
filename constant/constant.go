@@ -4,6 +4,10 @@
  */
 package constant
 
+import (
+	"time"
+)
+
 // general KBS constants
 const (
 	ServiceName         = "kbs"
@@ -20,6 +24,7 @@ const (
 
 	KeysDir               = "keys/"
 	KeysTransferPolicyDir = "keys-transfer-policy/"
+	UserDir               = "users/"
 
 	// certificates' path
 	TrustedJWTSigningCertsDir = ConfigDir + "certs/trustedjwt/"
@@ -34,6 +39,12 @@ const (
 	TLSCertsPath       = ConfigDir + "certs/tls/"
 	DefaultTLSCertPath = TLSCertsPath + "tls.crt"
 	DefaultTLSKeyPath  = TLSCertsPath + "tls.key"
+
+	// default location for JWT signing certificate and key
+	JWTSigningCertsPath      = ConfigDir + "certs/signing-keys/"
+	DefaultJWTSigningKeyPath = JWTSigningCertsPath + "jwt-signing.key"
+	DefaultKeyLength         = 3072
+	DefaultTokenExpiration   = time.Hour
 
 	// service remove command
 	ServiceRemoveCmd = "systemctl disable kbs"

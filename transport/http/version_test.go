@@ -31,7 +31,7 @@ func TestVersionHandler(t *testing.T) {
 
 	resp := &version.ServiceVersion{}
 	mockService.On("GetVersion", mock.Anything).Return(resp, nil)
-	err := setGetVersionHandler(mockService, mux.NewRouter(), options)
+	err := setGetVersionHandler(mockService, mux.NewRouter(), options, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	handler.ServeHTTP(recorder, req)
 

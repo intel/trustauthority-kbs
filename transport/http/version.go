@@ -6,6 +6,7 @@ package http
 
 import (
 	"context"
+	"intel/amber/kbs/v1/model"
 	"net/http"
 
 	"intel/amber/kbs/v1/service"
@@ -15,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func setGetVersionHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption) error {
+func setGetVersionHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, auth *model.JwtAuthz) error {
 	getVersionHandler := httpTransport.NewServer(
 		makeGetVersionHTTPEndpoint(svc),
 		httpTransport.NopRequestDecoder,

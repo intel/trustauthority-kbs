@@ -18,6 +18,7 @@ import (
 
 const (
 	HTTPMediaTypeJson = "application/json"
+	HTTPMediaTypeJWT  = "application/jwt"
 )
 
 func init() {
@@ -81,6 +82,36 @@ func (svc *MockService) SearchKeys(ctx context.Context, filter *model.KeyFilterC
 	return args.Get(0).([]*model.KeyResponse), args.Error(1)
 }
 
+func (svc *MockService) CreateUser(ctx context.Context, user *model.User) (*model.UserResponse, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(*model.UserResponse), args.Error(1)
+}
+
+func (svc *MockService) UpdateUser(ctx context.Context, request *model.UpdateUserRequest) (*model.UserResponse, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(*model.UserResponse), args.Error(1)
+}
+
+func (svc *MockService) SearchUser(ctx context.Context, criteria *model.UserFilterCriteria) ([]model.UserResponse, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).([]model.UserResponse), args.Error(1)
+}
+
+func (svc *MockService) DeleteUser(ctx context.Context, u uuid.UUID) (interface{}, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(interface{}), args.Error(1)
+}
+
+func (svc *MockService) RetrieveUser(ctx context.Context, u uuid.UUID) (interface{}, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(interface{}), args.Error(1)
+}
+
+func (svc *MockService) CreateAuthToken(ctx context.Context, request model.AuthTokenRequest, authz *model.JwtAuthz) (string, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(string), args.Error(1)
+}
+
 func createMockHandler(mockService *MockService) http.Handler {
 	cfg := config.Configuration{
 		ServicePort: 12780,
@@ -88,6 +119,6 @@ func createMockHandler(mockService *MockService) http.Handler {
 		LogLevel:    "debug",
 	}
 
-	handler, _ := NewHTTPHandler(mockService, &cfg)
+	handler, _ := NewHTTPHandler(mockService, &cfg, service.SetupGoguardianForTest())
 	return handler
 }

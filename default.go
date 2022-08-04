@@ -32,12 +32,14 @@ func defaultConfig() *config.Configuration {
 	var cfg *config.Configuration
 
 	cfg = &config.Configuration{
-		ServicePort: viper.GetInt(config.ServicePort),
-		LogLevel:    viper.GetString(config.LogLevel),
-		LogCaller:   viper.GetBool(config.LogCaller),
-		ASBaseUrl:   viper.GetString(config.ASBaseUrl),
-		ASApiKey:    viper.GetString(config.ASApiKey),
-		KeyManager:  viper.GetString(config.KeyManager),
+		ServicePort:   viper.GetInt(config.ServicePort),
+		LogLevel:      viper.GetString(config.LogLevel),
+		LogCaller:     viper.GetBool(config.LogCaller),
+		ASBaseUrl:     viper.GetString(config.ASBaseUrl),
+		ASApiKey:      viper.GetString(config.ASApiKey),
+		KeyManager:    viper.GetString(config.KeyManager),
+		AdminPassword: viper.GetString(config.AdminPassword),
+		AdminUsername: viper.GetString(config.AdminUsername),
 	}
 
 	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {

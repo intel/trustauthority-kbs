@@ -21,7 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption) error {
+func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, auth *model.JwtAuthz) error {
 
 	keyTransferPolicyIdExpr := "/key-transfer-policies/" + idReg
 
@@ -32,7 +32,7 @@ func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, option
 		options...,
 	)
 
-	router.Handle("/key-transfer-policies", CreateKeyTransferPolicyHandler).Methods(http.MethodPost)
+	router.Handle("/key-transfer-policies", authMiddleware(CreateKeyTransferPolicyHandler, auth)).Methods(http.MethodPost)
 
 	GetKeyTransferPolicyHandler := httpTransport.NewServer(
 		makeRetrieveKeyTransferPolicyEndpoint(svc),
@@ -41,7 +41,7 @@ func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, option
 		options...,
 	)
 
-	router.Handle(keyTransferPolicyIdExpr, GetKeyTransferPolicyHandler).Methods(http.MethodGet)
+	router.Handle(keyTransferPolicyIdExpr, authMiddleware(GetKeyTransferPolicyHandler, auth)).Methods(http.MethodGet)
 
 	DeleteKeyTransferPolicyHandler := httpTransport.NewServer(
 		makeDeleteKeyTransferPolicyEndpoint(svc),
@@ -50,7 +50,7 @@ func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, option
 		options...,
 	)
 
-	router.Handle(keyTransferPolicyIdExpr, DeleteKeyTransferPolicyHandler).Methods(http.MethodDelete)
+	router.Handle(keyTransferPolicyIdExpr, authMiddleware(DeleteKeyTransferPolicyHandler, auth)).Methods(http.MethodDelete)
 
 	SearchKeyTransferPoliciesHandler := httpTransport.NewServer(
 		makeSearchKeyTransferPoliciesEndpoint(svc),
@@ -59,7 +59,7 @@ func setKeyTransferPolicyHandler(svc service.Service, router *mux.Router, option
 		options...,
 	)
 
-	router.Handle("/key-transfer-policies", SearchKeyTransferPoliciesHandler).Methods(http.MethodGet)
+	router.Handle("/key-transfer-policies", authMiddleware(SearchKeyTransferPoliciesHandler, auth)).Methods(http.MethodGet)
 
 	return nil
 }

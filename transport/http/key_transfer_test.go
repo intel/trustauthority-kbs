@@ -27,7 +27,7 @@ func TestKeyTransferHandler(t *testing.T) {
 	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/keys/"+keyId.String()+"/transfer", nil)
@@ -60,7 +60,7 @@ func TestKeyTransferWithInvalidHeader(t *testing.T) {
 	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	transferJson := `{
@@ -99,7 +99,7 @@ func TestKeyTransferInvalidAttestionType(t *testing.T) {
 	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	transferJson := `{
@@ -138,7 +138,7 @@ func TestKeyTransferwithNilPostData(t *testing.T) {
 	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	transferJson := `{
@@ -177,7 +177,7 @@ func TestKeyTransferInvalidPostData(t *testing.T) {
 	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	transferJson := `{indfsafdas:"dfasdfsddf"}`

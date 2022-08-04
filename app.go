@@ -14,13 +14,12 @@ import (
 	"strconv"
 	"strings"
 
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	constants "intel/amber/kbs/v1/constant"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"intel/amber/kbs/v1/config"
+	"intel/amber/kbs/v1/constant"
+	constants "intel/amber/kbs/v1/constant"
 )
 
 var errInvalidCmd = errors.New("Invalid input after command")
@@ -114,6 +113,13 @@ func (app *App) Run(args []string) error {
 		if err != nil {
 			return errors.Wrap(err, "Failed to save configuration")
 		}
+
+		// change permission of kbs admin user info
+		err = ChownDirForUser(constant.ServiceUserName, constant.HomeDir+constant.UserDir)
+		if err != nil {
+			return err
+		}
+
 		return ChownDirForUser(constant.ServiceUserName, app.configDir())
 	}
 }

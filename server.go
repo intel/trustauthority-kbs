@@ -6,8 +6,17 @@ package kbs
 
 import (
 	"context"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"github.com/shaj13/go-guardian/v2/auth"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
+	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
+	"github.com/shaj13/libcache"
+	"intel/amber/kbs/v1/model"
+	"intel/amber/kbs/v1/tasks"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -76,8 +85,25 @@ func (app *App) startServer() error {
 		return errors.New(msg)
 	}
 
+	if _, err := os.Stat(constant.DefaultJWTSigningKeyPath); errors.Is(err, os.ErrNotExist) {
+		// create JWT signing key
+		csk := tasks.CreateSigningKey{
+			JWTSigningKeyPath: constant.DefaultJWTSigningKeyPath,
+		}
+		err := csk.CreateJWTSigningKey()
+		if err != nil {
+			log.WithError(err).Error("Error while creating JWT signing key")
+			return err
+		}
+	}
+
+	jwtAuthZ, err := setupAuthZ()
+	if err != nil {
+		return err
+	}
+
 	// Associate the service to rest endpoints/http
-	httpHandlers, err := httpTransport.NewHTTPHandler(svc, configuration)
+	httpHandlers, err := httpTransport.NewHTTPHandler(svc, configuration, jwtAuthZ)
 	if err != nil {
 		return errors.Wrap(err, "Failed to initialize HTTP handler")
 	}
@@ -100,7 +126,7 @@ func (app *App) startServer() error {
 		} else {
 			log.Debugf("Starting HTTPS server with TLS cert: %s", constant.DefaultTLSCertPath)
 			tlsConfig := &tls.Config{
-				MinVersion: tls.VersionTLS12,
+				MinVersion: tls.VersionTLS13,
 				CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 					tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
@@ -117,6 +143,18 @@ func (app *App) startServer() error {
 			stop <- syscall.SIGTERM
 		}
 	}()
+
+	// create an admin user
+	ac := tasks.CreateAdminUser{
+		AdminUsername: app.Config.AdminUsername,
+		AdminPassword: app.Config.AdminPassword,
+		UserStore:     repository.UserStore,
+	}
+
+	err = ac.CreateAdminUser()
+	if err != nil {
+		return err
+	}
 
 	log.Info("service started")
 	<-stop
@@ -191,4 +229,44 @@ func GetDirFileContents(dir, pattern string) ([][]byte, error) {
 	}
 
 	return dirContents, nil
+}
+
+func setupAuthZ() (*model.JwtAuthz, error) {
+	var strategy auth.Strategy
+	var keeper jwtStrategy.SecretsKeeper
+
+	bytes, err := ioutil.ReadFile(constant.DefaultJWTSigningKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	block, _ := pem.Decode(bytes)
+	parseResult, _ := x509.ParsePKCS8PrivateKey(block.Bytes)
+	signingKey := parseResult.(*rsa.PrivateKey)
+
+	keeper = jwtStrategy.StaticSecret{
+		ID:        "secret-id",
+		Secret:    signingKey,
+		Algorithm: jwtStrategy.PS384,
+	}
+
+	cache := libcache.FIFO.New(0)
+	cache.SetTTL(time.Minute * 5)
+
+	opt := token.SetScopes(token.NewScope(constant.KeyTransferPolicyCreate, "/key-transfer-policies", "POST"),
+		token.NewScope(constant.KeyTransferPolicySearch, "/key-transfer-policies", "GET"),
+		token.NewScope(constant.KeyTransferPolicyDelete, "/key-transfer-policies", "DELETE"),
+		token.NewScope(constant.KeyCreate, "/keys", "POST"),
+		token.NewScope(constant.KeySearch, "/keys", "GET"),
+		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
+		token.NewScope(constant.UserCreate, "/users", "POST"),
+		token.NewScope(constant.UserSearch, "/users", "GET"),
+		token.NewScope(constant.UserUpdate, "/users", "PUT"),
+		token.NewScope(constant.UserDelete, "/users", "DELETE"))
+	strategy = jwtStrategy.New(cache, keeper, opt)
+
+	jwtAuth := model.JwtAuthz{
+		JwtSecretKeeper: keeper,
+		AuthZStrategy:   strategy,
+	}
+	return &jwtAuth, nil
 }

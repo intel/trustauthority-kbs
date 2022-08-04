@@ -5,7 +5,13 @@
 package service
 
 import (
+	"github.com/shaj13/go-guardian/v2/auth"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
+	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
+	"github.com/shaj13/libcache"
+	_ "github.com/shaj13/libcache/fifo"
 	"reflect"
+	"time"
 
 	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/model"
@@ -238,4 +244,36 @@ func contains(s interface{}, elem interface{}) bool {
 		}
 	}
 	return false
+}
+
+func SetupGoguardianForTest() *model.JwtAuthz {
+	var strategy auth.Strategy
+	var keeper jwtStrategy.SecretsKeeper
+
+	keeper = jwtStrategy.StaticSecret{
+		ID:        "secret-id",
+		Secret:    []byte("testSecret@#12"),
+		Algorithm: jwtStrategy.HS384,
+	}
+
+	cache := libcache.FIFO.New(0)
+	cache.SetTTL(time.Minute * 5)
+
+	opt := token.SetScopes(token.NewScope(constant.KeyTransferPolicyCreate, "/key-transfer-policies", "POST"),
+		token.NewScope(constant.KeyTransferPolicySearch, "/key-transfer-policies", "GET"),
+		token.NewScope(constant.KeyTransferPolicyDelete, "/key-transfer-policies", "DELETE"),
+		token.NewScope(constant.KeyCreate, "/keys", "POST"),
+		token.NewScope(constant.KeySearch, "/keys", "GET"),
+		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
+		token.NewScope(constant.UserCreate, "/users", "POST"),
+		token.NewScope(constant.UserSearch, "/users", "GET"),
+		token.NewScope(constant.UserUpdate, "/users", "PUT"),
+		token.NewScope(constant.UserDelete, "/users", "DELETE"))
+	strategy = jwtStrategy.New(cache, keeper, opt)
+
+	jwtAuth := model.JwtAuthz{
+		JwtSecretKeeper: keeper,
+		AuthZStrategy:   strategy,
+	}
+	return &jwtAuth
 }

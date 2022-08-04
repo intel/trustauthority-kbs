@@ -7,21 +7,20 @@ package http
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
-
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/service"
-
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	_ "github.com/shaj13/libcache/fifo"
 	log "github.com/sirupsen/logrus"
+	"intel/amber/kbs/v1/config"
+	"intel/amber/kbs/v1/constant"
+	"intel/amber/kbs/v1/model"
+	"intel/amber/kbs/v1/service"
+	"net/http"
 )
 
-func NewHTTPHandler(svc service.Service, conf *config.Configuration) (http.Handler, error) {
+func NewHTTPHandler(svc service.Service, conf *config.Configuration, jwtAuthz *model.JwtAuthz) (http.Handler, error) {
 	r := mux.NewRouter()
 	r.SkipClean(true)
 
@@ -33,15 +32,17 @@ func NewHTTPHandler(svc service.Service, conf *config.Configuration) (http.Handl
 		prefix := r.PathPrefix(fmt.Sprintf("/%s/%s", constant.ServiceName, constant.ApiVersion))
 		sr := prefix.Subrouter()
 
-		myHandlers := []func(service.Service, *mux.Router, []httpTransport.ServerOption) error{
+		myHandlers := []func(service.Service, *mux.Router, []httpTransport.ServerOption, *model.JwtAuthz) error{
 			setGetVersionHandler,
 			setKeyHandler,
 			setKeyTransferPolicyHandler,
 			setKeyTransferHandler,
+			setCreateAuthTokenHandler,
+			setUserHandler,
 		}
 
 		for _, handler := range myHandlers {
-			if err := handler(svc, sr, options); err != nil {
+			if err := handler(svc, sr, options, jwtAuthz); err != nil {
 				return nil, err
 			}
 		}
@@ -82,14 +83,6 @@ func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()}); err != nil {
 		log.WithError(err).Error("Failed to encode error")
 	}
-}
-
-func errorDecoder(r *http.Response) error {
-	var w errorWrapper
-	if err := json.NewDecoder(r.Body).Decode(&w); err != nil {
-		return err
-	}
-	return errors.New(w.Error)
 }
 
 func errToCode(err error) int {

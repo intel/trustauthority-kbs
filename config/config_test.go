@@ -28,6 +28,8 @@ func clearEnv() {
 	os.Unsetenv("KMIP_HOSTNAME")
 	os.Unsetenv("KMIP_USERNAME")
 	os.Unsetenv("KMIP_PASSWORD")
+	os.Unsetenv("ADMIN_USERNAME")
+	os.Unsetenv("ADMIN_PASSWORD")
 	os.Unsetenv("KMIP_CLIENT_KEY_PATH")
 	os.Unsetenv("KMIP_CLIENT_CERT_PATH")
 	os.Unsetenv("KMIP_ROOT_CERT_PATH")
@@ -38,7 +40,7 @@ func setValidEnv() {
 	os.Setenv("LOG_LEVEL", "info")
 	os.Setenv("LOG_CALLER", "true")
 	os.Setenv("AS_BASE_URL", "https://as.taas.cluster.local")
-	os.Setenv("AS_API_KEY", "testkey")
+	os.Setenv("AS_API_KEY", "73616d706c65537472696e67")
 	os.Setenv("KEY_MANAGER", "KMIP")
 	os.Setenv("KMIP_VERSION", "2.0")
 	os.Setenv("KMIP_SERVER_IP", "0.0.0.0")
@@ -46,6 +48,8 @@ func setValidEnv() {
 	os.Setenv("KMIP_HOSTNAME", "")
 	os.Setenv("KMIP_USERNAME", "")
 	os.Setenv("KMIP_PASSWORD", "")
+	os.Setenv("ADMIN_USERNAME", "adminUser")
+	os.Setenv("ADMIN_PASSWORD", "adminPassword")
 	os.Setenv("KMIP_CLIENT_KEY_PATH", "/etc/pykmip/client_key.pem")
 	os.Setenv("KMIP_CLIENT_CERT_PATH", "/etc/pykmip/client_certificate.pem")
 	os.Setenv("KMIP_ROOT_CERT_PATH", "/etc/pykmip/root_certificate.pem")
@@ -104,6 +108,20 @@ func TestSaveConf(t *testing.T) {
 	clearEnv()
 }
 
+func TestSaveConfInvalidFilename(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	err = cfg.Save("./../testFolder/tmpInvalid")
+	if err != nil {
+		t.Log(err)
+	}
+	clearEnv()
+}
+
 func TestValidate(t *testing.T) {
 	setValidEnv()
 	setViperInit()
@@ -115,7 +133,7 @@ func TestValidate(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
-	cfg.Validate()
+	err = cfg.Validate()
 	if err != nil {
 		t.Log(err)
 	}
