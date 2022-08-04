@@ -38,7 +38,7 @@ var (
 	allowedKeyLengths = map[int]bool{128: true, 192: true, 256: true, 2048: true, 3072: true, 4096: true, 7680: true}
 )
 
-func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption) error {
+func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, auth *model.JwtAuthz) error {
 
 	keyIdExpr := "/keys/" + idReg
 	createKeyHandler := httpTransport.NewServer(
@@ -48,7 +48,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 		options...,
 	)
 
-	router.Handle("/keys", createKeyHandler).Methods(http.MethodPost)
+	router.Handle("/keys", authMiddleware(createKeyHandler, auth)).Methods(http.MethodPost)
 
 	getKeyHandler := httpTransport.NewServer(
 		makeRetrieveKeyEndpoint(svc),
@@ -57,7 +57,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 		options...,
 	)
 
-	router.Handle(keyIdExpr, getKeyHandler).Methods(http.MethodGet)
+	router.Handle(keyIdExpr, authMiddleware(getKeyHandler, auth)).Methods(http.MethodGet)
 
 	deleteKeyHandler := httpTransport.NewServer(
 		makeDeleteKeyEndpoint(svc),
@@ -66,7 +66,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 		options...,
 	)
 
-	router.Handle(keyIdExpr, deleteKeyHandler).Methods(http.MethodDelete)
+	router.Handle(keyIdExpr, authMiddleware(deleteKeyHandler, auth)).Methods(http.MethodDelete)
 
 	searchKeysHandler := httpTransport.NewServer(
 		makeSearchKeysEndpoint(svc),
@@ -75,7 +75,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 		options...,
 	)
 
-	router.Handle("/keys", searchKeysHandler).Methods(http.MethodGet)
+	router.Handle("/keys", authMiddleware(searchKeysHandler, auth)).Methods(http.MethodGet)
 
 	return nil
 }

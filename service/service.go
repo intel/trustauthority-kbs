@@ -7,7 +7,6 @@ package service
 import (
 	"context"
 	"fmt"
-
 	"intel/amber/kbs/v1/clients/as"
 	"intel/amber/kbs/v1/jwt"
 	"intel/amber/kbs/v1/keymanager"
@@ -28,7 +27,13 @@ type Service interface {
 	DeleteKeyTransferPolicy(context.Context, uuid.UUID) (interface{}, error)
 	RetrieveKeyTransferPolicy(context.Context, uuid.UUID) (interface{}, error)
 	TransferKey(context.Context, TransferKeyRequest) (*TransferKeyResponse, error)
+	CreateUser(context.Context, *model.User) (*model.UserResponse, error)
+	UpdateUser(context.Context, *model.UpdateUserRequest) (*model.UserResponse, error)
+	SearchUser(context.Context, *model.UserFilterCriteria) ([]model.UserResponse, error)
+	DeleteUser(context.Context, uuid.UUID) (interface{}, error)
+	RetrieveUser(context.Context, uuid.UUID) (interface{}, error)
 	GetVersion(context.Context) (*version.ServiceVersion, error)
+	CreateAuthToken(context.Context, model.AuthTokenRequest, *model.JwtAuthz) (string, error)
 }
 
 type service struct {

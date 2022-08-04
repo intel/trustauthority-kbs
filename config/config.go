@@ -24,9 +24,11 @@ const (
 	LogLevel    = "log-level"
 	LogCaller   = "log-caller"
 
-	ASBaseUrl  = "as-base-url"
-	ASApiKey   = "as-api-key"
-	KeyManager = "key-manager"
+	ASBaseUrl     = "as-base-url"
+	ASApiKey      = "as-api-key"
+	KeyManager    = "key-manager"
+	AdminUsername = "admin-username"
+	AdminPassword = "admin-password"
 
 	KmipVersion        = "kmip.version"
 	KmipServerIP       = "kmip.server-ip"
@@ -43,7 +45,10 @@ const (
 )
 
 var (
-	hexStringReg = regexp.MustCompile("^[a-fA-F0-9]+$")
+	hexStringReg    = regexp.MustCompile("^[a-fA-F0-9]+$")
+	UserOrEmailReg  = regexp.MustCompile("^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	PasswordReg     = regexp.MustCompile("(?:([a-zA-Z0-9_\\\\.\\\\, @!#$%^+=>?:{}()\\[\\]\\\"|;~`'*-/]+))")
+	UserCredsMaxLen = 256
 )
 
 type Configuration struct {
@@ -51,9 +56,11 @@ type Configuration struct {
 	LogLevel    string `yaml:"log-level" mapstructure:"log-level"`
 	LogCaller   bool   `yaml:"log-caller" mapstructure:"log-caller"`
 
-	ASBaseUrl  string `yaml:"as-base-url" mapstructure:"as-base-url"`
-	ASApiKey   string `yaml:"as-api-key" mapstructure:"as-api-key"`
-	KeyManager string `yaml:"key-manager" mapstructure:"key-manager"`
+	ASBaseUrl     string `yaml:"as-base-url" mapstructure:"as-base-url"`
+	ASApiKey      string `yaml:"as-api-key" mapstructure:"as-api-key"`
+	KeyManager    string `yaml:"key-manager" mapstructure:"key-manager"`
+	AdminUsername string `yaml:"admin-username" mapstructure:"admin-username"`
+	AdminPassword string `yaml:"admin-password" mapstructure:"admin-password"`
 
 	Kmip  KmipConfig  `yaml:"kmip"`
 	Vault VaultConfig `yaml:"vault"`
@@ -128,6 +135,20 @@ func (conf *Configuration) Validate() error {
 
 	if conf.ASBaseUrl == "" || conf.ASApiKey == "" {
 		return errors.New("Either AS URL or APIKey is missing")
+	}
+
+	if conf.AdminUsername == "" || conf.AdminPassword == "" {
+		return errors.New("Either Admin username or password is missing")
+	}
+
+	// validate username
+	if len(conf.AdminUsername) > UserCredsMaxLen || !UserOrEmailReg.MatchString(conf.AdminUsername) {
+		return errors.New("Invalid admin username. The length of username must be <256 and must contain only valid characters")
+	}
+
+	//validate password
+	if len(conf.AdminPassword) > UserCredsMaxLen || !PasswordReg.MatchString(conf.AdminPassword) {
+		return errors.New("Invalid admin password. The length of password must be <256 and must contain only valid characters")
 	}
 
 	_, err := url.Parse(conf.ASBaseUrl)

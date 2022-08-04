@@ -20,7 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func setKeyTransferHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption) error {
+func setKeyTransferHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, authz *model.JwtAuthz) error {
 
 	keyIdExpr := "/keys/" + idReg
 

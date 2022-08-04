@@ -30,10 +30,11 @@ func TestKeyTransferPolicyDeleteHandler(t *testing.T) {
 	mockService.On("DeleteKeyTransferPolicy", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	req, _ := http.NewRequest(http.MethodDelete, "/kbs/v1/key-transfer-policies/"+keyId.String(), nil)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -59,11 +60,12 @@ func TestKeyTransferPolicyRetrieveHandler(t *testing.T) {
 	mockService.On("RetrieveKeyTransferPolicy", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	req, _ := http.NewRequest(http.MethodGet, "/kbs/v1/key-transfer-policies/"+keyId.String(), nil)
 	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -88,11 +90,13 @@ func TestKeyTransferPolicySearchHandler(t *testing.T) {
 	mockService.On("SearchKeyTransferPolicies", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	req, _ := http.NewRequest(http.MethodGet, "/kbs/v1/key-transfer-policies", nil)
 	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
 	q := req.URL.Query()
 	q.Add(Algorithm, "AES")
 	q.Add(KeyLength, "128")
@@ -120,7 +124,7 @@ func TestKeyTransferPolicyCreateHandler(t *testing.T) {
 	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
@@ -151,6 +155,7 @@ func TestKeyTransferPolicyCreateHandler(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -175,7 +180,7 @@ func TestKeyTransferPolicyTDXCreateHandler(t *testing.T) {
 	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
@@ -200,6 +205,7 @@ func TestKeyTransferPolicyTDXCreateHandler(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -223,7 +229,7 @@ func TestKeyTransferPolicyInvalidHeader(t *testing.T) {
 	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{}`
@@ -231,6 +237,7 @@ func TestKeyTransferPolicyInvalidHeader(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", "plain/text")
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -254,7 +261,7 @@ func TestKeyTransferPolicyInvalidReq(t *testing.T) {
 	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{}`
@@ -262,6 +269,7 @@ func TestKeyTransferPolicyInvalidReq(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -286,6 +294,7 @@ func TestKeyTransferPolicyInvalidReq(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -310,7 +319,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
@@ -338,6 +347,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -378,6 +388,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -421,6 +432,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -464,6 +476,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -506,6 +519,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -530,7 +544,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
 	handler := createMockHandler(mockService)
 
-	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil)
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
@@ -554,6 +568,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -590,6 +605,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -627,6 +643,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -664,6 +681,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -701,6 +719,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -738,6 +757,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -775,6 +795,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -812,6 +833,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
@@ -849,6 +871,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
 	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
