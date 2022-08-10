@@ -116,25 +116,32 @@ func (app *App) startServer() error {
 		Handler: httpHandlers,
 	}
 
+	// TLS support is enabled
+	if _, err := os.Stat(constant.DefaultTLSCertPath); os.IsNotExist(err) {
+		// TLS certificate and key does not exist, so creating the cert and key
+		tlsKc := tasks.TLSKeyAndCert{
+			TLSCertPath: constant.DefaultTLSCertPath,
+			TLSKeyPath:  constant.DefaultTLSKeyPath,
+		}
+		err = tlsKc.GenerateTLSKeyandCert()
+		if err != nil {
+			return errors.Wrap(err, "Failed to generate TLS certificate and key")
+		}
+	}
+	log.Debugf("Starting HTTPS server with TLS cert: %s", constant.DefaultTLSCertPath)
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
+	}
+	httpServer.TLSConfig = tlsConfig
+
 	// Dispatch web server go routine
 	log.Info("Starting server")
 	go func() {
-		var serveErr error
-		if _, err := os.Stat(constant.DefaultTLSCertPath); os.IsNotExist(err) {
-			log.Debugf("Starting HTTP server as TLS cert %s does not exist", constant.DefaultTLSCertPath)
-			serveErr = httpServer.ListenAndServe()
-		} else {
-			log.Debugf("Starting HTTPS server with TLS cert: %s", constant.DefaultTLSCertPath)
-			tlsConfig := &tls.Config{
-				MinVersion: tls.VersionTLS13,
-				CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-					tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
-			}
-			httpServer.TLSConfig = tlsConfig
-			serveErr = httpServer.ListenAndServeTLS(constant.DefaultTLSCertPath, constant.DefaultTLSKeyPath)
-		}
+		serveErr := httpServer.ListenAndServeTLS(constant.DefaultTLSCertPath, constant.DefaultTLSKeyPath)
 
 		if serveErr != nil {
 			if serveErr != http.ErrServerClosed {

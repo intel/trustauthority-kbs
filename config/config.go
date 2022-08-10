@@ -20,16 +20,14 @@ import (
 // Constants for viper variable names. Will be used to set
 // default values as well as to get each value
 const (
-	ServicePort = "service-port"
-	LogLevel    = "log-level"
-	LogCaller   = "log-caller"
-
-	ASBaseUrl     = "as-base-url"
-	ASApiKey      = "as-api-key"
-	KeyManager    = "key-manager"
-	AdminUsername = "admin-username"
-	AdminPassword = "admin-password"
-
+	ServicePort        = "service-port"
+	LogLevel           = "log-level"
+	LogCaller          = "log-caller"
+	ASBaseUrl          = "as-base-url"
+	ASApiKey           = "as-api-key"
+	KeyManager         = "key-manager"
+	AdminUsername      = "admin-username"
+	AdminPassword      = "admin-password"
 	KmipVersion        = "kmip.version"
 	KmipServerIP       = "kmip.server-ip"
 	KmipServerPort     = "kmip.server-port"
@@ -52,18 +50,16 @@ var (
 )
 
 type Configuration struct {
-	ServicePort int    `yaml:"service-port" mapstructure:"service-port"`
-	LogLevel    string `yaml:"log-level" mapstructure:"log-level"`
-	LogCaller   bool   `yaml:"log-caller" mapstructure:"log-caller"`
-
-	ASBaseUrl     string `yaml:"as-base-url" mapstructure:"as-base-url"`
-	ASApiKey      string `yaml:"as-api-key" mapstructure:"as-api-key"`
-	KeyManager    string `yaml:"key-manager" mapstructure:"key-manager"`
-	AdminUsername string `yaml:"admin-username" mapstructure:"admin-username"`
-	AdminPassword string `yaml:"admin-password" mapstructure:"admin-password"`
-
-	Kmip  KmipConfig  `yaml:"kmip"`
-	Vault VaultConfig `yaml:"vault"`
+	ServicePort   int         `yaml:"service-port" mapstructure:"service-port"`
+	LogLevel      string      `yaml:"log-level" mapstructure:"log-level"`
+	LogCaller     bool        `yaml:"log-caller" mapstructure:"log-caller"`
+	ASBaseUrl     string      `yaml:"as-base-url" mapstructure:"as-base-url"`
+	ASApiKey      string      `yaml:"as-api-key" mapstructure:"as-api-key"`
+	KeyManager    string      `yaml:"key-manager" mapstructure:"key-manager"`
+	AdminUsername string      `yaml:"admin-username" mapstructure:"admin-username"`
+	AdminPassword string      `yaml:"admin-password" mapstructure:"admin-password"`
+	Kmip          KmipConfig  `yaml:"kmip"`
+	Vault         VaultConfig `yaml:"vault"`
 }
 
 type KmipConfig struct {

@@ -39,6 +39,9 @@ const (
 	TLSCertsPath       = ConfigDir + "certs/tls/"
 	DefaultTLSCertPath = TLSCertsPath + "tls.crt"
 	DefaultTLSKeyPath  = TLSCertsPath + "tls.key"
+	ValidityDays       = 365
+	CommonName         = "KBS TLS Certificate"
+	DefaultIssuer      = "Intel"
 
 	// default location for JWT signing certificate and key
 	JWTSigningCertsPath      = ConfigDir + "certs/signing-keys/"
