@@ -46,12 +46,13 @@ docker: docker.timestamp
 
 docker.timestamp: Dockerfile go.mod go.sum $(shell find $(makefile_dir) -type f -name '*.go')
 	pushd "$(makefile_dir)"
-	docker build ${DOCKER_PROXY_FLAGS} -f Dockerfile --target final -t $(ORGNAME)/$(APPNAME):$(VERSION) .
+	docker build ${DOCKER_PROXY_FLAGS} -f Dockerfile --target final -t $(ORGNAME)/$(APPNAME):$(VERSION) --build-arg VERSION=${VERSION} .
 	touch $@
 
 test-image:
 	DOCKER_BUILDKIT=1 docker build ${DOCKER_PROXY_FLAGS} \
                                   -f Dockerfile --target tester \
+                                  --build-arg VERSION=${VERSION} \
                                           -t $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) .
 
 test: test-image
