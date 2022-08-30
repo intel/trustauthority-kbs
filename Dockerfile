@@ -3,13 +3,15 @@
 
 
 ARG PACKAGES_TO_COVER="config\|keymanager\|transport\|service"
+ARG VERSION=v0.0.0
 
 FROM golang:1.17 AS builder
+ARG VERSION
 WORKDIR /app
 COPY . .
 RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
         GITCOMMIT=$(git describe --always); \
-        VERSION=${GITTAG:-v0.0.0}; \
+        VERSION=${VERSION:-v0.0.0}; \
         BUILDDATE=$(TZ=UTC date +%Y-%m-%dT%H:%M:%S%z); \
         cd cmd && GOOS=linux GOSUMDB=off \
         go build -ldflags "-X intel/amber/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/v1/version.Version=${VERSION} -X intel/amber/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
