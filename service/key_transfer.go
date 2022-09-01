@@ -135,12 +135,13 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 	}
 
 	tokenClaims := claims.(*model.AttestationTokenClaim)
-	if tokenClaims.Tee != transferPolicy.AttestationType[0] {
+	if tokenClaims.AmberEvidenceType != transferPolicy.AttestationType[0] {
 		log.Error("attestation-token is not valid for attestation-type in key-transfer policy")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-token is not valid for attestation-type in key-transfer policy"}
 	}
 
-	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.TeeHeldData, req.KeyId)
+	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.AmberTeeHeldData, req.KeyId)
+
 	if err != nil {
 		return nil, &HandledError{Code: httpStatus, Message: err.Error()}
 	}

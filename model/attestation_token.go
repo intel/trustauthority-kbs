@@ -7,21 +7,30 @@ package model
 import "github.com/google/uuid"
 
 type AttestationTokenClaim struct {
-	MrSeam       string          `json:"mrseam,omitempty"`
-	MrEnclave    string          `json:"mrenclave,omitempty"`
-	MrSigner     string          `json:"mrsigner,omitempty"`
-	MrSignerSeam string          `json:"mrsignerseam,omitempty"`
-	IsvProductId *uint16         `json:"isvprodid,omitempty"`
-	MRTD         string          `json:"mrtd,omitempty"`
-	RTMR0        string          `json:"rtmr0,omitempty"`
-	RTMR1        string          `json:"rtmr1,omitempty"`
-	RTMR2        string          `json:"rtmr2,omitempty"`
-	RTMR3        string          `json:"rtmr3,omitempty"`
-	SeamSvn      *uint8          `json:"seamsvn,omitempty"`
-	IsvSvn       *uint16         `json:"isvsvn,omitempty"`
-	TeeHeldData  string          `json:"tee_held_data,omitempty"`
-	PolicyIds    []uuid.UUID     `json:"policy_ids"`
-	TcbStatus    string          `json:"tcb_status"`
-	Tee          AttestationType `json:"tee"`
-	Version      string          `json:"ver"`
+	AmberTrustScore         int                     `json:"amber_trust_score"`
+	AmberTdxMrSeam          string                  `json:"amber_tdx_mrseam,omitempty"`
+	AmberTdxMrSignerSeam    string                  `json:"amber_tdx_mrsignerseam,omitempty"`
+	AmberTdxMRTD            string                  `json:"amber_tdx_mrtd,omitempty"`
+	AmberTdxRTMR0           string                  `json:"amber_tdx_rtmr0,omitempty"`
+	AmberTdxRTMR1           string                  `json:"amber_tdx_rtmr1,omitempty"`
+	AmberTdxRTMR2           string                  `json:"amber_tdx_rtmr2,omitempty"`
+	AmberTdxRTMR3           string                  `json:"amber_tdx_rtmr3,omitempty"`
+	AmberTdxSeamSvn         *uint8                  `json:"amber_tdx_seamsvn,omitempty"`
+	AmberReportData         string                  `json:"amber_report_data,omitempty"`
+	AmberTeeHeldData        string                  `json:"amber_tee_held_data,omitempty"`
+	AmberInittime           map[string]interface{}  `json:"amber_inittime,omitempty"`
+	AmberRuntime            map[string]interface{}  `json:"amber_runtime,omitempty"`
+	AmberSgxMrEnclave       string                  `json:"amber_sgx_mrenclave,omitempty"`
+	AmberSgxIsDebuggable    bool                    `json:"amber_sgx_is_debuggable"`
+	AmberSgxMrSigner        string                  `json:"amber_sgx_mrsigner,omitempty"`
+	AmberSgxIsvproductId    *uint16                 `json:"amber_sgx_isvprodid,omitempty"`
+	AmberSgxIsvsvn          *uint16                 `json:"amber_sgx_isvsvn,omitempty"`
+	AmberMatchedPolicyIds   []uuid.UUID             `json:"amber_matched_policy_ids,omitempty"`
+	AmberUnmatchedPolicyIds []uuid.UUID             `json:"amber_unmatched_policy_ids,omitempty"`
+	AmberTcbStatus          string                  `json:"amber_tcb_status"`
+	AmberEvidenceType       AttestationType         `json:"amber_evidence_type"`
+	AmberSignedNonce        *bool                   `json:"amber_signed_nonce,omitempty"`
+	AmberClientNonce        *bool                   `json:"amber_client_nonce,omitempty"`
+	AmberCustomPolicy       *map[string]interface{} `json:"amber_custom_policy,omitempty"`
+	Version                 string                  `json:"ver"`
 }
