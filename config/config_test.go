@@ -33,6 +33,7 @@ func clearEnv() {
 	os.Unsetenv("KMIP_CLIENT_KEY_PATH")
 	os.Unsetenv("KMIP_CLIENT_CERT_PATH")
 	os.Unsetenv("KMIP_ROOT_CERT_PATH")
+	os.Unsetenv("SAN_LIST")
 }
 
 func setValidEnv() {
@@ -53,6 +54,7 @@ func setValidEnv() {
 	os.Setenv("KMIP_CLIENT_KEY_PATH", "/etc/pykmip/client_key.pem")
 	os.Setenv("KMIP_CLIENT_CERT_PATH", "/etc/pykmip/client_certificate.pem")
 	os.Setenv("KMIP_ROOT_CERT_PATH", "/etc/pykmip/root_certificate.pem")
+	os.Unsetenv("SAN_LIST")
 }
 
 func setViperInit() {

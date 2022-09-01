@@ -122,6 +122,7 @@ func (app *App) startServer() error {
 		tlsKc := tasks.TLSKeyAndCert{
 			TLSCertPath: constant.DefaultTLSCertPath,
 			TLSKeyPath:  constant.DefaultTLSKeyPath,
+			TlsSanList:  configuration.SanList,
 		}
 		err = tlsKc.GenerateTLSKeyandCert()
 		if err != nil {
