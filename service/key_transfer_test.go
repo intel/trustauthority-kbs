@@ -38,13 +38,13 @@ var (
 	prodId      uint16 = 1
 	isvSvn      uint16 = 0
 	tokenClaims        = &model.AttestationTokenClaim{
-		MrEnclave:    cns.ValidMrEnclave,
-		MrSigner:     cns.ValidMrSigner,
-		IsvProductId: &prodId,
-		IsvSvn:       &isvSvn,
-		Tee:          "SGX",
-		TcbStatus:    "false",
-		TeeHeldData:  base64.StdEncoding.EncodeToString(loadedPubKey),
+		AmberSgxMrEnclave:    cns.ValidMrEnclave,
+		AmberSgxMrSigner:     cns.ValidMrSigner,
+		AmberSgxIsvproductId: &prodId,
+		AmberSgxIsvsvn:       &isvSvn,
+		AmberEvidenceType:    "SGX",
+		AmberTcbStatus:       "false",
+		AmberTeeHeldData:     base64.StdEncoding.EncodeToString(loadedPubKey),
 	}
 )
 
@@ -84,8 +84,8 @@ func TestKeyTransferRSA(t *testing.T) {
 func TestKeyTransfer(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	tokenClaims.TcbStatus = "OUT_OF_DATE"
-	tokenClaims.PolicyIds = []uuid.UUID{uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}
+	tokenClaims.AmberTcbStatus = "OUT_OF_DATE"
+	tokenClaims.AmberMatchedPolicyIds = []uuid.UUID{uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}
 	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
@@ -123,17 +123,17 @@ func TestTDXKeyTransfer(t *testing.T) {
 	var seamSvn uint8 = 0
 
 	tokenTDXClaims := &model.AttestationTokenClaim{
-		MrSignerSeam: cns.ValidMrSignerSeam,
-		MrSeam:       cns.ValidMrSeam,
-		SeamSvn:      &seamSvn,
-		MRTD:         cns.ValidMRTD,
-		RTMR0:        cns.ValidRTMR0,
-		RTMR1:        cns.ValidRTMR1,
-		RTMR2:        cns.ValidRTMR2,
-		RTMR3:        cns.ValidRTMR3,
-		Tee:          "TDX",
-		TcbStatus:    "false",
-		TeeHeldData:  base64.StdEncoding.EncodeToString(loadedPubKey),
+		AmberTdxMrSignerSeam: cns.ValidMrSignerSeam,
+		AmberTdxMrSeam:       cns.ValidMrSeam,
+		AmberTdxSeamSvn:      &seamSvn,
+		AmberTdxMRTD:         cns.ValidMRTD,
+		AmberTdxRTMR0:        cns.ValidRTMR0,
+		AmberTdxRTMR1:        cns.ValidRTMR1,
+		AmberTdxRTMR2:        cns.ValidRTMR2,
+		AmberTdxRTMR3:        cns.ValidRTMR3,
+		AmberEvidenceType:    "TDX",
+		AmberTcbStatus:       "false",
+		AmberTeeHeldData:     base64.StdEncoding.EncodeToString(loadedPubKey),
 	}
 	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
