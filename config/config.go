@@ -28,6 +28,7 @@ const (
 	KeyManager         = "key-manager"
 	AdminUsername      = "admin-username"
 	AdminPassword      = "admin-password"
+	SanList            = "san-list"
 	KmipVersion        = "kmip.version"
 	KmipServerIP       = "kmip.server-ip"
 	KmipServerPort     = "kmip.server-port"
@@ -58,6 +59,7 @@ type Configuration struct {
 	KeyManager    string      `yaml:"key-manager" mapstructure:"key-manager"`
 	AdminUsername string      `yaml:"admin-username" mapstructure:"admin-username"`
 	AdminPassword string      `yaml:"admin-password" mapstructure:"admin-password"`
+	SanList       string      `yaml:"san-list" mapstructure:"san-list"`
 	Kmip          KmipConfig  `yaml:"kmip"`
 	Vault         VaultConfig `yaml:"vault"`
 }

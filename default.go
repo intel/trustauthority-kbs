@@ -17,6 +17,7 @@ func init() {
 	viper.SetDefault(config.ServicePort, constant.DefaultHttpPort)
 	viper.SetDefault(config.LogLevel, constant.DefaultLogLevel)
 	viper.SetDefault(config.LogCaller, false)
+	viper.SetDefault(config.SanList, constant.DefaultTlsSan)
 
 	viper.SetDefault(config.KeyManager, constant.DefaultKeyManager)
 
@@ -40,6 +41,7 @@ func defaultConfig() *config.Configuration {
 		KeyManager:    viper.GetString(config.KeyManager),
 		AdminPassword: viper.GetString(config.AdminPassword),
 		AdminUsername: viper.GetString(config.AdminUsername),
+		SanList:       viper.GetString(config.SanList),
 	}
 
 	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {
@@ -61,6 +63,5 @@ func defaultConfig() *config.Configuration {
 			RootCertificateFilePath:   viper.GetString(config.KmipRootCertPath),
 		}
 	}
-
 	return cfg
 }

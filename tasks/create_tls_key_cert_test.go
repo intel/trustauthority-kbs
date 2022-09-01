@@ -14,6 +14,7 @@ func TestCreateTLSSigningKeyCert(t *testing.T) {
 	tlsCs := TLSKeyAndCert{
 		TLSCertPath: "..//test/tls.crt",
 		TLSKeyPath:  "..//test/tls.key",
+		TlsSanList:  "localhost",
 	}
 	err := tlsCs.GenerateTLSKeyandCert()
 	g.Expect(err).NotTo(gomega.HaveOccurred())

@@ -16,13 +16,16 @@ import (
 	log "github.com/sirupsen/logrus"
 	"intel/amber/kbs/v1/constant"
 	"math/big"
+	"net"
 	"os"
+	"strings"
 	"time"
 )
 
 type TLSKeyAndCert struct {
 	TLSCertPath string
 	TLSKeyPath  string
+	TlsSanList  string
 }
 
 func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
@@ -38,12 +41,11 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 			CommonName: constant.DefaultIssuer,
 		},
 
-		SignatureAlgorithm:    x509.SHA384WithRSA,
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(constant.ValidityDays, 0, 0),
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		BasicConstraintsValid: true,
-		IsCA:                  true,
+		SignatureAlgorithm: x509.SHA384WithRSA,
+		NotBefore:          time.Now(),
+		NotAfter:           time.Now().AddDate(0, 0, constant.ValidityDays),
+		KeyUsage:           x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageContentCommitment,
+		ExtKeyUsage:        []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 	}
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -51,6 +53,16 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 		return errors.Wrap(err, "Failed to create serial number")
 	}
 	template.SerialNumber = serialNumber
+	// add the san list for tls certificate
+	hosts := strings.Split(tkc.TlsSanList, ",")
+	for _, h := range hosts {
+		h = strings.TrimSpace(h)
+		if ip := net.ParseIP(h); ip != nil {
+			template.IPAddresses = append(template.IPAddresses, ip)
+		} else {
+			template.DNSNames = append(template.DNSNames, h)
+		}
+	}
 	selfSignCert, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
 	if err != nil {
 		return errors.Wrap(err, "x509.CreateCertificate Failed")

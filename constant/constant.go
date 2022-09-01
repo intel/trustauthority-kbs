@@ -42,6 +42,7 @@ const (
 	ValidityDays       = 365
 	CommonName         = "KBS TLS Certificate"
 	DefaultIssuer      = "Intel"
+	DefaultTlsSan      = "127.0.0.1,localhost"
 
 	// default location for JWT signing certificate and key
 	JWTSigningCertsPath      = ConfigDir + "certs/signing-keys/"
