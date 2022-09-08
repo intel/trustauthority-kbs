@@ -11,10 +11,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/shaj13/go-guardian/v2/auth"
-	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
-	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
-	"github.com/shaj13/libcache"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/tasks"
 	"io/ioutil"
@@ -26,6 +22,11 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/shaj13/go-guardian/v2/auth"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
+	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
+	"github.com/shaj13/libcache"
 
 	"intel/amber/kbs/v1/clients"
 	"intel/amber/kbs/v1/clients/as"
@@ -49,6 +50,10 @@ func (app *App) startServer() error {
 	if configuration == nil {
 		return errors.New("Failed to load configuration")
 	}
+	if err := configuration.Validate(); err != nil {
+		return errors.Wrap(err, "Invalid configuration")
+	}
+
 	// Initialize log
 	if err := app.configureLogs(); err != nil {
 		return err

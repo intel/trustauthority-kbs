@@ -101,7 +101,7 @@ func encodeTransferKeyHTTPResponse(ctx context.Context, w http.ResponseWriter, r
 	w.WriteHeader(http.StatusOK)
 
 	if resp.KeyTransferResponse == nil {
-		return encodeJsonResponse(ctx, w, resp.SignedNonce)
+		return encodeJsonResponse(ctx, w, resp.Nonce)
 	}
 
 	return encodeJsonResponse(ctx, w, resp.KeyTransferResponse)

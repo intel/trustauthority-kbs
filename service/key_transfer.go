@@ -45,7 +45,7 @@ type TransferKeyRequest struct {
 
 type TransferKeyResponse struct {
 	AttestationType     string
-	SignedNonce         *as.SignedNonce
+	Nonce               *as.Nonce
 	KeyTransferResponse *model.KeyTransferResponse
 }
 
@@ -89,7 +89,7 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 			}
 
 			resp := &TransferKeyResponse{
-				SignedNonce:         nonce,
+				Nonce:               nonce,
 				AttestationType:     transferPolicy.AttestationType[0].String(),
 				KeyTransferResponse: nil,
 			}
@@ -113,12 +113,11 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 		}
 
 		tokenRequest := as.AttestationTokenRequest{
-			Quote:       req.KeyTransferRequest.Quote,
-			SignedNonce: req.KeyTransferRequest.SignedNonce,
-			UserData:    req.KeyTransferRequest.UserData,
-			PolicyIds:   policyIds,
-			EventLog:    req.KeyTransferRequest.EventLog,
-			TenantId:    uuid.MustParse("7110194b-a703-4657-9d7f-3e02b62f2ed8"),
+			Quote:     req.KeyTransferRequest.Quote,
+			Nonce:     req.KeyTransferRequest.Nonce,
+			UserData:  req.KeyTransferRequest.UserData,
+			PolicyIds: policyIds,
+			EventLog:  req.KeyTransferRequest.EventLog,
 		}
 
 		token, err = svc.asClient.GetAttestationToken(&tokenRequest)
@@ -141,7 +140,6 @@ func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*Tran
 	}
 
 	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.AmberTeeHeldData, req.KeyId)
-
 	if err != nil {
 		return nil, &HandledError{Code: httpStatus, Message: err.Error()}
 	}
@@ -167,15 +165,11 @@ func (svc service) validateClaimsAndGetKey(tokenClaims *model.AttestationTokenCl
 
 	err := validateAttestationTokenClaims(tokenClaims, transferPolicy)
 	if err != nil {
-		log.WithError(err).Errorf("Failed to validate Token claims against Key transfer Policy attributes")
-		return nil, http.StatusUnauthorized, &HandledError{Message: "Token claims validation against key-policy failed"}
+		log.WithError(err).Errorf("Failed to validate Token claims against Key transfer policy attributes")
+		return nil, http.StatusUnauthorized, &HandledError{Message: "Token claims validation against key-transfer-policy failed"}
 	}
 
-	response, httpStatus, err := svc.getWrappedKey(keyAlgorithm, userData, keyId)
-	if err != nil {
-		return nil, httpStatus, err
-	}
-	return response, httpStatus, nil
+	return svc.getWrappedKey(keyAlgorithm, userData, keyId)
 }
 
 func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID) (interface{}, int, error) {

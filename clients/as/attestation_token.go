@@ -18,14 +18,11 @@ import (
 )
 
 type AttestationTokenRequest struct {
-	Quote       []byte       `json:"quote"`
-	SignedNonce *SignedNonce `json:"signed_nonce"`
-	UserData    []byte       `json:"user_data,omitempty"`
-	PolicyIds   []uuid.UUID  `json:"policy_ids,omitempty"`
-	PolicyNames []string     `json:"policy_names,omitempty"`
-	EventLog    []byte       `json:"event_log,omitempty"`
-	// TODO: to be removed once removed from Amber AS
-	TenantId uuid.UUID `json:"tenant_id"`
+	Quote     []byte      `json:"quote"`
+	Nonce     *Nonce      `json:"nonce,omitempty"`
+	UserData  []byte      `json:"user_data,omitempty"`
+	PolicyIds []uuid.UUID `json:"policy_ids,omitempty"`
+	EventLog  []byte      `json:"event_log,omitempty"`
 }
 
 // GetAttestationToken sends a POST request to Appraisal Service to create a new Attestation token with the specified quote attributes

@@ -12,16 +12,17 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/pem"
+	"testing"
+
+	"intel/amber/kbs/v1/clients/as"
+	"intel/amber/kbs/v1/jwt"
+	"intel/amber/kbs/v1/model"
+	cns "intel/amber/kbs/v1/repository/mocks/constants"
 
 	"github.com/google/uuid"
 	"github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/clients/as"
-	"intel/amber/kbs/v1/jwt"
-	"intel/amber/kbs/v1/model"
-	cns "intel/amber/kbs/v1/repository/mocks/constants"
-	"testing"
 )
 
 var (
@@ -64,12 +65,12 @@ func TestKeyTransferRSA(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.SignedNonce{}
+	nonce := &as.Nonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:       []byte(""),
-		SignedNonce: nonce,
-		UserData:    []byte(""),
+		Quote:    []byte(""),
+		Nonce:    nonce,
+		UserData: []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -98,12 +99,12 @@ func TestKeyTransfer(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.SignedNonce{}
+	nonce := &as.Nonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:       []byte(""),
-		SignedNonce: nonce,
-		UserData:    []byte(""),
+		Quote:    []byte(""),
+		Nonce:    nonce,
+		UserData: []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -146,12 +147,12 @@ func TestTDXKeyTransfer(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.SignedNonce{}
+	nonce := &as.Nonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:       []byte(""),
-		SignedNonce: nonce,
-		UserData:    []byte(""),
+		Quote:    []byte(""),
+		Nonce:    nonce,
+		UserData: []byte(""),
 	}
 
 	request2 := TransferKeyRequest{
@@ -193,12 +194,12 @@ func TestKeyTransferInvalidAttestaionType(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.SignedNonce{}
+	nonce := &as.Nonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:       []byte(""),
-		SignedNonce: nonce,
-		UserData:    []byte(""),
+		Quote:    []byte(""),
+		Nonce:    nonce,
+		UserData: []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -226,12 +227,12 @@ func TestKeyTransferInvalidKeyId(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.SignedNonce{}
+	nonce := &as.Nonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:       []byte(""),
-		SignedNonce: nonce,
-		UserData:    []byte(""),
+		Quote:    []byte(""),
+		Nonce:    nonce,
+		UserData: []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -257,12 +258,12 @@ func TestKeyTransferInvalidSecretKey(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.SignedNonce{}
+	nonce := &as.Nonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:       []byte(""),
-		SignedNonce: nonce,
-		UserData:    []byte(""),
+		Quote:    []byte(""),
+		Nonce:    nonce,
+		UserData: []byte(""),
 	}
 
 	request := TransferKeyRequest{
