@@ -11,7 +11,7 @@ import (
 
 type ASClient interface {
 	GetAttestationToken(*AttestationTokenRequest) ([]byte, error)
-	GetNonce() (*SignedNonce, error)
+	GetNonce() (*Nonce, error)
 }
 
 type asClient struct {

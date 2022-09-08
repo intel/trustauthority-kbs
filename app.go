@@ -14,12 +14,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"intel/amber/kbs/v1/config"
 	"intel/amber/kbs/v1/constant"
 	constants "intel/amber/kbs/v1/constant"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var errInvalidCmd = errors.New("Invalid input after command")
@@ -104,12 +105,7 @@ func (app *App) Run(args []string) error {
 			app.Config = defaultConfig()
 		}
 
-		err := app.Config.Validate()
-		if err != nil {
-			return errors.Wrap(err, "Invalid configuration")
-		}
-
-		err = app.Config.Save(constant.DefaultConfigFilePath)
+		err := app.Config.Save(constant.DefaultConfigFilePath)
 		if err != nil {
 			return errors.Wrap(err, "Failed to save configuration")
 		}
