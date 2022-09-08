@@ -39,7 +39,7 @@ func setKeyTransferHandler(svc service.Service, router *mux.Router, options []ht
 func makeTransferKeyHTTPEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(service.TransferKeyRequest)
-		return svc.TransferKey(ctx, req)
+		return svc.TransferKeyWithEvidence(ctx, req)
 	}
 }
 

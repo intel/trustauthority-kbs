@@ -6,25 +6,27 @@ package http
 
 import (
 	"bytes"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/onsi/gomega"
-	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/service"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"intel/amber/kbs/v1/service"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestKeyTransferHandler(t *testing.T) {
+func TestKeyTransferWithEvidenceHandler(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	resp := &service.TransferKeyResponse{}
 
 	keyId := uuid.New()
 
 	mockService := &MockService{}
-	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
+	mockService.On("TransferKeyWithEvidence", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
 	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
@@ -57,7 +59,7 @@ func TestKeyTransferWithInvalidHeader(t *testing.T) {
 	keyId := uuid.New()
 
 	mockService := &MockService{}
-	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
+	mockService.On("TransferKeyWithEvidence", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
 	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
@@ -96,7 +98,7 @@ func TestKeyTransferInvalidAttestionType(t *testing.T) {
 	keyId := uuid.New()
 
 	mockService := &MockService{}
-	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
+	mockService.On("TransferKeyWithEvidence", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
 	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
@@ -135,7 +137,7 @@ func TestKeyTransferwithNilPostData(t *testing.T) {
 	keyId := uuid.New()
 
 	mockService := &MockService{}
-	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
+	mockService.On("TransferKeyWithEvidence", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
 	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
@@ -174,7 +176,7 @@ func TestKeyTransferInvalidPostData(t *testing.T) {
 	keyId := uuid.New()
 
 	mockService := &MockService{}
-	mockService.On("TransferKey", mock.Anything, mock.Anything).Return(resp, nil)
+	mockService.On("TransferKeyWithEvidence", mock.Anything, mock.Anything).Return(resp, nil)
 	handler := createMockHandler(mockService)
 
 	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)

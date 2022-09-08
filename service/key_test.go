@@ -7,9 +7,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"github.com/google/uuid"
-	"github.com/onsi/gomega"
-	"github.com/stretchr/testify/mock"
 	"intel/amber/kbs/v1/clients/as"
 	"intel/amber/kbs/v1/jwt"
 	"intel/amber/kbs/v1/keymanager"
@@ -18,6 +15,10 @@ import (
 	"intel/amber/kbs/v1/repository"
 	"intel/amber/kbs/v1/repository/mocks"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 )
 
 var gKeyId uuid.UUID
@@ -261,4 +262,22 @@ func TestKeyRegisterInvalidTransferPolicy(t *testing.T) {
 	json.Unmarshal([]byte(keyJson), &request)
 	_, err := svc.CreateKey(context.Background(), request)
 	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestKeyTransfer(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	kmipClient.On("GetKey", mock.Anything, mock.Anything).Return(key, nil)
+	kmipKeyManager.On("TransferKey", mock.AnythingOfType("*model.KeyAttributes")).Return([]uint8(key), nil)
+
+	svc := LoggingMiddleware()(svcInstance)
+	g.Expect(svc).NotTo(gomega.BeNil())
+
+	request := TransferKeyRequest{
+		KeyId:     uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
+		PublicKey: publicKey,
+	}
+
+	_, err := svc.TransferKey(context.Background(), request)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
