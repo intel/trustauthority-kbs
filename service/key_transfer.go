@@ -10,7 +10,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/pem"
@@ -39,6 +39,7 @@ const (
 
 type TransferKeyRequest struct {
 	KeyId              uuid.UUID
+	PublicKey          *rsa.PublicKey
 	AttestationType    string
 	KeyTransferRequest *model.KeyTransferRequest
 }
@@ -49,19 +50,19 @@ type TransferKeyResponse struct {
 	KeyTransferResponse *model.KeyTransferResponse
 }
 
-func (mw loggingMiddleware) TransferKey(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
+func (mw loggingMiddleware) TransferKeyWithEvidence(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Tracef("TransferKey took %s since %s", time.Since(begin), begin)
+		log.Tracef("TransferKeyWithEvidence took %s since %s", time.Since(begin), begin)
 		if err != nil {
 			log.WithError(err)
 		}
 	}(time.Now())
-	resp, err := mw.next.TransferKey(ctx, req)
+	resp, err := mw.next.TransferKeyWithEvidence(ctx, req)
 	return resp, err
 }
 
-func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
+func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
 	key, err := svc.remoteManager.RetrieveKey(req.KeyId)
 	if err != nil {
 		if err.Error() == RecordNotFound {
@@ -247,7 +248,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID) (i
 	wrappedKey = append(wrappedKey, bytes...)
 
 	// Wrap SWK with public key
-	wrappedSWK, status, err := wrapKey(publicKey, swk, sha1.New(), nil)
+	wrappedSWK, status, err := wrapKey(publicKey, swk, sha256.New(), nil)
 	if err != nil {
 		return nil, status, err
 	}
@@ -266,8 +267,14 @@ func getPublicKey(userData string) (*rsa.PublicKey, error) {
 		return nil, errors.New("failed to decode user data")
 	}
 
+	modArr := key[4:]
+	// Endianess : Key Buffer transmitted from Enclave is in LE.
+	for i := 0; i < len(modArr)/2; i++ {
+		modArr[i], modArr[len(modArr)-i-1] = modArr[len(modArr)-i-1], modArr[i]
+	}
+
 	n := big.Int{}
-	n.SetBytes(key[4:])
+	n.SetBytes(modArr)
 	eb := binary.LittleEndian.Uint32(key[:])
 	pubKey := rsa.PublicKey{N: &n, E: int(eb)}
 

@@ -6,19 +6,22 @@ package http
 
 import (
 	"context"
-	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/mock"
+	"net/http"
+
 	"intel/amber/kbs/v1/config"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/service"
 	"intel/amber/kbs/v1/version"
-	"net/http"
+
+	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
 	HTTPMediaTypeJson = "application/json"
 	HTTPMediaTypeJWT  = "application/jwt"
+	HTTPMediaTypePem  = "application/x-pem-file"
 )
 
 func init() {
@@ -72,7 +75,13 @@ func (svc *MockService) SearchKeyTransferPolicies(ctx context.Context, filter *m
 	args := svc.Called(ctx, filter)
 	return args.Get(0).([]model.KeyTransferPolicy), args.Error(1)
 }
+
 func (svc *MockService) TransferKey(ctx context.Context, req service.TransferKeyRequest) (*service.TransferKeyResponse, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(*service.TransferKeyResponse), args.Error(1)
+}
+
+func (svc *MockService) TransferKeyWithEvidence(ctx context.Context, req service.TransferKeyRequest) (*service.TransferKeyResponse, error) {
 	args := svc.Called(ctx)
 	return args.Get(0).(*service.TransferKeyResponse), args.Error(1)
 }

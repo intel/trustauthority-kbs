@@ -79,10 +79,10 @@ func TestKeyTransferRSA(t *testing.T) {
 		KeyTransferRequest: transReq,
 	}
 
-	_, err := svc.TransferKey(context.Background(), request)
+	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
-func TestKeyTransfer(t *testing.T) {
+func TestSGXKeyTransfer(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	tokenClaims.AmberTcbStatus = "OUT_OF_DATE"
@@ -113,7 +113,7 @@ func TestKeyTransfer(t *testing.T) {
 		KeyTransferRequest: transReq,
 	}
 
-	_, err := svc.TransferKey(context.Background(), request)
+	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
 
@@ -155,13 +155,13 @@ func TestTDXKeyTransfer(t *testing.T) {
 		UserData: []byte(""),
 	}
 
-	request2 := TransferKeyRequest{
+	request := TransferKeyRequest{
 		KeyId:              uuid.MustParse("ed37c360-7eae-4250-a677-6ee12adce8e3"),
 		AttestationType:    "TDX",
 		KeyTransferRequest: transReq,
 	}
 
-	_, err := svc.TransferKey(context.Background(), request2)
+	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
 func loadPublicKey(userData []byte) ([]byte, error) {
@@ -208,7 +208,7 @@ func TestKeyTransferInvalidAttestaionType(t *testing.T) {
 		KeyTransferRequest: transReq,
 	}
 
-	_, err := svc.TransferKey(context.Background(), request)
+	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).To(gomega.HaveOccurred())
 }
 
@@ -241,7 +241,7 @@ func TestKeyTransferInvalidKeyId(t *testing.T) {
 		KeyTransferRequest: transReq,
 	}
 
-	_, err := svc.TransferKey(context.Background(), request)
+	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).To(gomega.HaveOccurred())
 }
 func TestKeyTransferInvalidSecretKey(t *testing.T) {
@@ -272,7 +272,7 @@ func TestKeyTransferInvalidSecretKey(t *testing.T) {
 		KeyTransferRequest: transReq,
 	}
 
-	_, err := svc.TransferKey(context.Background(), request)
+	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).To(gomega.HaveOccurred())
 }
 

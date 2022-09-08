@@ -6,7 +6,9 @@ package http
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,6 +16,7 @@ import (
 
 	"intel/amber/kbs/v1/clients/constant"
 	consts "intel/amber/kbs/v1/constant"
+	"intel/amber/kbs/v1/crypt"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/service"
 
@@ -77,6 +80,15 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 
 	router.Handle("/keys", authMiddleware(searchKeysHandler, auth)).Methods(http.MethodGet)
 
+	transferKeyHandler := httpTransport.NewServer(
+		makeTransferKeyEndpoint(svc),
+		decodeTransferHTTPRequest,
+		encodeTransferHTTPResponse,
+		options...,
+	)
+
+	router.Handle(keyIdExpr, transferKeyHandler).Methods(http.MethodPost)
+
 	return nil
 }
 
@@ -105,6 +117,13 @@ func makeRetrieveKeyEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		id := request.(uuid.UUID)
 		return svc.RetrieveKey(ctx, id)
+	}
+}
+
+func makeTransferKeyEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(service.TransferKeyRequest)
+		return svc.TransferKey(ctx, req)
 	}
 }
 
@@ -187,6 +206,47 @@ func decodeSearchKeysHTTPRequest(_ context.Context, r *http.Request) (interface{
 	return criteria, nil
 }
 
+func decodeTransferHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+
+	if r.Header.Get(constant.HTTPHeaderKeyContentType) != constant.HTTPHeaderValueApplicationXPEMFile {
+		log.Error(ErrInvalidContentTypeHeader.Error())
+		return nil, ErrInvalidContentTypeHeader
+	}
+
+	if r.Header.Get(constant.HTTPHeaderKeyAccept) != constant.HTTPHeaderValueApplicationJson {
+		log.Error(ErrInvalidAcceptHeader.Error())
+		return nil, ErrInvalidAcceptHeader
+	}
+
+	if r.ContentLength == 0 {
+		log.Error(ErrEmptyRequestBody.Error())
+		return nil, ErrEmptyRequestBody
+	}
+
+	id := uuid.MustParse(mux.Vars(r)["id"])
+
+	// Read the incoming data
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.WithError(err).Error(ErrReadRequestFailed.Error())
+		return nil, ErrReadRequestFailed
+	}
+
+	// Decode public key in request
+	key, err := crypt.GetPublicKeyFromPem(bytes)
+	if err != nil {
+		log.WithError(err).Error(ErrInvalidRequest.Error())
+		return nil, ErrInvalidRequest
+	}
+
+	req := service.TransferKeyRequest{
+		KeyId:     id,
+		PublicKey: key.(*rsa.PublicKey),
+	}
+
+	return req, nil
+}
+
 func encodeCreateKeyHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(*model.KeyResponse)
 
@@ -211,7 +271,6 @@ func encodeDeleteHTTPResponse(ctx context.Context, w http.ResponseWriter, respon
 }
 
 func encodeSearchKeysHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	//TODO: Change to dictionary instead of returning array
 	resp := response.([]*model.KeyResponse)
 
 	header := w.Header()
@@ -219,6 +278,16 @@ func encodeSearchKeysHTTPResponse(ctx context.Context, w http.ResponseWriter, re
 	w.WriteHeader(http.StatusOK)
 
 	return encodeJsonResponse(ctx, w, resp)
+}
+
+func encodeTransferHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	resp := response.(*service.TransferKeyResponse)
+
+	header := w.Header()
+	header.Set(constant.HTTPHeaderKeyContentType, constant.HTTPHeaderValueApplicationJson)
+	w.WriteHeader(http.StatusOK)
+
+	return encodeJsonResponse(ctx, w, resp.KeyTransferResponse)
 }
 
 // validateKeyCreateRequest checks for various attributes in the Create Key request and returns error or nil

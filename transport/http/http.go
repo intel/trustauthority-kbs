@@ -87,7 +87,7 @@ func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 
 func errToCode(err error) int {
 	switch err {
-	case ErrInvalidRequest, ErrJsonDecodeFailed, ErrEmptyRequestBody, ErrTooManyQueryParams, ErrInvalidQueryParam, ErrInvalidFilterCriteria, ErrBase64DecodeFailed, ErrInvalidAttestationType:
+	case ErrInvalidRequest, ErrJsonDecodeFailed, ErrEmptyRequestBody, ErrReadRequestFailed, ErrTooManyQueryParams, ErrInvalidQueryParam, ErrInvalidFilterCriteria, ErrBase64DecodeFailed, ErrInvalidAttestationType:
 		return http.StatusBadRequest
 	case ErrInvalidContentTypeHeader, ErrInvalidAcceptHeader:
 		return http.StatusUnsupportedMediaType

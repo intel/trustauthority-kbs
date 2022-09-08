@@ -6,6 +6,7 @@ package service
 
 import (
 	"context"
+	"crypto/sha512"
 	"net/http"
 	"time"
 
@@ -142,4 +143,37 @@ func (svc service) RetrieveKey(_ context.Context, keyId uuid.UUID) (interface{},
 	}
 
 	return key, nil
+}
+
+func (mw loggingMiddleware) TransferKey(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
+	var err error
+	defer func(begin time.Time) {
+		log.Tracef("TransferKey took %s since %s", time.Since(begin), begin)
+		if err != nil {
+			log.WithError(err)
+		}
+	}(time.Now())
+	resp, err := mw.next.TransferKey(ctx, req)
+	return resp, err
+}
+
+func (svc service) TransferKey(_ context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
+	secretKey, status, err := getSecretKey(svc.remoteManager, req.KeyId)
+	if err != nil {
+		return nil, &HandledError{Code: status, Message: err.Error()}
+	}
+
+	// Wrap secret key with public key
+	wrappedKey, status, err := wrapKey(req.PublicKey, secretKey.([]byte), sha512.New384(), nil)
+	if err != nil {
+		return nil, &HandledError{Code: status, Message: err.Error()}
+	}
+
+	transferResponse := &model.KeyTransferResponse{
+		WrappedKey: wrappedKey.([]byte),
+	}
+	resp := &TransferKeyResponse{
+		KeyTransferResponse: transferResponse,
+	}
+	return resp, nil
 }

@@ -27,6 +27,7 @@ type Service interface {
 	DeleteKeyTransferPolicy(context.Context, uuid.UUID) (interface{}, error)
 	RetrieveKeyTransferPolicy(context.Context, uuid.UUID) (interface{}, error)
 	TransferKey(context.Context, TransferKeyRequest) (*TransferKeyResponse, error)
+	TransferKeyWithEvidence(context.Context, TransferKeyRequest) (*TransferKeyResponse, error)
 	CreateUser(context.Context, *model.User) (*model.UserResponse, error)
 	UpdateUser(context.Context, *model.UpdateUserRequest) (*model.UserResponse, error)
 	SearchUser(context.Context, *model.UserFilterCriteria) ([]model.UserResponse, error)

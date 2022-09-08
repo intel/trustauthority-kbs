@@ -16,5 +16,5 @@ type KeyTransferRequest struct {
 
 type KeyTransferResponse struct {
 	WrappedKey []byte `json:"wrapped_key"`
-	WrappedSWK []byte `json:"wrapped_swk"`
+	WrappedSWK []byte `json:"wrapped_swk,omitempty"`
 }
