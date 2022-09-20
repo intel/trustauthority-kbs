@@ -86,6 +86,8 @@ func (vc *vaultClient) GetKey(keyID string) ([]byte, error) {
 	secret, err := vc.c.Read(constants.VAULT_KEY_ROOT_PATH + keyID)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to retrieve key from vault server.")
+	} else if secret == nil {
+		return nil, errors.Errorf("Failed to retrieve the key from vault. key with ID %s is not found", keyID)
 	}
 	log.Info("vaultclient/vaultclient:GetKey() Retrieved key from vault server")
 
