@@ -86,6 +86,10 @@ func (vm *VaultManager) CreateKey(request *model.KeyRequest) (*model.KeyAttribut
 	if err != nil {
 		return nil, err
 	}
+	// remove the keyData, Private and Public key from attributes so that it's not saved on disk
+	keyAttributes.KeyData = ""
+	keyAttributes.PrivateKey = ""
+	keyAttributes.PublicKey = ""
 	return keyAttributes, nil
 }
 
@@ -162,6 +166,10 @@ func (vm *VaultManager) RegisterKey(request *model.KeyRequest) (*model.KeyAttrib
 	if err != nil {
 		return nil, err
 	}
+	// remove the keyData, Private and Public key from attributes so that it's not saved on disk
+	keyAttributes.KeyData = ""
+	keyAttributes.PrivateKey = ""
+	keyAttributes.PublicKey = ""
 	return keyAttributes, nil
 }
 
