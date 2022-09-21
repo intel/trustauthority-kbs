@@ -80,3 +80,11 @@ clean:
 
 help:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
+
+swagger-doc:
+	DOCKER_BUILDKIT=1 docker build ${DOCKER_PROXY_FLAGS} \
+                                      -f Dockerfile --target swagger \
+                                      --build-arg VERSION=${VERSION} \
+                                              -t $(ORGNAME)/$(APPNAME)-swagger:$(VERSION) .
+	docker run -i ${DOCKER_RUN_PROXY_FLAGS} --rm $(ORGNAME)/$(APPNAME)-swagger:$(VERSION) /bin/bash -c  "GOOS=linux GOSUMDB=off go mod tidy && GOOS=linux GOSUMDB=off GOPROXY=direct /usr/local/bin/swagger generate spec -w ./docs -o openapi.yml && /usr/local/bin/swagger validate openapi.yml"
+	docker rmi $(ORGNAME)/$(APPNAME)-swagger:$(VERSION)

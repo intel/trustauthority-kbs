@@ -5,7 +5,7 @@
 ARG PACKAGES_TO_COVER="config\|keymanager\|transport\|service"
 ARG VERSION=v0.0.0
 
-FROM golang:1.17 AS builder
+FROM golang:1.18 AS builder
 ARG VERSION
 WORKDIR /app
 COPY . .
@@ -38,3 +38,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     -ldflags "-X intel/amber/kbs/cache/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/cache/v1/version.Version=${VERSION} -X intel/amber/kbs/cache/v1/version.GitHash=${GITCOMMIT}"
 RUN  /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
 
+FROM builder AS swagger
+ARG VERSION
+ARG GITCOMMIT
+ARG PACKAGES_TO_COVER
+WORKDIR /app
+COPY . .
+RUN wget https://github.com/go-swagger/go-swagger/releases/download/v0.26.1/swagger_linux_amd64 -O /usr/local/bin/swagger
+RUN chmod +x /usr/local/bin/swagger
