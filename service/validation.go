@@ -265,6 +265,7 @@ func SetupGoguardianForTest() *model.JwtAuthz {
 		token.NewScope(constant.KeyCreate, "/keys", "POST"),
 		token.NewScope(constant.KeySearch, "/keys", "GET"),
 		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
+		token.NewScope(constant.KeyTransfer, "/keys/"+constant.UUIDReg, "POST"),
 		token.NewScope(constant.UserCreate, "/users", "POST"),
 		token.NewScope(constant.UserSearch, "/users", "GET"),
 		token.NewScope(constant.UserUpdate, "/users", "PUT"),

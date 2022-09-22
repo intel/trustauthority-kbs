@@ -87,7 +87,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 		options...,
 	)
 
-	router.Handle(keyIdExpr, transferKeyHandler).Methods(http.MethodPost)
+	router.Handle(keyIdExpr, authMiddleware(transferKeyHandler, auth)).Methods(http.MethodPost)
 
 	return nil
 }

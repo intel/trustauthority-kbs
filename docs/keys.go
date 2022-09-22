@@ -189,7 +189,9 @@ type KeyTransferResponse struct {
 // description: |
 //   Transfers a key.
 //   Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
-// x-permissions: no permissions required
+// x-permissions: keys:transfer
+// security:
+// - bearerAuth: []
 // produces:
 // - application/json
 // consumes:

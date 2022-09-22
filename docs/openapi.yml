@@ -911,9 +911,11 @@ paths:
           description: Invalid Content-Type/Accept Header in Request
         "500":
           description: Internal server error
+      security:
+      - bearerAuth: []
       tags:
       - Keys
-      x-permissions: no permissions required
+      x-permissions: keys:transfer
       x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
       x-sample-call-input: |
         -----BEGIN PUBLIC KEY-----

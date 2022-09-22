@@ -46,7 +46,6 @@ import (
 func (app *App) startServer() error {
 
 	configuration := app.Config
-	log.Infof("configuration: %v", configuration)
 	if configuration == nil {
 		return errors.New("Failed to load configuration")
 	}
@@ -271,6 +270,7 @@ func setupAuthZ() (*model.JwtAuthz, error) {
 		token.NewScope(constant.KeyCreate, "/keys", "POST"),
 		token.NewScope(constant.KeySearch, "/keys", "GET"),
 		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
+		token.NewScope(constant.KeyTransfer, "/keys/"+constant.UUIDReg, "POST"),
 		token.NewScope(constant.UserCreate, "/users", "POST"),
 		token.NewScope(constant.UserSearch, "/users", "GET"),
 		token.NewScope(constant.UserUpdate, "/users", "PUT"),
