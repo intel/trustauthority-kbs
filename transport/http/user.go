@@ -27,7 +27,7 @@ const (
 
 var (
 	allowedAPIs           = map[string]bool{"users": true, "keys": true, "key-transfer-policies": true}
-	allowedAPIPermissions = map[string]bool{"create": true, "delete": true, "search": true, "update": true}
+	allowedAPIPermissions = map[string]bool{"create": true, "delete": true, "search": true, "update": true, "transfer": true}
 )
 
 func setUserHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, auth *model.JwtAuthz) error {

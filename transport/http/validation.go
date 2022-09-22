@@ -6,6 +6,7 @@ package http
 
 import (
 	"fmt"
+	"intel/amber/kbs/v1/constant"
 	"net/url"
 	"regexp"
 	"strings"
@@ -13,13 +14,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	MaxQueryParamsLength = 50
-	UUIDReg              = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}"
-)
-
 var (
-	idReg              = fmt.Sprintf("{id:%s}", UUIDReg)
+	idReg              = fmt.Sprintf("{id:%s}", constant.UUIDReg)
 	stringReg          = regexp.MustCompile("(^[a-zA-Z0-9_ \\/.-]*$)")
 	pemEncodedKeyReg   = regexp.MustCompile("(^[-a-zA-Z0-9//=+\012 ]*$)")
 	sha256HexStringReg = regexp.MustCompile("^[a-fA-F0-9]{64}$")
@@ -64,7 +60,7 @@ func ValidateSha384HexString(value string) error {
 }
 
 func ValidateQueryParamKeys(params url.Values, validQueries map[string]bool) error {
-	if len(params) > MaxQueryParamsLength {
+	if len(params) > constant.MaxQueryParamsLength {
 		return ErrTooManyQueryParams
 	}
 	for param := range params {

@@ -6,9 +6,10 @@
 package constant
 
 const (
-	KeyCreate = "keys:create"
-	KeyDelete = "keys:delete"
-	KeySearch = "keys:search"
+	KeyCreate   = "keys:create"
+	KeyDelete   = "keys:delete"
+	KeySearch   = "keys:search"
+	KeyTransfer = "keys:transfer"
 
 	KeyTransferPolicyCreate = "key_transfer_policies:create"
 	KeyTransferPolicyDelete = "key_transfer_policies:delete"
@@ -20,4 +21,4 @@ const (
 	UserUpdate = "users:update"
 )
 
-var AdminPermissions = []string{KeySearch, KeyCreate, KeyDelete, KeyTransferPolicyCreate, KeyTransferPolicySearch, KeyTransferPolicyDelete, UserDelete, UserSearch, UserCreate, UserUpdate}
+var AdminPermissions = []string{KeySearch, KeyCreate, KeyDelete, KeyTransfer, KeyTransferPolicyCreate, KeyTransferPolicySearch, KeyTransferPolicyDelete, UserDelete, UserSearch, UserCreate, UserUpdate}
