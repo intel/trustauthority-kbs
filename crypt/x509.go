@@ -23,6 +23,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	MaxCertChainLength = 10
+)
+
 func GetCertsFromDir(path string) ([]x509.Certificate, error) {
 	var certificates []x509.Certificate
 	files, err := ioutil.ReadDir(path)
@@ -68,13 +72,17 @@ func GetX509CertsFromPem(certBytes []byte) ([]x509.Certificate, error) {
 	if err != nil {
 		log.WithError(err).Warn("Failed to parse certificate")
 	} else {
-		certificates = append(certificates, *cert)
+		certificates = []x509.Certificate{*cert}
 		log.Debugf("CommonName %s", cert.Subject.CommonName)
 	}
 
 	// Return if no more certificates present in file
 	if rest == nil {
 		return certificates, nil
+	}
+
+	if len(rest) > MaxCertChainLength {
+		return nil, fmt.Errorf("Unexpected certs found in chain")
 	}
 
 	for len(rest) > 1 {

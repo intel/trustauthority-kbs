@@ -8,14 +8,16 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
+	"intel/amber/kbs/v1/clients/constant"
+	"intel/amber/kbs/v1/model"
+	"intel/amber/kbs/v1/service"
+
 	"github.com/go-kit/kit/endpoint"
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/clients/constant"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/service"
-	"net/http"
 )
 
 func setCreateAuthTokenHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, jwtAuth *model.JwtAuthz) error {
@@ -68,6 +70,7 @@ func decodeCreateAuthTokenHttpRequest(_ context.Context, r *http.Request) (inter
 
 func encodeCreateAuthTokenHttpResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(string)
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	w.Write([]byte(resp))
 	return nil
 }
