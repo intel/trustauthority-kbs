@@ -44,5 +44,5 @@ ARG GITCOMMIT
 ARG PACKAGES_TO_COVER
 WORKDIR /app
 COPY . .
-RUN wget https://github.com/go-swagger/go-swagger/releases/download/v0.26.1/swagger_linux_amd64 -O /usr/local/bin/swagger
+RUN wget https://github.com/go-swagger/go-swagger/releases/download/v0.30.0/swagger_linux_amd64 -O /usr/local/bin/swagger
 RUN chmod +x /usr/local/bin/swagger

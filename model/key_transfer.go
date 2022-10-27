@@ -7,6 +7,8 @@ package model
 import "intel/amber/kbs/v1/clients/as"
 
 type KeyTransferRequest struct {
+	// Describes the Signed JWT Token received from the workload
+	// required: true
 	AttestationToken string    `json:"attestation_token,omitempty"`
 	Quote            []byte    `json:"quote,omitempty"`
 	Nonce            *as.Nonce `json:"nonce,omitempty"`
