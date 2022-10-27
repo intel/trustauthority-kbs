@@ -29,8 +29,11 @@ type UserResponse struct {
 }
 
 type User struct {
-	Username    string   `json:"username"`
-	Password    string   `json:"password"`
+	// required: true
+	Username string `json:"username"`
+	// required: true
+	Password string `json:"password"`
+	// required: true
 	Permissions []string `json:"permissions"`
 }
 

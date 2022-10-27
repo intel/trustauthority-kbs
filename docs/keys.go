@@ -12,6 +12,7 @@ type KeyResponses []model.KeyResponse
 // swagger:parameters KeyRequest
 type KeyRequest struct {
 	// in:body
+	// required: true
 	Body model.KeyRequest
 }
 
@@ -19,6 +20,7 @@ type KeyRequest struct {
 // swagger:parameters KeyResponse
 type KeyResponse struct {
 	// in:body
+	// required: true
 	Body model.KeyResponse
 }
 
@@ -33,6 +35,7 @@ type KeyCollection struct {
 // swagger:parameters KeyTransferResponse
 type KeyTransferResponse struct {
 	// in:body
+	// required: true
 	Body model.KeyTransferResponse
 }
 

@@ -9,6 +9,8 @@ import "intel/amber/kbs/v1/model"
 // token request payload
 // swagger:parameters AuthTokenRequest
 type AuthTokenRequest struct {
+	// Specifies user credentials for whom a JWT authentication needs to be issued
+	// required: true
 	// in:body
 	Body model.AuthTokenRequest
 }
@@ -55,7 +57,7 @@ type AuthTokenRequest struct {
 //     - application/jwt
 // responses:
 //   '200':
-//     description: Successfully created.
+//     description: Successfully issued authentication token for specified user.
 //     content:
 //       application/jwt
 //   '400':

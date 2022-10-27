@@ -16,6 +16,12 @@ type JwtAuthz struct {
 }
 
 type AuthTokenRequest struct {
+	// User account username for which authentication token is required
+	// required: true
+	// example: testUser
 	Username string `json:"username"`
+	// User account password for which authentication token is required
+	// required: true
+	// example: testPassword
 	Password string `json:"password"`
 }

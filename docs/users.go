@@ -9,7 +9,9 @@ import "intel/amber/kbs/v1/model"
 // user request payload
 // swagger:parameters User
 type User struct {
+	// Describes component user account details and associated roles
 	// in:body
+	// required: true
 	Body model.User
 }
 
@@ -17,12 +19,13 @@ type User struct {
 // swagger:parameters UserResponse
 type UserResponse struct {
 	// in:body
+	// required: true
 	Body model.UserResponse
 }
 
 // ---
 //
-// swagger:operation POST /users Users CreateUser
+// swagger:operation POST /users User CreateUser
 // ---
 //
 // description: |
@@ -100,11 +103,11 @@ type UserResponse struct {
 
 // ---
 
-// swagger:operation GET /users/{id} Users RetrieveUser
+// swagger:operation GET /users/{id} User RetrieveUser
 // ---
 //
 // description: |
-//   Retrieves a user information.
+//   Retrieves a user information for the provided user ID.
 //   Returns - The serialized UserResponse Go struct object that was retrieved.
 // x-permissions: users:search
 // security:
@@ -156,11 +159,11 @@ type UserResponse struct {
 
 // ---
 
-// swagger:operation DELETE /users/{id} Users DeleteUser
+// swagger:operation DELETE /users/{id} User DeleteUser
 // ---
 //
 // description: |
-//   Deletes a user.
+//   Deletes a user account and associated roles.
 // x-permissions: users:delete
 // security:
 // - bearerAuth: []
@@ -184,7 +187,7 @@ type UserResponse struct {
 
 // ---
 
-// swagger:operation GET /users Users SearchUser
+// swagger:operation GET /users User SearchUser
 // ---
 //
 // description: |
@@ -239,7 +242,7 @@ type UserResponse struct {
 // ---
 //
 
-// swagger:operation PUT /users/{id} Users UpdateUser
+// swagger:operation PUT /users/{id} User UpdateUser
 // ---
 //
 // description: |

@@ -1,1292 +1,1327 @@
 basePath: /kbs/v1
 definitions:
-  AttestationType:
-    type: string
-    x-go-package: intel/amber/kbs/v1/model
-  AuthTokenRequest:
-    properties:
-      password:
+    AttestationType:
         type: string
-        x-go-name: Password
-      username:
-        type: string
-        x-go-name: Username
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  KeyInfo:
-    properties:
-      algorithm:
-        type: string
-        x-go-name: Algorithm
-      curve_type:
-        type: string
-        x-go-name: CurveType
-      key_data:
-        type: string
-        x-go-name: KeyData
-      key_length:
-        format: int64
-        type: integer
-        x-go-name: KeyLength
-      kmip_key_id:
-        type: string
-        x-go-name: KmipKeyID
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  KeyRequest:
-    properties:
-      key_information:
-        $ref: '#/definitions/KeyInfo'
-      transfer_policy_id:
-        $ref: '#/definitions/UUID'
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  KeyResponse:
-    properties:
-      created_at:
-        format: date-time
-        type: string
-        x-go-name: CreatedAt
-      id:
-        $ref: '#/definitions/UUID'
-      key_info:
-        $ref: '#/definitions/KeyInfo'
-      transfer_link:
-        type: string
-        x-go-name: TransferLink
-      transfer_policy_id:
-        $ref: '#/definitions/UUID'
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  KeyResponses:
-    items:
-      $ref: '#/definitions/KeyResponse'
-    type: array
-    x-go-package: intel/amber/kbs/v1/docs
-  KeyTransferPolicies:
-    items:
-      $ref: '#/definitions/KeyTransferPolicy'
-    type: array
-    x-go-package: intel/amber/kbs/v1/docs
-  KeyTransferPolicy:
-    properties:
-      attestation_type:
+        x-go-package: intel/amber/kbs/v1/model
+    AuthTokenRequest:
+        properties:
+            password:
+                description: User account password for which authentication token is required
+                example: testPassword
+                type: string
+                x-go-name: Password
+            username:
+                description: User account username for which authentication token is required
+                example: testUser
+                type: string
+                x-go-name: Username
+        required:
+            - username
+            - password
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    KeyInfo:
+        properties:
+            algorithm:
+                description: Denotes the Encryption Algorithm (AES, RSA or EC) used while creating the key
+                example: rsa
+                type: string
+                x-go-name: Algorithm
+            curve_type:
+                description: Denotes the curve type used while creating the EC key
+                example: secp384r1
+                type: string
+                x-go-name: CurveType
+            key_data:
+                type: string
+                x-go-name: KeyData
+            key_length:
+                description: Denotes the key length in bits used while creating the key
+                example: 3072
+                format: int64
+                type: integer
+                x-go-name: KeyLength
+            kmip_key_id:
+                description: KMIP Key ID, if the key is already created in KMIP Backend
+                example: 7110194b-a703-4657-9d7f-3e02b62f2ed8
+                type: string
+                x-go-name: KmipKeyID
+        required:
+            - algorithm
+            - key_length
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    KeyRequest:
+        properties:
+            key_information:
+                $ref: '#/definitions/KeyInfo'
+            transfer_policy_id:
+                description: Universal Unique IDentifier of the Key Transfer Policy
+                example: 4110594b-a753-4457-7d7f-3e52b62f2ed8
+                format: uuid
+                type: string
+                x-go-name: TransferPolicyID
+        required:
+            - transfer_policy_id
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    KeyResponse:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            id:
+                description: Universal Unique IDentifier of the Key created
+                example: 4110594b-a753-4457-7d7f-3e52b6252ed6
+                format: uuid
+                type: string
+                x-go-name: ID
+            key_info:
+                $ref: '#/definitions/KeyInfo'
+            transfer_link:
+                type: string
+                x-go-name: TransferLink
+            transfer_policy_id:
+                description: Universal Unique IDentifier of the Key Transfer Policy
+                example: 4110594b-a753-4457-7d7f-3e52b62f2ed8
+                format: uuid
+                type: string
+                x-go-name: TransferPolicyID
+        required:
+            - id
+            - transfer_policy_id
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    KeyResponses:
         items:
-          $ref: '#/definitions/AttestationType'
+            $ref: '#/definitions/KeyResponse'
         type: array
-        x-go-name: AttestationType
-      created_at:
-        format: date-time
-        type: string
-        x-go-name: CreatedAt
-      id:
-        $ref: '#/definitions/UUID'
-      sgx:
-        $ref: '#/definitions/SgxPolicy'
-      tdx:
-        $ref: '#/definitions/TdxPolicy'
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  KeyTransferResponse:
-    properties:
-      wrapped_key:
+        x-go-package: intel/amber/kbs/v1/docs
+    KeyTransferPolicies:
         items:
-          format: uint8
-          type: integer
+            $ref: '#/definitions/KeyTransferPolicy'
         type: array
-        x-go-name: WrappedKey
-      wrapped_swk:
-        items:
-          format: uint8
-          type: integer
-        type: array
-        x-go-name: WrappedSWK
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  SgxAttributes:
-    properties:
-      client_permissions:
-        items:
-          type: string
-        type: array
-        x-go-name: ClientPermissions
-      enforce_tcb_upto_date:
-        type: boolean
-        x-go-name: EnforceTCBUptoDate
-      isvprodid:
-        items:
-          format: uint16
-          type: integer
-        type: array
-        x-go-name: IsvProductId
-      isvsvn:
-        format: uint16
-        type: integer
-        x-go-name: IsvSvn
-      mrenclave:
-        items:
-          type: string
-        type: array
-        x-go-name: MrEnclave
-      mrsigner:
-        items:
-          type: string
-        type: array
-        x-go-name: MrSigner
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  SgxPolicy:
-    properties:
-      attributes:
-        $ref: '#/definitions/SgxAttributes'
-      policy_ids:
-        items:
-          $ref: '#/definitions/UUID'
-        type: array
-        x-go-name: PolicyIds
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  TdxAttributes:
-    properties:
-      enforce_tcb_upto_date:
-        type: boolean
-        x-go-name: EnforceTCBUptoDate
-      mrseam:
-        items:
-          type: string
-        type: array
-        x-go-name: MrSeam
-      mrsignerseam:
-        items:
-          type: string
-        type: array
-        x-go-name: MrSignerSeam
-      mrtd:
-        items:
-          type: string
-        type: array
-        x-go-name: MRTD
-      rtmr0:
-        type: string
-        x-go-name: RTMR0
-      rtmr1:
-        type: string
-        x-go-name: RTMR1
-      rtmr2:
-        type: string
-        x-go-name: RTMR2
-      rtmr3:
-        type: string
-        x-go-name: RTMR3
-      seamsvn:
-        format: uint8
-        type: integer
-        x-go-name: SeamSvn
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  TdxPolicy:
-    properties:
-      attributes:
-        $ref: '#/definitions/TdxAttributes'
-      policy_ids:
-        items:
-          $ref: '#/definitions/UUID'
-        type: array
-        x-go-name: PolicyIds
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  UUID:
-    description: |-
-      A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
-      4122.
-    items:
-      format: uint8
-      type: integer
-    type: array
-    x-go-package: github.com/google/uuid
-  User:
-    properties:
-      password:
-        type: string
-        x-go-name: Password
-      permissions:
-        items:
-          type: string
-        type: array
-        x-go-name: Permissions
-      username:
-        type: string
-        x-go-name: Username
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
-  UserResponse:
-    properties:
-      created_at:
-        format: date-time
-        type: string
-        x-go-name: CreatedAt
-      id:
-        $ref: '#/definitions/UUID'
-      permissions:
-        items:
-          type: string
-        type: array
-        x-go-name: Permissions
-      updated_at:
-        format: date-time
-        type: string
-        x-go-name: UpdatedAt
-      username:
-        type: string
-        x-go-name: Username
-    type: object
-    x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/amber/kbs/v1/docs
+    KeyTransferPolicy:
+        properties:
+            attestation_type:
+                items:
+                    $ref: '#/definitions/AttestationType'
+                type: array
+                x-go-name: AttestationType
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            sgx:
+                $ref: '#/definitions/SgxPolicy'
+            tdx:
+                $ref: '#/definitions/TdxPolicy'
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    KeyTransferResponse:
+        properties:
+            wrapped_key:
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: WrappedKey
+            wrapped_swk:
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: WrappedSWK
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    SgxAttributes:
+        properties:
+            client_permissions:
+                items:
+                    type: string
+                type: array
+                x-go-name: ClientPermissions
+            enforce_tcb_upto_date:
+                type: boolean
+                x-go-name: EnforceTCBUptoDate
+            isvprodid:
+                items:
+                    format: uint16
+                    type: integer
+                type: array
+                x-go-name: IsvProductId
+            isvsvn:
+                format: uint16
+                type: integer
+                x-go-name: IsvSvn
+            mrenclave:
+                items:
+                    type: string
+                type: array
+                x-go-name: MrEnclave
+            mrsigner:
+                items:
+                    type: string
+                type: array
+                x-go-name: MrSigner
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    SgxPolicy:
+        properties:
+            attributes:
+                $ref: '#/definitions/SgxAttributes'
+            policy_ids:
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PolicyIds
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    TdxAttributes:
+        properties:
+            enforce_tcb_upto_date:
+                type: boolean
+                x-go-name: EnforceTCBUptoDate
+            mrseam:
+                items:
+                    type: string
+                type: array
+                x-go-name: MrSeam
+            mrsignerseam:
+                items:
+                    type: string
+                type: array
+                x-go-name: MrSignerSeam
+            mrtd:
+                items:
+                    type: string
+                type: array
+                x-go-name: MRTD
+            rtmr0:
+                type: string
+                x-go-name: RTMR0
+            rtmr1:
+                type: string
+                x-go-name: RTMR1
+            rtmr2:
+                type: string
+                x-go-name: RTMR2
+            rtmr3:
+                type: string
+                x-go-name: RTMR3
+            seamsvn:
+                format: uint8
+                type: integer
+                x-go-name: SeamSvn
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    TdxPolicy:
+        properties:
+            attributes:
+                $ref: '#/definitions/TdxAttributes'
+            policy_ids:
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PolicyIds
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    User:
+        properties:
+            password:
+                type: string
+                x-go-name: Password
+            permissions:
+                items:
+                    type: string
+                type: array
+                x-go-name: Permissions
+            username:
+                type: string
+                x-go-name: Username
+        required:
+            - username
+            - password
+            - permissions
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
+    UserResponse:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            permissions:
+                items:
+                    type: string
+                type: array
+                x-go-name: Permissions
+            updated_at:
+                format: date-time
+                type: string
+                x-go-name: UpdatedAt
+            username:
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-package: intel/amber/kbs/v1/model
 host: kbs.com:9443
 info:
-  description: |-
-    The Key Broker Service enables key distribution using platform trust to authorize key transfers. By retaining image decryption keys,
-    unauthorized access can be prevented, even from within the Cloud Service Provider. It interfaces with a backend key management system(KMIP)
-    to create, delete and retrieve keys, while providing a user defined policy for key retrieval based on Intel® hardware root of trust.
-  license:
-    name: 'Copyright (C) 2022 Intel Corporation. SPDX-License-Identifier: BSD-3-Clause'
-  title: Key Broker Service
-  version: 0.1.0
+    description: |-
+        The Key Broker Service enables key distribution using platform trust to authorize key transfers. By retaining image decryption keys,
+        unauthorized access can be prevented, even from within the Cloud Service Provider. It interfaces with a backend key management system(KMIP)
+        to create, delete and retrieve keys, while providing a user defined policy for key retrieval based on Intel® hardware root of trust.
+    license:
+        name: Copyright(C) 2022 Intel Corporation. All Rights Reserved.
+    title: Key Broker Service
+    version: 0.3.1
 paths:
-  /key-transfer-policies:
-    get:
-      description: |
-        Searches for key transfer policies.
-        Returns - The collection of serialized KeyTransferPolicy Go struct objects.
-      operationId: SearchKeyTransferPolicies
-      parameters:
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully retrieved the key transfer policies.
-          schema:
-            $ref: '#/definitions/KeyTransferPolicies'
-        "400":
-          description: Invalid values for request params
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - KeyTransferPolicies
-      x-permissions: key-transfer-policies:search
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
-      x-sample-call-output: |-
-        [
-          {
-            "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
-            "created_at": "2021-08-20T06:30:35.085644391Z",
-            "attestation_type": [
-                "SGX"
-            ],
-            "sgx": {
-              "attributes": {
-                  "mrsigner": [
-                      "cd171c56941c6ce49690b455f691d9c8a04c2e43e0a4d30f752fa5285c7ee57f"
+    /key-transfer-policies:
+        get:
+            description: |
+                Searches for key transfer policies.
+                Returns - The collection of serialized KeyTransferPolicy Go struct objects.
+            operationId: SearchKeyTransferPolicies
+            parameters:
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully retrieved the key transfer policies.
+                    schema:
+                        $ref: '#/definitions/KeyTransferPolicies'
+                "400":
+                    description: Invalid values for request params
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - KeyTransferPolicies
+            x-permissions: key-transfer-policies:search
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
+            x-sample-call-output: |-
+                [
+                  {
+                    "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
+                    "created_at": "2021-08-20T06:30:35.085644391Z",
+                    "attestation_type": [
+                        "SGX"
+                    ],
+                    "sgx": {
+                      "attributes": {
+                          "mrsigner": [
+                              "cd171c56941c6ce49690b455f691d9c8a04c2e43e0a4d30f752fa5285c7ee57f"
+                          ],
+                          "isvprodid": [
+                              12
+                          ],
+                          "mrenclave": [
+                              "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
+                          ],
+                          "isvsvn": 1,
+                          "client_permissions": [
+                              "nginx",
+                              "USA"
+                          ],
+                          "enforce_tcb_upto_date": false
+                      },
+                      "policy_ids": [
+                          "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
+                          "9846bf40-e380-4842-ae15-1b60996d1190"
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
+                    "created_at": "2021-08-20T05:51:39.588320016Z",
+                    "attestation_type": [
+                        "TDX"
+                    ],
+                    "tdx": {
+                      "attributes": {
+                          "mrsignerseam": [
+                              "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                          ],
+                          "mrseam": [
+                              "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
+                          ],
+                          "seamsvn": 0,
+                          "mrtd": [
+                              "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
+                          ],
+                          "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
+                          "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
+                          "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                          "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                          "enforce_tcb_upto_date": false
+                      },
+                      "policy_ids": [
+                          "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
+                          "9846bf40-e380-4842-ae15-1b60996d1190"
+                      ]
+                    }
+                  }
+                ]
+        post:
+            consumes:
+                - application/json
+            description: |
+                Creates a key transfer policy. Transfer-Policy with only one attestation-type i.e; SGX or TDX could be created at a time. Key transfer policy can be created
+                either by providing only list of policy-ids or only TDX/SGX attributes or both policy-ids and attributes.
+
+                The serialized KeyTransferPolicy Go struct object represents the content of the request body.
+
+                 | Attribute                                    | Description |
+                 |----------------------------------------------|-------------|
+                 | attestation_type                             | Array of Attestation Type identifiers that client must support to get the key. Expect client to advertise these with the key request e.g. "SGX", "TDX" (note that if key server needs to restrict technologies, then it should list only the ones that can receive the key). |
+                 | mrsigner                                     | Array of measurements of SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |
+                 | isvprodid                                    | Array of (16-bit value) (ISVPRODID). This is mandatory. This is like a qualifier for the issuer so same issuer (code signing) key can sign separate products. |
+                 | mrenclave                                    | Array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). Expect client to have one of these measurements in the SGX quote (this supports use case of providing key only to an SGX enclave that will enforce the key usage policy locally). |
+                 | isvsvn                                       | Minimum security version number required for Enclave. |
+                 | client_permissions                           | Array of permission to expect in client api key. Expect client api key to have all of these names. |
+                 | mrsignerseam                                 | Array of measurements of seam module issuer. This is mandatory. |
+                 | mrseam                                       | Array of measurements of seam module. This is mandatory. |
+                 | mrtd                                         | Array of TD measurements. |
+                 | rtmr0                                        | Measurement extended to RTMR0. |
+                 | rtmr1                                        | Measurement extended to RTMR1. |
+                 | rtmr2                                        | Measurement extended to RTMR2. |
+                 | rtmr3                                        | Measurement extended to RTMR3. |
+                 | seamsvn                                      | Minimum security version number of seam module. |
+                 | enforce_tcb_upto_date                        | Boolean value to enforce Up-To-Date TCB. |
+                 | policy_ids                                   | Array of TD/Enclave Attestation Policy Ids. |
+            operationId: CreateKeyTransferPolicy
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/KeyTransferPolicy'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: Successfully created the key transfer policy.
+                    schema:
+                        $ref: '#/definitions/KeyTransferPolicy'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - KeyTransferPolicies
+            x-permissions: key-transfer-policies:create
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
+            x-sgx-sample-call-input: |
+                {
+                  "attestation_type": ["SGX"],
+                  "sgx": {
+                      "attributes": {
+
+                          "mrsigner": ["cd171c56941c6ce49690b455f691d9c8a04c2e43e0a4d30f752fa5285c7ee57f"],
+                          "isvprodid": [12],
+                          "mrenclave": ["01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"],
+                          "isvsvn": 1,
+                          "client_permissions":["nginx","USA"],
+                          "enforce_tcb_upto_date": false
+                      },
+                      "policy_ids": ["37965f5f-ccaf-4cdc-a356-a8ed5268a5bf", "9846bf40-e380-4842-ae15-1b60996d1190"]
+                  }
+                }
+            x-sgx-sample-call-output: |
+                {
+                  "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
+                  "created_at": "2021-08-20T06:30:35.085644391Z",
+                  "attestation_type": [
+                      "SGX"
                   ],
-                  "isvprodid": [
-                      12
+                  "sgx": {
+                    "attributes": {
+                        "mrsigner": [
+                            "cd171c56941c6ce49690b455f691d9c8a04c2e43e0a4d30f752fa5285c7ee57f"
+                        ],
+                        "isvprodid": [
+                            12
+                        ],
+                        "mrenclave": [
+                            "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
+                        ],
+                        "isvsvn": 1,
+                        "client_permissions": [
+                            "nginx",
+                            "USA"
+                        ],
+                        "enforce_tcb_upto_date": false
+                    },
+                    "policy_ids": [
+                        "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
+                        "9846bf40-e380-4842-ae15-1b60996d1190"
+                    ]
+                  }
+                }
+            x-tdx-sample-call-input: |
+                {
+                  "attestation_type": [
+                      "TDX"
                   ],
-                  "mrenclave": [
-                      "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
+                  "tdx": {
+                    "attributes": {
+                        "mrsignerseam": [
+                            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                        ],
+                        "mrseam": [
+                            "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
+                        ],
+                        "mrtd": [
+                            "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
+                        ],
+                        "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
+                        "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
+                        "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                        "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                        "seamsvn": 0,
+                        "enforce_tcb_upto_date": false
+                    },
+                    "policy_ids": [
+                        "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf", "9846bf40-e380-4842-ae15-1b60996d1190"
+                    ]
+                  }
+                }
+            x-tdx-sample-call-output: |-
+                {
+                  "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
+                  "created_at": "2021-08-20T05:51:39.588320016Z",
+                  "attestation_type": [
+                      "TDX"
                   ],
-                  "isvsvn": 1,
-                  "client_permissions": [
-                      "nginx",
-                      "USA"
+                  "tdx": {
+                    "attributes": {
+                        "mrsignerseam": [
+                            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                        ],
+                        "mrseam": [
+                            "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
+                        ],
+                        "seamsvn": 0,
+                        "mrtd": [
+                            "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
+                        ],
+                        "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
+                        "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
+                        "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                        "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                        "enforce_tcb_upto_date": false
+                    },
+                    "policy_ids": [
+                        "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
+                        "9846bf40-e380-4842-ae15-1b60996d1190"
+                    ]
+                  }
+                }
+    /key-transfer-policies/{id}:
+        delete:
+            description: |
+                Deletes a key transfer policy.
+            operationId: DeleteKeyTransferPolicy
+            parameters:
+                - description: Unique ID of the key transfer policy.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+            responses:
+                "204":
+                    description: Successfully deleted the key transfer policy.
+                "401":
+                    description: Request Unauthorized
+                "404":
+                    description: KeyTransferPolicy record not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - KeyTransferPolicies
+            x-permissions: key-transfer-policies:delete
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies/75d34bf4-80fb-4ca5-8602-a8d82e56b30d
+        get:
+            description: |
+                Retrieves a key transfer policy.
+                Returns - The serialized KeyTransferPolicy Go struct object that was retrieved.
+            operationId: RetrieveKeyTransferPolicy
+            parameters:
+                - description: Unique ID of the key transfer policy.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully retrieved the key transfer policy.
+                    schema:
+                        $ref: '#/definitions/KeyTransferPolicy'
+                "401":
+                    description: Request Unauthorized
+                "404":
+                    description: KeyTransferPolicy record not found
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - KeyTransferPolicies
+            x-permissions: key-transfer-policies:search
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies/75d34bf4-80fb-4ca5-8602-a8d82e56b30d
+            x-sample-call-output: |-
+                {
+                  "id": "75d34bf4-80fb-4ca5-8602-a8d82e56b30d",
+                  "created_at": "2021-08-20T05:51:39.588320016Z",
+                  "attestation_type": [
+                      "TDX"
                   ],
-                  "enforce_tcb_upto_date": false
-              },
-              "policy_ids": [
-                  "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
-                  "9846bf40-e380-4842-ae15-1b60996d1190"
-              ]
-            }
-          },
-          {
-            "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
-            "created_at": "2021-08-20T05:51:39.588320016Z",
-            "attestation_type": [
-                "TDX"
-            ],
-            "tdx": {
-              "attributes": {
-                  "mrsignerseam": [
-                      "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                  ],
-                  "mrseam": [
-                      "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
-                  ],
-                  "seamsvn": 0,
-                  "mrtd": [
-                      "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
-                  ],
-                  "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
-                  "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
-                  "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                  "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                  "enforce_tcb_upto_date": false
-              },
-              "policy_ids": [
-                  "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
-                  "9846bf40-e380-4842-ae15-1b60996d1190"
-              ]
-            }
-          }
-        ]
-    post:
-      consumes:
-      - application/json
-      description: |
-        Creates a key transfer policy. Transfer-Policy with only one attestation-type i.e; SGX or TDX could be created at a time. Key transfer policy can be created
-        either by providing only list of policy-ids or only TDX/SGX attributes or both policy-ids and attributes.
+                  "tdx": {
+                    "attributes": {
+                        "mrsignerseam": [
+                            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                        ],
+                        "mrseam": [
+                            "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
+                        ],
+                        "seamsvn": 0,
+                        "mrtd": [
+                            "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
+                        ],
+                        "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
+                        "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
+                        "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                        "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                        "enforce_tcb_upto_date": false
+                    },
+                    "policy_ids": [
+                        "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
+                        "9846bf40-e380-4842-ae15-1b60996d1190"
+                    ]
+                  }
+                }
+    /keys:
+        get:
+            description: |
+                Searches for keys.
+                Returns - The collection of serialized KeyResponse Go struct objects.
+            operationId: SearchKey
+            parameters:
+                - description: Key algorithm.
+                  enum:
+                    - AES
+                    - RSA
+                    - EC
+                    - aes
+                    - rsa
+                    - ec
+                  in: query
+                  name: algorithm
+                  type: string
+                - description: Key length.
+                  enum:
+                    - 128
+                    - 192
+                    - 256
+                    - 2048
+                    - 3072
+                    - 4096
+                    - 7680
+                  in: query
+                  name: keyLength
+                  type: integer
+                - description: Elliptic Curve name.
+                  enum:
+                    - secp256r1
+                    - secp384r1
+                    - secp521r1
+                    - prime256v1
+                  in: query
+                  name: curveType
+                  type: string
+                - description: Unique identifier of transfer policy.
+                  format: uuid
+                  in: query
+                  name: transferPolicyId
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully retrieved the keys.
+                    schema:
+                        $ref: '#/definitions/KeyResponses'
+                "400":
+                    description: Invalid values for request params
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - Keys
+            x-permissions: keys:search
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
+            x-sample-call-output: |-
+                [
+                    {
+                        "key_information": {
+                            "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
+                            "algorithm": "AES",
+                            "key_length": 256
+                        },
+                        "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
+                        "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
+                        "created_at": "2020-09-23T11:16:26.738467277Z"
+                    }
+                ]
+        post:
+            consumes:
+                - application/json
+            description: |
+                Creates or Registers a key.
 
-        The serialized KeyTransferPolicy Go struct object represents the content of the request body.
+                The serialized KeyRequest Go struct object represents the content of the request body.
 
-         | Attribute                                    | Description |
-         |----------------------------------------------|-------------|
-         | attestation_type                             | Array of Attestation Type identifiers that client must support to get the key. Expect client to advertise these with the key request e.g. "SGX", "TDX" (note that if key server needs to restrict technologies, then it should list only the ones that can receive the key). |
-         | mrsigner                                     | Array of measurements of SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |
-         | isvprodid                                    | Array of (16-bit value) (ISVPRODID). This is mandatory. This is like a qualifier for the issuer so same issuer (code signing) key can sign separate products. |
-         | mrenclave                                    | Array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). Expect client to have one of these measurements in the SGX quote (this supports use case of providing key only to an SGX enclave that will enforce the key usage policy locally). |
-         | isvsvn                                       | Minimum security version number required for Enclave. |
-         | client_permissions                           | Array of permission to expect in client api key. Expect client api key to have all of these names. |
-         | mrsignerseam                                 | Array of measurements of seam module issuer. This is mandatory. |
-         | mrseam                                       | Array of measurements of seam module. This is mandatory. |
-         | mrtd                                         | Array of TD measurements. |
-         | rtmr0                                        | Measurement extended to RTMR0. |
-         | rtmr1                                        | Measurement extended to RTMR1. |
-         | rtmr2                                        | Measurement extended to RTMR2. |
-         | rtmr3                                        | Measurement extended to RTMR3. |
-         | seamsvn                                      | Minimum security version number of seam module. |
-         | enforce_tcb_upto_date                        | Boolean value to enforce Up-To-Date TCB. |
-         | policy_ids                                   | Array of TD/Enclave Attestation Policy Ids. |
-      operationId: CreateKeyTransferPolicy
-      parameters:
-      - in: body
-        name: request body
-        required: true
-        schema:
-          $ref: '#/definitions/KeyTransferPolicy'
-      - description: Content-Type header
-        enum:
-        - application/json
-        in: header
-        name: Content-Type
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Successfully created the key transfer policy.
-          schema:
-            $ref: '#/definitions/KeyTransferPolicy'
-        "400":
-          description: Invalid request body provided
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - KeyTransferPolicies
-      x-permissions: key-transfer-policies:create
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
-      x-sgx-sample-call-input: |
-        {
-          "attestation_type": ["SGX"],
-          "sgx": {
-              "attributes": {
+                 | Attribute          | Description |
+                 |--------------------|-------------|
+                 | key_information    | A json object having all the required information about a key. |
+                 | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+                 | label              | String to attach optionally a text description to the key, e.g. "US Nginx key". |
+                 | usage              | String to attach optionally a usage criteria for the key, e.g. "Country:US,State:CA". |
 
-                  "mrsigner": ["cd171c56941c6ce49690b455f691d9c8a04c2e43e0a4d30f752fa5285c7ee57f"],
-                  "isvprodid": [12],
-                  "mrenclave": ["01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"],
-                  "isvsvn": 1,
-                  "client_permissions":["nginx","USA"],
-                  "enforce_tcb_upto_date": false
-              },
-              "policy_ids": ["37965f5f-ccaf-4cdc-a356-a8ed5268a5bf", "9846bf40-e380-4842-ae15-1b60996d1190"]
-          }
-        }
-      x-sgx-sample-call-output: |
-        {
-          "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
-          "created_at": "2021-08-20T06:30:35.085644391Z",
-          "attestation_type": [
-              "SGX"
-          ],
-          "sgx": {
-            "attributes": {
-                "mrsigner": [
-                    "cd171c56941c6ce49690b455f691d9c8a04c2e43e0a4d30f752fa5285c7ee57f"
-                ],
-                "isvprodid": [
-                    12
-                ],
-                "mrenclave": [
-                    "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
-                ],
-                "isvsvn": 1,
-                "client_permissions": [
-                    "nginx",
-                    "USA"
-                ],
-                "enforce_tcb_upto_date": false
-            },
-            "policy_ids": [
-                "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
-                "9846bf40-e380-4842-ae15-1b60996d1190"
-            ]
-          }
-        }
-      x-tdx-sample-call-input: |
-        {
-          "attestation_type": [
-              "TDX"
-          ],
-          "tdx": {
-            "attributes": {
-                "mrsignerseam": [
-                    "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                ],
-                "mrseam": [
-                    "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
-                ],
-                "mrtd": [
-                    "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
-                ],
-                "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
-                "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
-                "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "seamsvn": 0,
-                "enforce_tcb_upto_date": false
-            },
-            "policy_ids": [
-                "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf", "9846bf40-e380-4842-ae15-1b60996d1190"
-            ]
-          }
-        }
-      x-tdx-sample-call-output: |-
-        {
-          "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
-          "created_at": "2021-08-20T05:51:39.588320016Z",
-          "attestation_type": [
-              "TDX"
-          ],
-          "tdx": {
-            "attributes": {
-                "mrsignerseam": [
-                    "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                ],
-                "mrseam": [
-                    "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
-                ],
-                "seamsvn": 0,
-                "mrtd": [
-                    "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
-                ],
-                "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
-                "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
-                "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "enforce_tcb_upto_date": false
-            },
-            "policy_ids": [
-                "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
-                "9846bf40-e380-4842-ae15-1b60996d1190"
-            ]
-          }
-        }
-  /key-transfer-policies/{id}:
-    delete:
-      description: |
-        Deletes a key transfer policy.
-      operationId: DeleteKeyTransferPolicy
-      parameters:
-      - description: Unique ID of the key transfer policy.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: Successfully deleted the key transfer policy.
-        "401":
-          description: Request Unauthorized
-        "404":
-          description: KeyTransferPolicy record not found
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - KeyTransferPolicies
-      x-permissions: key-transfer-policies:delete
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies/75d34bf4-80fb-4ca5-8602-a8d82e56b30d
-    get:
-      description: |
-        Retrieves a key transfer policy.
-        Returns - The serialized KeyTransferPolicy Go struct object that was retrieved.
-      operationId: RetrieveKeyTransferPolicy
-      parameters:
-      - description: Unique ID of the key transfer policy.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully retrieved the key transfer policy.
-          schema:
-            $ref: '#/definitions/KeyTransferPolicy'
-        "401":
-          description: Request Unauthorized
-        "404":
-          description: KeyTransferPolicy record not found
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - KeyTransferPolicies
-      x-permissions: key-transfer-policies:search
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies/75d34bf4-80fb-4ca5-8602-a8d82e56b30d
-      x-sample-call-output: |-
-        {
-          "id": "75d34bf4-80fb-4ca5-8602-a8d82e56b30d",
-          "created_at": "2021-08-20T05:51:39.588320016Z",
-          "attestation_type": [
-              "TDX"
-          ],
-          "tdx": {
-            "attributes": {
-                "mrsignerseam": [
-                    "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                ],
-                "mrseam": [
-                    "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
-                ],
-                "seamsvn": 0,
-                "mrtd": [
-                    "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
-                ],
-                "rtmr0": "b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14",
-                "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
-                "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                "enforce_tcb_upto_date": false
-            },
-            "policy_ids": [
-                "37965f5f-ccaf-4cdc-a356-a8ed5268a5bf",
-                "9846bf40-e380-4842-ae15-1b60996d1190"
-            ]
-          }
-        }
-  /keys:
-    get:
-      description: |
-        Searches for keys.
-        Returns - The collection of serialized KeyResponse Go struct objects.
-      operationId: SearchKey
-      parameters:
-      - description: Key algorithm.
-        enum:
-        - AES
-        - RSA
-        - EC
-        - aes
-        - rsa
-        - ec
-        in: query
-        name: algorithm
-        type: string
-      - description: Key length.
-        enum:
-        - 128
-        - 192
-        - 256
-        - 2048
-        - 3072
-        - 4096
-        - 7680
-        in: query
-        name: keyLength
-        type: integer
-      - description: Elliptic Curve name.
-        enum:
-        - secp256r1
-        - secp384r1
-        - secp521r1
-        - prime256v1
-        in: query
-        name: curveType
-        type: string
-      - description: Unique identifier of transfer policy.
-        format: uuid
-        in: query
-        name: transferPolicyId
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully retrieved the keys.
-          schema:
-            $ref: '#/definitions/KeyResponses'
-        "400":
-          description: Invalid values for request params
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Keys
-      x-permissions: keys:search
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
-      x-sample-call-output: |-
-        [
-            {
-                "key_information": {
-                    "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
-                    "algorithm": "AES",
-                    "key_length": 256
-                },
-                "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
-                "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
-                "created_at": "2020-09-23T11:16:26.738467277Z"
-            }
-        ]
-    post:
-      consumes:
-      - application/json
-      description: |
-        Creates or Registers a key.
+                The serialized KeyInformation Go struct object represents the content of the key_information field.
 
-        The serialized KeyRequest Go struct object represents the content of the request body.
+                 | Attribute   | Description |
+                 |-------------|-------------|
+                 | algorithm   | Encryption algorithm used to create or register key. Supported algorithms are AES, RSA and EC. |
+                 | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. |
+                 | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1 and secp521r1. |
+                 | key_string  | Base64 encoded private key to be registered. Supported only if key is created locally. |
+                 | kmip_key_id | Unique KMIP identifier of key to be registered. Supported only if key is created on KMIP server. |
+            operationId: CreateKey
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/KeyRequest'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: Successfully created or registered the key.
+                    schema:
+                        $ref: '#/definitions/KeyResponse'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - Keys
+            x-permissions: keys:create
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
+            x-sample-call-input: |
+                {
+                    "key_information": {
+                        "algorithm": "AES",
+                        "key_length": 256
+                    }
+                }
+            x-sample-call-output: |-
+                {
+                    "key_information": {
+                        "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
+                        "algorithm": "AES",
+                        "key_length": 256
+                    },
+                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
+                    "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
+                    "created_at": "2020-09-23T11:16:26.738467277Z"
+                }
+    /keys/{id}:
+        delete:
+            description: |
+                Deletes a key.
+            operationId: DeleteKey
+            parameters:
+                - description: Unique ID of the key.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+            responses:
+                "204":
+                    description: Successfully deleted the key.
+                "401":
+                    description: Request Unauthorized
+                "404":
+                    description: Key record not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - Keys
+            x-permissions: keys:delete
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+        get:
+            description: |
+                Retrieves a key.
+                Returns - The serialized KeyResponse Go struct object that was retrieved.
+            operationId: RetrieveKey
+            parameters:
+                - description: Unique ID of the key.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully retrieved the key.
+                    schema:
+                        $ref: '#/definitions/KeyResponse'
+                "401":
+                    description: Request Unauthorized
+                "404":
+                    description: Key record not found
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - Keys
+            x-permissions: keys:search
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+            x-sample-call-output: |-
+                {
+                    "key_information": {
+                        "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
+                        "algorithm": "AES",
+                        "key_length": 256
+                    },
+                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
+                    "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
+                    "created_at": "2020-09-23T11:16:26.738467277Z"
+                }
+        post:
+            consumes:
+                - application/x-pem-file
+            description: |
+                Transfers a key.
+                Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
+            operationId: TransferKey
+            parameters:
+                - description: Unique ID of the key.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                - description: Content-Type header
+                  enum:
+                    - application/x-pem-file
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully transferred the key.
+                    schema:
+                        $ref: '#/definitions/KeyTransferResponse'
+                "404":
+                    description: Key record not found
+                "415":
+                    description: Invalid Content-Type/Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - Keys
+            x-permissions: keys:transfer
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+            x-sample-call-input: |
+                -----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjtGIk8SxD+OEiBpP2/T
+                JUAF0upwuKGMk6wH8Rwov88VvzJrVm2NCticTk5FUg+UG5r8JArrV4tJPRHQyvqK
+                wF4NiksuvOjv3HyIf4oaOhZjT8hDne1Bfv+cFqZJ61Gk0MjANh/T5q9vxER/7TdU
+                NHKpoRV+NVlKN5bEU/NQ5FQjVXicfswxh6Y6fl2PIFqT2CfjD+FkBPU1iT9qyJYH
+                A38IRvwNtcitFgCeZwdGPoxiPPh1WHY8VxpUVBv/2JsUtrB/rAIbGqZoxAIWvijJ
+                Pe9o1TY3VlOzk9ASZ1AeatvOir+iDVJ5OpKmLnzc46QgGPUsjIyo6Sje9dxpGtoG
+                QQIDAQAB
+                -----END PUBLIC KEY-----
+            x-sample-call-output: |
+                {
+                   "wrapped_key": "sKCE8YFz9DON8FghjavoHJCMec0+cPwj5pGxK35FXuMAQaxxECQH/vWTuUdK4eHBgk1/FMcfbSnjPRvIqANYQBWwNWfNrQVQ+NBa+PCP5FstjCjFUUIPYC2ei/taZtnp4RXx25eiljprmGcuboEAP359+J4tjkKJeuppxRnxA7u5ewjB+C4vhOpyWkOyP5Iio6RqXzWVVz6Usn2QIjVArpjLR0vk/HuB2TUCMoohxu3UloXUUeDAeWWGToQ9E9Pqc8jLNKvHlksZzZHuzSAaDz7q601LxD+BFKF2EvuWCVLS/hrScBL68SkB/nvsZIiGYxHbk3mzhFGEGFEVfkAx+g=="
+                }
+    /token:
+        post:
+            consumes:
+                - application/json
+            description: |
+                Creates a JWT for the specified user in the request
 
-         | Attribute          | Description |
-         |--------------------|-------------|
-         | key_information    | A json object having all the required information about a key. |
-         | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
-         | label              | String to attach optionally a text description to the key, e.g. "US Nginx key". |
-         | usage              | String to attach optionally a usage criteria for the key, e.g. "Country:US,State:CA". |
+                The serialized AuthTokenRequest Go struct object represents the content of the request body.
 
-        The serialized KeyInformation Go struct object represents the content of the key_information field.
+                 | Attribute  | Description |
+                 |------------|-------------|
+                 | username   | Name of the user for which the token is being requested. This user should already be created using /users POST API |
+                 | password   | The password of the user for which the token is being requested |
+            operationId: CreateAuthToken
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/AuthTokenRequest'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/jwt
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/jwt
+            responses:
+                "200":
+                    description: Successfully issued authentication token for specified user.
+                "400":
+                    description: Invalid request body provided or User with given name does not exist or Password does not match for the given user
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            tags:
+                - Token
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/token
+            x-sample-call-input: |
+                {
+                        "username": "testUser",
+                        "password": "testUserPassword"
+                }
+            x-sample-call-output: |
+                eyJhbGciOiJQUzM4NCIsImtpZCI6InNlY3JldC1pZCIsInR5cCI6IkpXVCJ9.eyJFeHRlbnNpb25zIjpudWxsLCJHcm91cHMiOm51bGwsIklEIjoiMzQzNmU1MjgtMzQ5My00Y2Y0LWIxZGQtNDU4MTg0ZjI2MDA2IiwiTmFtZSI6ImFkbWluIiwiYXVkIjpbIiJdLCJleHAiOjE2NjMyOTc4OTMsImlhdCI6MTY2MzI5NDI5MywibmJmIjoxNjYzMjk0MjkzLCJzY29wZSI6WyJrZXlzOnNlYXJjaCIsImtleXM6Y3JlYXRlIiwia2V5czpkZWxldGUiLCJrZXlfdHJhbnNmZXJfcG9saWNpZXM6Y3JlYXRlIiwia2V5X3RyYW5zZmVyX3BvbGljaWVzOnNlYXJjaCIsImtleV90cmFuc2Zlcl9wb2xpY2llczpkZWxldGUiLCJ1c2VyczpkZWxldGUiLCJ1c2VyczpzZWFyY2giLCJ1c2VyczpjcmVhdGUiLCJ1c2Vyczp1cGRhdGUiXSwic3ViIjoiMzQzNmU1MjgtMzQ5My00Y2Y0LWIxZGQtNDU4MTg0ZjI2MDA2In0.iQQWBlc3yp3eyl9mGdhCvECRQ1DspHEawS7uNjMz7d3GnxDuAFRMAc2KJJxxMtRMh5rJXerRoCyBHKA_MlHNg7-bveGBrTIr5mZzFA_ynrx4mmR9POtFFHRA7EO1Wd3B1WniTGyqLgdW80Obmzhnnx_sbirkece9HYAZb9NhQGYsTgWF4Mz9K6Jgu8T-qSbgjtKABAt7QPi_YPuyJVJQ4IV_2ZfsLZFA5p4UKBI-UqIGP7O27xrX7SFfqA6hsSNadp4FGchZBwiv5CR1RCP0CloJOVbjegiCr_8KDdm9-Noo8feYfrqNjm4vUYUDHtG89s-s3K0jpp8-JiMCZoT7yLiMd4Sel4KUNL6jx6yE6Jz4-RW-S0SF556qFbhy0INo-YsXNExg2xzFEYJGyiIuUmVUnlVHHkvcXizLf5z9bJPL3pw_WVKz4m-FSzGLxF6g-yzrE_BNh3Qclhqic5SS4gwJUpBifG72PSTarIx7Q7BNDpHdXxWUQxhzfeY0gd1y
+    /users:
+        get:
+            description: |
+                Searches for users with a given set of filter criterias.
+                Returns - The collection of serialized UserResponse Go struct objects.
+            operationId: SearchUser
+            parameters:
+                - description: the name of the user want to search.
+                  in: query
+                  name: username
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully retrieved the users.
+                    schema:
+                        $ref: '#/definitions/UserResponse'
+                "400":
+                    description: Invalid values for request params
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - User
+            x-permissions: users:search
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users?username=keysAdmin
+            x-sample-call-output: |
+                {
+                  "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
+                  "created_at": "2022-09-16T03:13:09.503698068Z",
+                  "updated_at": "0001-01-01T00:00:00Z",
+                  "username": "keysAdmin",
+                  "permissions": [
+                  "users:create",
+                  "keys:create"
+                 ]
+                }
+        post:
+            consumes:
+                - application/json
+            description: |
+                Creates a user with the given username, password and API permissions
 
-         | Attribute   | Description |
-         |-------------|-------------|
-         | algorithm   | Encryption algorithm used to create or register key. Supported algorithms are AES, RSA and EC. |
-         | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. |
-         | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1 and secp521r1. |
-         | key_string  | Base64 encoded private key to be registered. Supported only if key is created locally. |
-         | kmip_key_id | Unique KMIP identifier of key to be registered. Supported only if key is created on KMIP server. |
-      operationId: CreateKey
-      parameters:
-      - in: body
-        name: request body
-        required: true
-        schema:
-          $ref: '#/definitions/KeyRequest'
-      - description: Content-Type header
-        enum:
-        - application/json
-        in: header
-        name: Content-Type
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Successfully created or registered the key.
-          schema:
-            $ref: '#/definitions/KeyResponse'
-        "400":
-          description: Invalid request body provided
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Keys
-      x-permissions: keys:create
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
-      x-sample-call-input: |
-        {
-            "key_information": {
-                "algorithm": "AES",
-                "key_length": 256
-            }
-        }
-      x-sample-call-output: |-
-        {
-            "key_information": {
-                "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
-                "algorithm": "AES",
-                "key_length": 256
-            },
-            "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
-            "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
-            "created_at": "2020-09-23T11:16:26.738467277Z"
-        }
-  /keys/{id}:
-    delete:
-      description: |
-        Deletes a key.
-      operationId: DeleteKey
-      parameters:
-      - description: Unique ID of the key.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: Successfully deleted the key.
-        "401":
-          description: Request Unauthorized
-        "404":
-          description: Key record not found
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Keys
-      x-permissions: keys:delete
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
-    get:
-      description: |
-        Retrieves a key.
-        Returns - The serialized KeyResponse Go struct object that was retrieved.
-      operationId: RetrieveKey
-      parameters:
-      - description: Unique ID of the key.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully retrieved the key.
-          schema:
-            $ref: '#/definitions/KeyResponse'
-        "401":
-          description: Request Unauthorized
-        "404":
-          description: Key record not found
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Keys
-      x-permissions: keys:search
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
-      x-sample-call-output: |-
-        {
-            "key_information": {
-                "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
-                "algorithm": "AES",
-                "key_length": 256
-            },
-            "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
-            "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
-            "created_at": "2020-09-23T11:16:26.738467277Z"
-        }
-    post:
-      consumes:
-      - application/x-pem-file
-      description: |
-        Transfers a key.
-        Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
-      operationId: TransferKey
-      parameters:
-      - description: Unique ID of the key.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Content-Type header
-        enum:
-        - application/x-pem-file
-        in: header
-        name: Content-Type
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully transferred the key.
-          schema:
-            $ref: '#/definitions/KeyTransferResponse'
-        "404":
-          description: Key record not found
-        "415":
-          description: Invalid Content-Type/Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Keys
-      x-permissions: keys:transfer
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
-      x-sample-call-input: |
-        -----BEGIN PUBLIC KEY-----
-        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjtGIk8SxD+OEiBpP2/T
-        JUAF0upwuKGMk6wH8Rwov88VvzJrVm2NCticTk5FUg+UG5r8JArrV4tJPRHQyvqK
-        wF4NiksuvOjv3HyIf4oaOhZjT8hDne1Bfv+cFqZJ61Gk0MjANh/T5q9vxER/7TdU
-        NHKpoRV+NVlKN5bEU/NQ5FQjVXicfswxh6Y6fl2PIFqT2CfjD+FkBPU1iT9qyJYH
-        A38IRvwNtcitFgCeZwdGPoxiPPh1WHY8VxpUVBv/2JsUtrB/rAIbGqZoxAIWvijJ
-        Pe9o1TY3VlOzk9ASZ1AeatvOir+iDVJ5OpKmLnzc46QgGPUsjIyo6Sje9dxpGtoG
-        QQIDAQAB
-        -----END PUBLIC KEY-----
-      x-sample-call-output: |
-        {
-           "wrapped_key": "sKCE8YFz9DON8FghjavoHJCMec0+cPwj5pGxK35FXuMAQaxxECQH/vWTuUdK4eHBgk1/FMcfbSnjPRvIqANYQBWwNWfNrQVQ+NBa+PCP5FstjCjFUUIPYC2ei/taZtnp4RXx25eiljprmGcuboEAP359+J4tjkKJeuppxRnxA7u5ewjB+C4vhOpyWkOyP5Iio6RqXzWVVz6Usn2QIjVArpjLR0vk/HuB2TUCMoohxu3UloXUUeDAeWWGToQ9E9Pqc8jLNKvHlksZzZHuzSAaDz7q601LxD+BFKF2EvuWCVLS/hrScBL68SkB/nvsZIiGYxHbk3mzhFGEGFEVfkAx+g=="
-        }
-  /token:
-    post:
-      consumes:
-      - application/json
-      description: |
-        Creates a JWT for the specified user in the request
+                The serialized User Go struct object represents the content of the request body.
 
-        The serialized AuthTokenRequest Go struct object represents the content of the request body.
+                 | Attribute   | Description |
+                 |-------------|-------------|
+                 | username    | Name of the user |
+                 | password    | The password of the user |\
+                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
+            operationId: CreateUser
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/User'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully created a user.
+                    schema:
+                        $ref: '#/definitions/UserResponse'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - User
+            x-permissions: users:create
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users
+            x-sample-call-input: |
+                {
+                   "username": "testUser",
+                   "password": "testUserPassword",
+                   "permissions": ["users:create", "keys:create"]
+                }
+            x-sample-call-output: |-
+                {
+                  "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
+                  "created_at": "2022-09-16T03:13:09.503698068Z",
+                  "updated_at": "0001-01-01T00:00:00Z",
+                  "username": "keysAdmin",
+                  "permissions": [
+                  "users:create",
+                  "keys:create"
+                 ]
+                }
+    /users/{id}:
+        delete:
+            description: |
+                Deletes a user account and associated roles.
+            operationId: DeleteUser
+            parameters:
+                - description: Unique ID of the user.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+            responses:
+                "204":
+                    description: Successfully deleted the user.
+                "401":
+                    description: Request Unauthorized
+                "404":
+                    description: user record not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - User
+            x-permissions: users:delete
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
+        get:
+            description: |
+                Retrieves a user information for the provided user ID.
+                Returns - The serialized UserResponse Go struct object that was retrieved.
+            operationId: RetrieveUser
+            parameters:
+                - description: Unique ID of the user.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully retrieved the user information.
+                    schema:
+                        $ref: '#/definitions/UserResponse'
+                "401":
+                    description: Request Unauthorized
+                "404":
+                    description: User record not found
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - User
+            x-permissions: users:search
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
+            x-sample-call-output: |-
+                {
+                  "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
+                  "created_at": "2022-09-16T03:13:09.503698068Z",
+                  "updated_at": "0001-01-01T00:00:00Z",
+                  "username": "keysAdmin",
+                  "permissions": [
+                  "users:create",
+                  "keys:create"
+                 ]
+                }
+        put:
+            consumes:
+                - application/json
+            description: |
+                Updates a user with username, password and API permissions provided in the body of the request for a user with ID in the path parameter
 
-         | Attribute  | Description |
-         |------------|-------------|
-         | username   | Name of the user for which the token is being requested. This user should already be created using /users POST API |
-         | password   | The password of the user for which the token is being requested |
-      operationId: CreateAuthToken
-      parameters:
-      - in: body
-        name: request body
-        required: true
-        schema:
-          $ref: '#/definitions/AuthTokenRequest'
-      - description: Content-Type header
-        enum:
-        - application/json
-        in: header
-        name: Content-Type
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/jwt
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/jwt
-      responses:
-        "200":
-          description: Successfully created.
-        "400":
-          description: Invalid request body provided or User with given name does
-            not exist or Password does not match for the given user
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      tags:
-      - Token
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/token
-      x-sample-call-input: |
-        {
-                "username": "testUser",
-                "password": "testUserPassword"
-        }
-      x-sample-call-output: |
-        eyJhbGciOiJQUzM4NCIsImtpZCI6InNlY3JldC1pZCIsInR5cCI6IkpXVCJ9.eyJFeHRlbnNpb25zIjpudWxsLCJHcm91cHMiOm51bGwsIklEIjoiMzQzNmU1MjgtMzQ5My00Y2Y0LWIxZGQtNDU4MTg0ZjI2MDA2IiwiTmFtZSI6ImFkbWluIiwiYXVkIjpbIiJdLCJleHAiOjE2NjMyOTc4OTMsImlhdCI6MTY2MzI5NDI5MywibmJmIjoxNjYzMjk0MjkzLCJzY29wZSI6WyJrZXlzOnNlYXJjaCIsImtleXM6Y3JlYXRlIiwia2V5czpkZWxldGUiLCJrZXlfdHJhbnNmZXJfcG9saWNpZXM6Y3JlYXRlIiwia2V5X3RyYW5zZmVyX3BvbGljaWVzOnNlYXJjaCIsImtleV90cmFuc2Zlcl9wb2xpY2llczpkZWxldGUiLCJ1c2VyczpkZWxldGUiLCJ1c2VyczpzZWFyY2giLCJ1c2VyczpjcmVhdGUiLCJ1c2Vyczp1cGRhdGUiXSwic3ViIjoiMzQzNmU1MjgtMzQ5My00Y2Y0LWIxZGQtNDU4MTg0ZjI2MDA2In0.iQQWBlc3yp3eyl9mGdhCvECRQ1DspHEawS7uNjMz7d3GnxDuAFRMAc2KJJxxMtRMh5rJXerRoCyBHKA_MlHNg7-bveGBrTIr5mZzFA_ynrx4mmR9POtFFHRA7EO1Wd3B1WniTGyqLgdW80Obmzhnnx_sbirkece9HYAZb9NhQGYsTgWF4Mz9K6Jgu8T-qSbgjtKABAt7QPi_YPuyJVJQ4IV_2ZfsLZFA5p4UKBI-UqIGP7O27xrX7SFfqA6hsSNadp4FGchZBwiv5CR1RCP0CloJOVbjegiCr_8KDdm9-Noo8feYfrqNjm4vUYUDHtG89s-s3K0jpp8-JiMCZoT7yLiMd4Sel4KUNL6jx6yE6Jz4-RW-S0SF556qFbhy0INo-YsXNExg2xzFEYJGyiIuUmVUnlVHHkvcXizLf5z9bJPL3pw_WVKz4m-FSzGLxF6g-yzrE_BNh3Qclhqic5SS4gwJUpBifG72PSTarIx7Q7BNDpHdXxWUQxhzfeY0gd1y
-  /users:
-    get:
-      description: |
-        Searches for users with a given set of filter criterias.
-        Returns - The collection of serialized UserResponse Go struct objects.
-      operationId: SearchUser
-      parameters:
-      - description: the name of the user want to search.
-        in: query
-        name: username
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully retrieved the users.
-          schema:
-            $ref: '#/definitions/UserResponse'
-        "400":
-          description: Invalid values for request params
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Users
-      x-permissions: users:search
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users?username=keysAdmin
-      x-sample-call-output: |
-        {
-          "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
-          "created_at": "2022-09-16T03:13:09.503698068Z",
-          "updated_at": "0001-01-01T00:00:00Z",
-          "username": "keysAdmin",
-          "permissions": [
-          "users:create",
-          "keys:create"
-         ]
-        }
-    post:
-      consumes:
-      - application/json
-      description: |
-        Creates a user with the given username, password and API permissions
+                The serialized User Go struct object represents the content of the request body.
 
-        The serialized User Go struct object represents the content of the request body.
-
-         | Attribute   | Description |
-         |-------------|-------------|
-         | username    | Name of the user |
-         | password    | The password of the user |\
-         | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
-      operationId: CreateUser
-      parameters:
-      - in: body
-        name: request body
-        required: true
-        schema:
-          $ref: '#/definitions/User'
-      - description: Content-Type header
-        enum:
-        - application/json
-        in: header
-        name: Content-Type
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully created a user.
-          schema:
-            $ref: '#/definitions/UserResponse'
-        "400":
-          description: Invalid request body provided
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Users
-      x-permissions: users:create
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users
-      x-sample-call-input: |
-        {
-           "username": "testUser",
-           "password": "testUserPassword",
-           "permissions": ["users:create", "keys:create"]
-        }
-      x-sample-call-output: |-
-        {
-          "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
-          "created_at": "2022-09-16T03:13:09.503698068Z",
-          "updated_at": "0001-01-01T00:00:00Z",
-          "username": "keysAdmin",
-          "permissions": [
-          "users:create",
-          "keys:create"
-         ]
-        }
-  /users/{id}:
-    delete:
-      description: |
-        Deletes a user.
-      operationId: DeleteUser
-      parameters:
-      - description: Unique ID of the user.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: Successfully deleted the user.
-        "401":
-          description: Request Unauthorized
-        "404":
-          description: user record not found
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Users
-      x-permissions: users:delete
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
-    get:
-      description: |
-        Retrieves a user information.
-        Returns - The serialized UserResponse Go struct object that was retrieved.
-      operationId: RetrieveUser
-      parameters:
-      - description: Unique ID of the user.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully retrieved the user information.
-          schema:
-            $ref: '#/definitions/UserResponse'
-        "401":
-          description: Request Unauthorized
-        "404":
-          description: User record not found
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Users
-      x-permissions: users:search
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
-      x-sample-call-output: |-
-        {
-          "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
-          "created_at": "2022-09-16T03:13:09.503698068Z",
-          "updated_at": "0001-01-01T00:00:00Z",
-          "username": "keysAdmin",
-          "permissions": [
-          "users:create",
-          "keys:create"
-         ]
-        }
-    put:
-      consumes:
-      - application/json
-      description: |
-        Updates a user with username, password and API permissions provided in the body of the request for a user with ID in the path parameter
-
-        The serialized User Go struct object represents the content of the request body.
-
-         | Attribute   | Description |
-         |-------------|-------------|
-         | username    | Name of the user |
-         | password    | The password of the user |\
-         | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
-      operationId: UpdateUser
-      parameters:
-      - description: Unique ID of the user.
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - in: body
-        name: request body
-        required: true
-        schema:
-          $ref: '#/definitions/User'
-      - description: Content-Type header
-        enum:
-        - application/json
-        in: header
-        name: Content-Type
-        required: true
-        type: string
-      - description: Accept header
-        enum:
-        - application/json
-        in: header
-        name: Accept
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully created a user.
-          schema:
-            $ref: '#/definitions/UserResponse'
-        "400":
-          description: Invalid request body provided
-        "401":
-          description: Request Unauthorized
-        "415":
-          description: Invalid Accept Header in Request
-        "500":
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      tags:
-      - Users
-      x-permissions: users:update
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
-      x-sample-call-input: |
-        {
-           "username": "updatedUsername",
-           "password": "testUserPassword",
-           "permissions": ["users:create", "keys:create"]
-        }
-      x-sample-call-output: |-
-        {
-          "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
-          "created_at": "2022-09-16T03:13:09.503698068Z",
-          "updated_at": "0001-01-01T00:00:00Z",
-          "username": "updatedUsername",
-          "permissions": [
-          "users:create",
-          "keys:create"
-         ]
-        }
-  /version:
-    get:
-      description: |
-        GetVersion is used to get the version of the application.
-        Returns - The version of the application.
-      operationId: GetVersion
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: Successfully retrieved the version.
-      tags:
-      - Version
-      x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/version
-      x-sample-call-output: |-
-        {"Service Name": "Key Broker Service",
-         "Version": "v0.0.0-0f0162ea",
-         "Build Date": "2022-03-08T12:17:18+0000"}
+                 | Attribute   | Description |
+                 |-------------|-------------|
+                 | username    | Name of the user |
+                 | password    | The password of the user |\
+                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
+            operationId: UpdateUser
+            parameters:
+                - description: Unique ID of the user.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/User'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Successfully created a user.
+                    schema:
+                        $ref: '#/definitions/UserResponse'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerAuth: []
+            tags:
+                - User
+            x-permissions: users:update
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
+            x-sample-call-input: |
+                {
+                   "username": "updatedUsername",
+                   "password": "testUserPassword",
+                   "permissions": ["users:create", "keys:create"]
+                }
+            x-sample-call-output: |-
+                {
+                  "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
+                  "created_at": "2022-09-16T03:13:09.503698068Z",
+                  "updated_at": "0001-01-01T00:00:00Z",
+                  "username": "updatedUsername",
+                  "permissions": [
+                  "users:create",
+                  "keys:create"
+                 ]
+                }
+    /version:
+        get:
+            description: |
+                GetVersion is used to get the version of the application.
+                Returns - The version of the application.
+            operationId: GetVersion
+            produces:
+                - text/plain
+            responses:
+                "200":
+                    description: Successfully retrieved the version.
+            tags:
+                - Version
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/version
+            x-sample-call-output: |-
+                {"Service Name": "Key Broker Service",
+                 "Version": "v0.0.0-0f0162ea",
+                 "Build Date": "2022-03-08T12:17:18+0000"}
 securityDefinitions:
-  bearerAuth:
-    description: Enter your bearer token in the format **Bearer &lt;token&gt;**
-    in: header
-    name: Authorization
-    type: apiKey
+    bearerAuth:
+        description: Enter your bearer token in the format <Bearer Token>
+        in: header
+        name: Authorization
+        type: apiKey
 swagger: "2.0"

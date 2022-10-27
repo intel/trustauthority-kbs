@@ -12,6 +12,7 @@ type KeyTransferPolicies []model.KeyTransferPolicy
 // swagger:parameters KeyTransferPolicy
 type KeyTransferPolicy struct {
 	// in:body
+	// required: true
 	Body model.KeyTransferPolicy
 }
 
@@ -19,6 +20,7 @@ type KeyTransferPolicy struct {
 // swagger:parameters KeyTransferPolicyCollection
 type KeyTransferPolicyCollection struct {
 	// in:body
+	// required: true
 	Body KeyTransferPolicies
 }
 
