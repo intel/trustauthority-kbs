@@ -29,7 +29,7 @@ type AttestationTokenRequest struct {
 func (ac *asClient) GetAttestationToken(tokenRequest *AttestationTokenRequest) ([]byte, error) {
 
 	newRequest := func() (*http.Request, error) {
-		url := fmt.Sprintf("%s/appraise", ac.BaseURL)
+		url := fmt.Sprintf("%s/attest", ac.BaseURL)
 
 		reqBytes, err := json.Marshal(tokenRequest)
 		if err != nil {
