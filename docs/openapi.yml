@@ -106,15 +106,21 @@ definitions:
     KeyTransferPolicy:
         properties:
             attestation_type:
+                description: Defines if SGX\TDX Attributes need to be part of key Transfer Policy
+                example: '[ { "SGX" } ]'
                 items:
                     $ref: '#/definitions/AttestationType'
                 type: array
                 x-go-name: AttestationType
             created_at:
+                description: Asset creation time
+                example: "0001-01-01T00:00:00Z"
                 format: date-time
                 type: string
                 x-go-name: CreatedAt
             id:
+                description: Universal Unique IDentifier of the Key Transfer Policy created
+                example: 4517534b-a758-4447-7d2f-3e5606152ed6
                 format: uuid
                 type: string
                 x-go-name: ID
@@ -122,6 +128,9 @@ definitions:
                 $ref: '#/definitions/SgxPolicy'
             tdx:
                 $ref: '#/definitions/TdxPolicy'
+        required:
+            - id
+            - attestation_type
         type: object
         x-go-package: intel/amber/kbs/v1/model
     KeyTransferResponse:
@@ -143,29 +152,43 @@ definitions:
     SgxAttributes:
         properties:
             client_permissions:
+                description: List of permission set required by the workload
+                example:
+                    - nginx
+                    - US
                 items:
                     type: string
                 type: array
                 x-go-name: ClientPermissions
             enforce_tcb_upto_date:
+                description: Should policy engine enforce TCB upto-date status as part of SGX Attestation
+                example: true
                 type: boolean
                 x-go-name: EnforceTCBUptoDate
             isvprodid:
+                description: Product ID Specific to the workload running the SGX enclave
+                example: '[ 0001, 0002 ]'
                 items:
                     format: uint16
                     type: integer
                 type: array
                 x-go-name: IsvProductId
             isvsvn:
+                description: The Security Version Number of the Enclave
+                example: 0
                 format: uint16
                 type: integer
                 x-go-name: IsvSvn
             mrenclave:
+                description: Hash of the Contents of the SGX Enclave
+                example: ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316a
                 items:
                     type: string
                 type: array
                 x-go-name: MrEnclave
             mrsigner:
+                description: Hash of the key used to sign the SGX Enclave
+                example: 83d719e77deaca1470f6baf62a4d774303c899db69020f9c70ee1dfc08c7ce9e
                 items:
                     type: string
                 type: array
@@ -177,6 +200,8 @@ definitions:
             attributes:
                 $ref: '#/definitions/SgxAttributes'
             policy_ids:
+                description: List of Policy IDs which are evaluated before key is distributed
+                example: '[ 4517534b-a758-4447-7d2f-3e5606152ed6, 34568456-2398-3875-7453-395766152ed6 ]'
                 items:
                     format: uuid
                     type: string
@@ -187,36 +212,54 @@ definitions:
     TdxAttributes:
         properties:
             enforce_tcb_upto_date:
+                description: Should policy engine enforce TCB upto-date status as part of TDX Attestation
+                example: true
                 type: boolean
                 x-go-name: EnforceTCBUptoDate
             mrseam:
+                description: Hash of the Contents of the TDX SEAM Module
+                example: 0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe
                 items:
                     type: string
                 type: array
                 x-go-name: MrSeam
             mrsignerseam:
+                description: Hash of the key used to sign the TDX SEAM Module
+                example: 83d719e77deaca1470f6baf62a4d774303c899db69020f9c70ee1dfc08c7ce9e
                 items:
                     type: string
                 type: array
                 x-go-name: MrSignerSeam
             mrtd:
+                description: SHA-384 measurement of a TD, accumulated during TD build.
+                example: df656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50
                 items:
                     type: string
                 type: array
                 x-go-name: MRTD
             rtmr0:
+                description: A SHA-384 measurement register that can be updated during TD run-time
+                example: b90abd43736381b12fc9b038924c73e31c8371674905e7fcb7941d69fe59d30eda3adb9e41b878151e756fb05ad13d14
                 type: string
                 x-go-name: RTMR0
             rtmr1:
+                description: A SHA-384 measurement register that can be updated during TD run-time
+                example: a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b
                 type: string
                 x-go-name: RTMR1
             rtmr2:
+                description: A SHA-384 measurement register that can be updated during TD run-time
+                example: "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 type: string
                 x-go-name: RTMR2
             rtmr3:
+                description: A SHA-384 measurement register that can be updated during TD run-time
+                example: "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 type: string
                 x-go-name: RTMR3
             seamsvn:
+                description: The Security Version Number of the TDX SEAM Module
+                example: 0
                 format: uint8
                 type: integer
                 x-go-name: SeamSvn
@@ -227,6 +270,8 @@ definitions:
             attributes:
                 $ref: '#/definitions/TdxAttributes'
             policy_ids:
+                description: List of Policy IDs which are evaluated before key is distributed
+                example: '[ 4517534b-a758-4447-7d2f-3e5606152ed6, 34568456-2398-3875-7453-395766152ed6 ]'
                 items:
                     format: uuid
                     type: string
@@ -237,14 +282,20 @@ definitions:
     User:
         properties:
             password:
+                example: testPassword
                 type: string
                 x-go-name: Password
             permissions:
+                description: Roles associated with an user
+                example:
+                    - users:create
+                    - users:search
                 items:
                     type: string
                 type: array
                 x-go-name: Permissions
             username:
+                example: testUser
                 type: string
                 x-go-name: Username
         required:
@@ -256,23 +307,35 @@ definitions:
     UserResponse:
         properties:
             created_at:
+                description: Asset creation time
+                example: "0001-01-01T00:00:00Z"
                 format: date-time
                 type: string
                 x-go-name: CreatedAt
             id:
+                description: Universal Unique IDentifier of the user
+                example: 8170574b-a783-4357-747f-3e52922f2ed8
                 format: uuid
                 type: string
                 x-go-name: ID
             permissions:
+                description: Roles associated with an user
+                example:
+                    - users:create
+                    - users:search
                 items:
                     type: string
                 type: array
                 x-go-name: Permissions
             updated_at:
+                description: Asset modification time
+                example: "0001-01-01T00:00:00Z"
                 format: date-time
                 type: string
                 x-go-name: UpdatedAt
             username:
+                description: Specified Username for whom User ID is created
+                example: testUser
                 type: string
                 x-go-name: Username
         type: object

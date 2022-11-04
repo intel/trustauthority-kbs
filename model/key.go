@@ -51,8 +51,16 @@ type KeyInfo struct {
 }
 
 type KeyFilterCriteria struct {
-	Algorithm        string
-	KeyLength        int
-	CurveType        string
+	// Denotes the Encryption Algorithm (AES, RSA or EC) used while creating the key
+	// example: rsa
+	Algorithm string
+	// Denotes the key length in bits used while creating the key
+	// example: 3072
+	KeyLength int
+	// Denotes the curve type used while creating the EC key
+	// example: secp384r1
+	CurveType string
+	// Universal Unique IDentifier of the Key Transfer Policy
+	// example: 4110594b-a753-4457-7d7f-3e52b62f2ed8
 	TransferPolicyId uuid.UUID
 }
