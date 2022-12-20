@@ -80,7 +80,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 		return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key transfer policy"}
 	}
 
-	var token []byte
+	var token string
 	if req.AttestationType == "" {
 		if req.KeyTransferRequest.AttestationToken == "" {
 			nonce, err := svc.asClient.GetNonce()
@@ -96,7 +96,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 			}
 			return resp, nil
 		} else {
-			token = []byte(req.KeyTransferRequest.AttestationToken)
+			token = req.KeyTransferRequest.AttestationToken
 		}
 	} else {
 		if req.AttestationType != transferPolicy.AttestationType[0].String() {
@@ -128,7 +128,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 		}
 	}
 
-	claims, err := svc.authenticateToken(string(token))
+	claims, err := svc.authenticateToken(token)
 	if err != nil {
 		log.WithError(err).Error("Failed to authenticate attestation-token")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "Failed to authenticate attestation-token"}

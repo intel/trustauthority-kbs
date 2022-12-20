@@ -10,7 +10,7 @@ import (
 )
 
 type ASClient interface {
-	GetAttestationToken(*AttestationTokenRequest) ([]byte, error)
+	GetAttestationToken(*AttestationTokenRequest) (string, error)
 	GetNonce() (*Nonce, error)
 }
 

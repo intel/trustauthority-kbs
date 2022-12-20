@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 
@@ -25,8 +26,12 @@ type AttestationTokenRequest struct {
 	EventLog  []byte      `json:"event_log,omitempty"`
 }
 
+type AttestationTokenResponse struct {
+	Token string `json:"token"`
+}
+
 // GetAttestationToken sends a POST request to Appraisal Service to create a new Attestation token with the specified quote attributes
-func (ac *asClient) GetAttestationToken(tokenRequest *AttestationTokenRequest) ([]byte, error) {
+func (ac *asClient) GetAttestationToken(tokenRequest *AttestationTokenRequest) (string, error) {
 
 	newRequest := func() (*http.Request, error) {
 		url := fmt.Sprintf("%s/attest", ac.BaseURL)
@@ -46,18 +51,22 @@ func (ac *asClient) GetAttestationToken(tokenRequest *AttestationTokenRequest) (
 		constant.HTTPHeaderKeyAccept:      constant.HTTPHeaderValueApplicationJwt,
 	}
 
-	var attestationToken []byte
+	var tokenResponse AttestationTokenResponse
 	processResponse := func(resp *http.Response) error {
-		var err error
-		if attestationToken, err = ioutil.ReadAll(resp.Body); err != nil {
+		attestationToken, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
 			return err
+		}
+		err = json.Unmarshal(attestationToken, &tokenResponse)
+		if err != nil {
+			return errors.Wrap(err, "Error unmarshalling Token response from appraise")
 		}
 		return nil
 	}
 
 	if err := clients.RequestAndProcessResponse(ac.Client, newRequest, queryParams, headers, processResponse); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return attestationToken, nil
+	return tokenResponse.Token, nil
 }
