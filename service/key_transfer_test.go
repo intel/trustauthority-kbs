@@ -53,7 +53,7 @@ func TestKeyTransferRSA(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	t.Log("Pem Data:", base64.StdEncoding.EncodeToString(loadedPubKey))
-	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
+	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
 		*tClaims = tokenClaims
@@ -87,7 +87,7 @@ func TestSGXKeyTransfer(t *testing.T) {
 
 	tokenClaims.AmberTcbStatus = "OUT_OF_DATE"
 	tokenClaims.AmberMatchedPolicyIds = []uuid.UUID{uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}
-	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
+	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
 		*tClaims = tokenClaims
@@ -136,7 +136,7 @@ func TestTDXKeyTransfer(t *testing.T) {
 		AmberTcbStatus:       "false",
 		AmberTeeHeldData:     base64.StdEncoding.EncodeToString(loadedPubKey),
 	}
-	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
+	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
 		*tClaims = tokenTDXClaims
@@ -182,7 +182,7 @@ func TestKeyTransferInvalidAttestaionType(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	jwtTok := &jwt.Token{}
-	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
+	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
 		*tClaims = tokenClaims
@@ -215,7 +215,7 @@ func TestKeyTransferInvalidAttestaionType(t *testing.T) {
 func TestKeyTransferInvalidKeyId(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
+	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
 		*tClaims = tokenClaims
@@ -247,7 +247,7 @@ func TestKeyTransferInvalidKeyId(t *testing.T) {
 func TestKeyTransferInvalidSecretKey(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	asClient.On("GetAttestationToken", mock.Anything).Return([]byte(""), nil)
+	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
 		*tClaims = tokenClaims
