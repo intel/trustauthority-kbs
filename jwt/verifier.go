@@ -7,16 +7,22 @@ package jwt
 import (
 	"bytes"
 	"crypto"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
+	"intel/amber/kbs/v1/clients"
 	"intel/amber/kbs/v1/crypt"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 type Verifier interface {
@@ -105,43 +111,80 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 	token := Token{}
 	token.standardClaims = &jwt.StandardClaims{}
 	parsedToken, err := jwt.ParseWithClaims(tokenString, token.standardClaims, func(token *jwt.Token) (interface{}, error) {
+		var kid string
 
-		if keyIDValue, keyIDExists := token.Header["kid"]; keyIDExists {
-
-			keyIDString, ok := keyIDValue.(string)
-			if !ok {
-				return nil, fmt.Errorf("kid (key id) in jwt header is not a string : %v", keyIDValue)
-			}
-
-			v.pubKeyMapMtx.RLock()
-			defer v.pubKeyMapMtx.RUnlock()
-			if matchPubKey, found := v.pubKeyMap[keyIDString]; !found {
-				return nil, &MatchingCertNotFoundError{keyIDString}
-			} else {
-				// if the certificate just expired.. we need to return appropriate error
-				// so that the caller can deal with it appropriately
-				now := time.Now()
-				if now.After(matchPubKey.expTime) {
-					return nil, &MatchingCertJustExpired{keyIDString}
-				}
-				return matchPubKey.pubKey, nil
-			}
-
+		keyIDValue, keyIDExists := token.Header["kid"]
+		if !keyIDExists {
+			return nil, fmt.Errorf("kid field missing in token header")
 		} else {
-			return nil, fmt.Errorf("kid (key id) field missing in token. field is mandatory")
+			var ok bool
+			kid, ok = keyIDValue.(string)
+			if !ok {
+				return nil, fmt.Errorf("kid field in jwt header is not valid : %v", kid)
+			}
 		}
+
+		jkuValue, jkuExists := token.Header["jku"]
+		if !jkuExists {
+			return nil, fmt.Errorf("jku field missing in token header")
+		}
+
+		tokenSignCertUrl, ok := jkuValue.(string)
+		if !ok {
+			return nil, fmt.Errorf("jku in jwt header is not a valid string: %v", tokenSignCertUrl)
+		}
+
+		_, err := url.Parse(tokenSignCertUrl)
+		if err != nil {
+			return nil, fmt.Errorf("malformed URL provided for Token Signing Cert download")
+		}
+
+		newRequest := func() (*http.Request, error) {
+			return http.NewRequest(http.MethodGet, tokenSignCertUrl, nil)
+		}
+
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{},
+			},
+		}
+
+		var headers = map[string]string{
+			"Accept": "application/json",
+		}
+
+		var pubKey interface{}
+		processResponse := func(resp *http.Response) error {
+			jwks, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return fmt.Errorf("Failed to read body from %s: %s", tokenSignCertUrl, err)
+			}
+
+			jwkSet, err := jwk.Parse(jwks)
+			if err != nil {
+				return fmt.Errorf("Unable to unmarshal response into a JWT Key Set")
+			}
+
+			jwkKey, found := jwkSet.LookupKeyID(kid)
+			if !found {
+				return fmt.Errorf("Could not find Key matching the key id")
+			}
+
+			err = jwkKey.Raw(&pubKey)
+			if err != nil {
+				return fmt.Errorf("Failed to extract Public Key from Certificate")
+			}
+			return nil
+		}
+
+		if err := clients.RequestAndProcessResponse(client, newRequest, nil, headers, processResponse); err != nil {
+			return nil, err
+		}
+
+		return pubKey, nil
+
 	})
 
-	if err != nil {
-		if jwtErr, ok := err.(*jwt.ValidationError); ok {
-			switch e := jwtErr.Inner.(type) {
-			case *MatchingCertNotFoundError, *MatchingCertJustExpired:
-				return nil, e
-			}
-			return nil, jwtErr
-		}
-		return nil, err
-	}
 	token.jwtToken = parsedToken
 
 	// so far we have only got the standardClaims parsed. We need to now fill the customClaims
