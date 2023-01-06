@@ -19,10 +19,13 @@ import (
 	"time"
 
 	"intel/amber/kbs/v1/clients"
+	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/crypt"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/lestrrat-go/jwx/v2/cert"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	log "github.com/sirupsen/logrus"
 )
 
 type Verifier interface {
@@ -112,7 +115,6 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 	token.standardClaims = &jwt.StandardClaims{}
 	parsedToken, err := jwt.ParseWithClaims(tokenString, token.standardClaims, func(token *jwt.Token) (interface{}, error) {
 		var kid string
-
 		keyIDValue, keyIDExists := token.Header["kid"]
 		if !keyIDExists {
 			return nil, fmt.Errorf("kid field missing in token header")
@@ -134,6 +136,7 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 			return nil, fmt.Errorf("jku in jwt header is not a valid string: %v", tokenSignCertUrl)
 		}
 
+		log.Debugf("Token signing url:%s", tokenSignCertUrl)
 		_, err := url.Parse(tokenSignCertUrl)
 		if err != nil {
 			return nil, fmt.Errorf("malformed URL provided for Token Signing Cert download")
@@ -159,7 +162,6 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 			if err != nil {
 				return fmt.Errorf("Failed to read body from %s: %s", tokenSignCertUrl, err)
 			}
-
 			jwkSet, err := jwk.Parse(jwks)
 			if err != nil {
 				return fmt.Errorf("Unable to unmarshal response into a JWT Key Set")
@@ -168,6 +170,40 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 			jwkKey, found := jwkSet.LookupKeyID(kid)
 			if !found {
 				return fmt.Errorf("Could not find Key matching the key id")
+			}
+			certChains := jwkKey.X509CertChain()
+			if certChains.Len() == constant.CertChainCount {
+				atsCertChain := make([]*x509.Certificate, certChains.Len())
+				for i := 0; i < certChains.Len(); i++ {
+					certBytes, _ := certChains.Get(i)
+					atsCertChain[i], err = cert.Parse(certBytes)
+					if err != nil {
+						return fmt.Errorf("Failed to parse x509 certificate[%d]: %w", i, err)
+					}
+				}
+
+				root := x509.NewCertPool()
+				intermediate := x509.NewCertPool()
+				var leafCert *x509.Certificate
+				for _, cert := range atsCertChain {
+					if cert.IsCA && cert.BasicConstraintsValid && strings.Contains(cert.Subject.CommonName, "Root CA") {
+						root.AddCert(cert)
+					} else if strings.Contains(cert.Subject.CommonName, "Signing CA") {
+						intermediate.AddCert(cert)
+					} else {
+						leafCert = cert
+					}
+				}
+				opts := x509.VerifyOptions{
+					Roots:         root,
+					Intermediates: intermediate,
+				}
+
+				if _, err := leafCert.Verify(opts); err != nil {
+					return fmt.Errorf("Failed to verify cert chain: %v", err.Error())
+				}
+			} else {
+				return fmt.Errorf("Cert chain is not found")
 			}
 
 			err = jwkKey.Raw(&pubKey)
@@ -184,6 +220,9 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 		return pubKey, nil
 
 	})
+	if err != nil {
+		return nil, fmt.Errorf("Error in ParseWithClaims:%s", err)
+	}
 
 	token.jwtToken = parsedToken
 
