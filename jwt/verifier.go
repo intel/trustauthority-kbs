@@ -19,12 +19,12 @@ import (
 	"time"
 
 	"intel/amber/kbs/v1/clients"
-	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/crypt"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/lestrrat-go/jwx/v2/cert"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -171,39 +171,37 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 			if !found {
 				return fmt.Errorf("Could not find Key matching the key id")
 			}
-			certChains := jwkKey.X509CertChain()
-			if certChains.Len() == constant.CertChainCount {
-				atsCertChain := make([]*x509.Certificate, certChains.Len())
-				for i := 0; i < certChains.Len(); i++ {
-					certBytes, _ := certChains.Get(i)
-					atsCertChain[i], err = cert.Parse(certBytes)
-					if err != nil {
-						return fmt.Errorf("Failed to parse x509 certificate[%d]: %w", i, err)
-					}
+			atsCerts := jwkKey.X509CertChain()
+			root := x509.NewCertPool()
+			intermediate := x509.NewCertPool()
+			var leafCert *x509.Certificate
+
+			for i := 0; i < atsCerts.Len(); i++ {
+				atsCert, ok := atsCerts.Get(i)
+				if !ok {
+					return errors.Errorf("Failed to fetch certificate at index %d", i)
 				}
 
-				root := x509.NewCertPool()
-				intermediate := x509.NewCertPool()
-				var leafCert *x509.Certificate
-				for _, cert := range atsCertChain {
-					if cert.IsCA && cert.BasicConstraintsValid && strings.Contains(cert.Subject.CommonName, "Root CA") {
-						root.AddCert(cert)
-					} else if strings.Contains(cert.Subject.CommonName, "Signing CA") {
-						intermediate.AddCert(cert)
-					} else {
-						leafCert = cert
-					}
-				}
-				opts := x509.VerifyOptions{
-					Roots:         root,
-					Intermediates: intermediate,
+				cer, err := cert.Parse(atsCert)
+				if err != nil {
+					return errors.Errorf("Failed to parse x509 certificate[%d]: %v", i, err)
 				}
 
-				if _, err := leafCert.Verify(opts); err != nil {
-					return fmt.Errorf("Failed to verify cert chain: %v", err.Error())
+				if cer.IsCA && cer.BasicConstraintsValid && strings.Contains(cer.Subject.CommonName, "Root CA") {
+					root.AddCert(cer)
+				} else if strings.Contains(cer.Subject.CommonName, "Signing CA") {
+					intermediate.AddCert(cer)
+				} else {
+					leafCert = cer
 				}
-			} else {
-				return fmt.Errorf("Cert chain is not found")
+			}
+			opts := x509.VerifyOptions{
+				Roots:         root,
+				Intermediates: intermediate,
+			}
+
+			if _, err := leafCert.Verify(opts); err != nil {
+				return fmt.Errorf("Failed to verify cert chain: %v", err.Error())
 			}
 
 			err = jwkKey.Raw(&pubKey)
