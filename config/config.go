@@ -5,6 +5,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"net/url"
 	"os"
 	"regexp"
@@ -44,8 +45,7 @@ const (
 )
 
 var (
-	hexStringReg    = regexp.MustCompile("^[a-fA-F0-9]+$")
-	UserOrEmailReg  = regexp.MustCompile("^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	UserOrEmailReg  = regexp.MustCompile(`^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
 	PasswordReg     = regexp.MustCompile("(?:([a-zA-Z0-9_\\\\.\\\\, @!#$%^+=>?:{}()\\[\\]\\\"|;~`'*-/]+))")
 	UserCredsMaxLen = 256
 )
@@ -154,18 +154,10 @@ func (conf *Configuration) Validate() error {
 		return errors.Wrap(err, "AS URL is not a valid url")
 	}
 
-	err = ValidateHexString(conf.ASApiKey)
+	_, err = base64.URLEncoding.DecodeString(conf.ASApiKey)
 	if err != nil {
-		return errors.Wrap(err, "AS ApiKey is not a valid hex string")
+		return errors.Wrap(err, "AS ApiKey is not a valid base64 string")
 	}
 
-	return nil
-}
-
-// ValidateHexString method checks if a string has a valid hex format
-func ValidateHexString(value string) error {
-	if !hexStringReg.MatchString(value) {
-		return errors.New("Invalid hex string format")
-	}
 	return nil
 }

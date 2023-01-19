@@ -5,12 +5,13 @@
 package config
 
 import (
-	"github.com/onsi/gomega"
-	"github.com/spf13/viper"
-	"intel/amber/kbs/v1/constant"
 	"os"
 	"strings"
 	"testing"
+
+	"intel/amber/kbs/v1/constant"
+
+	"github.com/spf13/viper"
 )
 
 // go test intel/amber/kbs/v1/config -v
@@ -41,7 +42,7 @@ func setValidEnv() {
 	os.Setenv("LOG_LEVEL", "info")
 	os.Setenv("LOG_CALLER", "true")
 	os.Setenv("AS_BASE_URL", "https://as.taas.cluster.local")
-	os.Setenv("AS_API_KEY", "73616d706c65537472696e67")
+	os.Setenv("AS_API_KEY", "YXBpa2V5")
 	os.Setenv("KEY_MANAGER", "KMIP")
 	os.Setenv("KMIP_VERSION", "2.0")
 	os.Setenv("KMIP_SERVER_IP", "0.0.0.0")
@@ -96,6 +97,7 @@ func TestLoadInvalidServicePort(t *testing.T) {
 	}
 	clearEnv()
 }
+
 func TestSaveConf(t *testing.T) {
 	setValidEnv()
 	setViperInit()
@@ -140,22 +142,4 @@ func TestValidate(t *testing.T) {
 		t.Log(err)
 	}
 	clearEnv()
-}
-
-func TestValidateHexString(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
-	// valid hex string
-	err := ValidateHexString("74657374537472696e67")
-	if err != nil {
-		t.Log(err)
-	}
-	g.Expect(err).To(gomega.BeNil())
-
-	//invalid hex string
-	err = ValidateHexString("InvalidString")
-	if err != nil {
-		t.Log(err)
-	}
-	g.Expect(err).To(gomega.HaveOccurred())
-
 }
