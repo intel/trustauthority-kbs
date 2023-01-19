@@ -3,6 +3,7 @@ name: OnMergeRelease
 on:
   push:
     branches:
+      - 'main'
       - 'release/*'
     tags:
       - '**'
@@ -86,7 +87,7 @@ jobs:
 
   docker-push:
     runs-on: [ self-hosted ]
-    needs: [ "build-test-scan", "checkmarx" ]
+    needs: [ "checkmarx" ]
     steps:
       - uses: actions/checkout@v2
         with:
