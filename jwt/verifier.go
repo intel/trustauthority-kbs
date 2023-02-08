@@ -137,7 +137,7 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 		}
 
 		log.Debugf("Token signing url:%s", tokenSignCertUrl)
-		_, err := url.Parse(tokenSignCertUrl)
+		jku, err := url.Parse(tokenSignCertUrl)
 		if err != nil {
 			return nil, fmt.Errorf("malformed URL provided for Token Signing Cert download")
 		}
@@ -148,7 +148,11 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 
 		client := &http.Client{
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{},
+				TLSClientConfig: &tls.Config{
+					MinVersion: tls.VersionTLS12, // keeping TLS1.2 for compatibility with AWSGW
+					ServerName: jku.Hostname(),
+				},
+				Proxy: http.ProxyFromEnvironment,
 			},
 		}
 
@@ -235,6 +239,9 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 	}
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
 	err = dec.Decode(customClaims)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode token claims as json")
+	}
 	token.customClaims = customClaims
 
 	return &token, nil

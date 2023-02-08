@@ -5,35 +5,11 @@
 package clients
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"net/http"
-
-	"intel/amber/kbs/v1/crypt"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
-func HTTPClientTLSNoVerify() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-}
-
-func HTTPClientWithCA(caCertificates []x509.Certificate) *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs: crypt.GetCertPool(caCertificates),
-			},
-		},
-	}
-}
 
 func RequestAndProcessResponse(
 	client *http.Client,
@@ -60,10 +36,8 @@ func RequestAndProcessResponse(
 	}
 
 	{
-		if headers != nil {
-			for name, val := range headers {
-				req.Header.Add(name, val)
-			}
+		for name, val := range headers {
+			req.Header.Add(name, val)
 		}
 	}
 
