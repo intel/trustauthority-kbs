@@ -28,7 +28,6 @@ import (
 	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
 	"github.com/shaj13/libcache"
 
-	"intel/amber/kbs/v1/clients"
 	"intel/amber/kbs/v1/clients/as"
 	"intel/amber/kbs/v1/config"
 	"intel/amber/kbs/v1/constant"
@@ -194,7 +193,17 @@ func newASClient(cfg *config.Configuration) (as.ASClient, error) {
 		return nil, errors.Wrap(err, "Error loading CA certificates")
 	}
 
-	client := clients.HTTPClientWithCA(caCerts)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12, // keeping TLS1.2 for compatibility with AWSGW
+				RootCAs:    crypt.GetCertPool(caCerts),
+				ServerName: asBaseUrl.Hostname(),
+			},
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
+
 	asClient := as.NewASClient(client, asBaseUrl, cfg.ASApiKey)
 
 	return asClient, nil
@@ -229,7 +238,7 @@ func GetDirFileContents(dir, pattern string) ([][]byte, error) {
 		if info.IsDir() {
 			return nil
 		}
-		if matched, _ := path.Match(pattern, info.Name()); matched == true {
+		if matched, _ := path.Match(pattern, info.Name()); matched {
 			if content, err := ioutil.ReadFile(fPath); err == nil {
 				dirContents = append(dirContents, content)
 			}
