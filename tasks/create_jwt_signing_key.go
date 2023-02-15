@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"intel/amber/kbs/v1/constant"
 	"os"
+	"path/filepath"
 )
 
 type CreateSigningKey struct {
@@ -31,7 +32,7 @@ func (csk *CreateSigningKey) CreateJWTSigningKey() error {
 		return errors.Wrap(err, "Failed to marshal private key")
 	}
 
-	keyOut, err := os.OpenFile(csk.JWTSigningKeyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0) // open file with restricted permissions
+	keyOut, err := os.OpenFile(filepath.Clean(csk.JWTSigningKeyPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0) // open file with restricted permissions
 	if err != nil {
 		return errors.Wrap(err, "could not open private key file for writing")
 	}
