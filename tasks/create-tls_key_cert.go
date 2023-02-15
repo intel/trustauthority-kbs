@@ -18,6 +18,7 @@ import (
 	"math/big"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -73,7 +74,7 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 		return errors.Wrap(err, "Failed to marshal private key")
 	}
 
-	keyOut, err := os.OpenFile(tkc.TLSKeyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0) // open file with restricted permissions
+	keyOut, err := os.OpenFile(filepath.Clean(tkc.TLSKeyPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0) // open file with restricted permissions
 	if err != nil {
 		return fmt.Errorf("could not open private key file for writing: %v", err)
 	}
@@ -93,7 +94,7 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 		return fmt.Errorf("could not pem encode the private key: %v", err)
 	}
 
-	certOut, err := os.OpenFile(tkc.TLSCertPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0)
+	certOut, err := os.OpenFile(filepath.Clean(tkc.TLSCertPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0)
 	if err != nil {
 		return fmt.Errorf("could not open file for writing: %v", err)
 	}

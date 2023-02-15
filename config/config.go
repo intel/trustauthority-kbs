@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"intel/amber/kbs/v1/constant"
@@ -108,7 +109,7 @@ func LoadConfiguration() (*Configuration, error) {
 
 // Save saves application specific configuration to config.yml
 func (config *Configuration) Save(filename string) error {
-	configFile, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	configFile, err := os.OpenFile(filepath.Clean(filename), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create config file")
 	}
