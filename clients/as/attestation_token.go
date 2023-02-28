@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 
@@ -16,6 +15,7 @@ import (
 	"intel/amber/kbs/v1/clients/constant"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type AttestationTokenRequest struct {
@@ -48,7 +48,7 @@ func (ac *asClient) GetAttestationToken(tokenRequest *AttestationTokenRequest) (
 	var headers = map[string]string{
 		constant.HTTPHeaderTypeXApiKey:    ac.ApiKey,
 		constant.HTTPHeaderKeyContentType: constant.HTTPHeaderValueApplicationJson,
-		constant.HTTPHeaderKeyAccept:      constant.HTTPHeaderValueApplicationJwt,
+		constant.HTTPHeaderKeyAccept:      constant.HTTPHeaderValueApplicationJson,
 	}
 
 	var tokenResponse AttestationTokenResponse

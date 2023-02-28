@@ -5,13 +5,14 @@
 package service
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/shaj13/go-guardian/v2/auth"
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
 	"github.com/shaj13/libcache"
 	_ "github.com/shaj13/libcache/fifo"
-	"reflect"
-	"time"
 
 	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/model"
@@ -51,9 +52,9 @@ func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, tr
 	}
 }
 
-func isPolicyIdMatched(tokenPolicyIds, keyPolicyIds []uuid.UUID) bool {
+func isPolicyIdMatched(tokenPolicyIds []model.PolicyClaim, keyPolicyIds []uuid.UUID) bool {
 	for _, tokenPolicyId := range tokenPolicyIds {
-		if contains(keyPolicyIds, tokenPolicyId) {
+		if contains(keyPolicyIds, tokenPolicyId.Id) {
 			return true
 		}
 	}
@@ -248,9 +249,7 @@ func contains(s interface{}, elem interface{}) bool {
 
 func SetupGoguardianForTest() *model.JwtAuthz {
 	var strategy auth.Strategy
-	var keeper jwtStrategy.SecretsKeeper
-
-	keeper = jwtStrategy.StaticSecret{
+	keeper := jwtStrategy.StaticSecret{
 		ID:        "secret-id",
 		Secret:    []byte("testSecret@#12"),
 		Algorithm: jwtStrategy.HS384,

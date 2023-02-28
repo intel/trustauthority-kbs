@@ -21,16 +21,23 @@ type AttestationTokenClaim struct {
 	AmberInittime           map[string]interface{}  `json:"amber_inittime,omitempty"`
 	AmberRuntime            map[string]interface{}  `json:"amber_runtime,omitempty"`
 	AmberSgxMrEnclave       string                  `json:"amber_sgx_mrenclave,omitempty"`
-	AmberSgxIsDebuggable    bool                    `json:"amber_sgx_is_debuggable"`
+	AmberSgxIsDebuggable    *bool                   `json:"amber_sgx_is_debuggable,omitempty"`
 	AmberSgxMrSigner        string                  `json:"amber_sgx_mrsigner,omitempty"`
 	AmberSgxIsvproductId    *uint16                 `json:"amber_sgx_isvprodid,omitempty"`
 	AmberSgxIsvsvn          *uint16                 `json:"amber_sgx_isvsvn,omitempty"`
-	AmberMatchedPolicyIds   []uuid.UUID             `json:"amber_matched_policy_ids,omitempty"`
-	AmberUnmatchedPolicyIds []uuid.UUID             `json:"amber_unmatched_policy_ids,omitempty"`
+	AmberMatchedPolicyIds   []PolicyClaim           `json:"amber_matched_policy_ids,omitempty"`
+	AmberUnmatchedPolicyIds []PolicyClaim           `json:"amber_unmatched_policy_ids,omitempty"`
+	AmberFaithfulServiceIds []uuid.UUID             `json:"amber_faithful_service_ids"`
 	AmberTcbStatus          string                  `json:"amber_tcb_status"`
 	AmberEvidenceType       AttestationType         `json:"amber_evidence_type"`
-	AmberSignedNonce        *bool                   `json:"amber_signed_nonce,omitempty"`
-	AmberClientNonce        *bool                   `json:"amber_client_nonce,omitempty"`
+	AmberSignedNonce        bool                    `json:"amber_signed_nonce,omitempty"`
+	AmberClientNonce        bool                    `json:"amber_client_nonce,omitempty"`
 	AmberCustomPolicy       *map[string]interface{} `json:"amber_custom_policy,omitempty"`
 	Version                 string                  `json:"ver"`
+	AmberSgxConfigId        string                  `json:"amber_sgx_config_id,omitempty"`
+}
+
+type PolicyClaim struct {
+	Id      uuid.UUID `json:"id"`
+	Version string    `json:"version"`
 }

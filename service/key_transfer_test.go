@@ -86,7 +86,7 @@ func TestSGXKeyTransfer(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	tokenClaims.AmberTcbStatus = "OUT_OF_DATE"
-	tokenClaims.AmberMatchedPolicyIds = []uuid.UUID{uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}
+	tokenClaims.AmberMatchedPolicyIds = []model.PolicyClaim{{Id: uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}}
 	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
