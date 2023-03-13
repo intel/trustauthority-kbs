@@ -11,6 +11,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"intel/amber/kbs/v1/constant"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -176,6 +177,11 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 				return fmt.Errorf("Could not find Key matching the key id")
 			}
 			atsCerts := jwkKey.X509CertChain()
+
+			if atsCerts.Len() > constant.AtsCertChainMaxLen {
+				return errors.Errorf("Token Signing Cert chain has more than %d certificates", constant.AtsCertChainMaxLen)
+			}
+
 			root := x509.NewCertPool()
 			intermediate := x509.NewCertPool()
 			var leafCert *x509.Certificate
