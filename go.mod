@@ -1,6 +1,6 @@
 module intel/amber/kbs/v1
 
-go 1.18
+go 1.20
 
 require (
 	github.com/gemalto/kmip-go v0.0.6
