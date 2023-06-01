@@ -22,7 +22,7 @@ import (
 	"intel/amber/kbs/v1/clients"
 	"intel/amber/kbs/v1/crypt"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/lestrrat-go/jwx/v2/cert"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/pkg/errors"
@@ -88,7 +88,7 @@ func NewVerifier(signingCertPems interface{}, rootCAPems [][]byte, cacheTime tim
 			}
 		}
 
-		certHash, err := crypt.GetCertHashInHex(cert, crypto.SHA1)
+		certHash, err := crypt.GetCertHashInHex(cert, crypto.SHA384)
 		if err != nil {
 			continue
 		}
