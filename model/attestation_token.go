@@ -21,7 +21,6 @@ type AttestationTokenClaim struct {
 	AmberInittime           map[string]interface{}  `json:"amber_inittime,omitempty"`
 	AmberRuntime            map[string]interface{}  `json:"amber_runtime,omitempty"`
 	AmberSgxMrEnclave       string                  `json:"amber_sgx_mrenclave,omitempty"`
-	AmberSgxIsDebuggable    *bool                   `json:"amber_sgx_is_debuggable,omitempty"`
 	AmberSgxMrSigner        string                  `json:"amber_sgx_mrsigner,omitempty"`
 	AmberSgxIsvproductId    *uint16                 `json:"amber_sgx_isvprodid,omitempty"`
 	AmberSgxIsvsvn          *uint16                 `json:"amber_sgx_isvsvn,omitempty"`
@@ -29,6 +28,7 @@ type AttestationTokenClaim struct {
 	AmberUnmatchedPolicyIds []PolicyClaim           `json:"amber_unmatched_policy_ids,omitempty"`
 	AmberFaithfulServiceIds []uuid.UUID             `json:"amber_faithful_service_ids"`
 	AmberTcbStatus          string                  `json:"amber_tcb_status"`
+	AmberTeeIsDebuggable    bool                    `json:"amber_tee_is_debuggable,omitempty"`
 	AmberEvidenceType       AttestationType         `json:"amber_evidence_type"`
 	AmberSignedNonce        bool                    `json:"amber_signed_nonce,omitempty"`
 	AmberClientNonce        bool                    `json:"amber_client_nonce,omitempty"`

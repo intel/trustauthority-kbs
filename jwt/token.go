@@ -5,7 +5,7 @@
 package jwt
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type StandardClaims jwt.StandardClaims
