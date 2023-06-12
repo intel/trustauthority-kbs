@@ -10,8 +10,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"intel/amber/kbs/v1/constant"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -110,6 +112,81 @@ func NewVerifier(signingCertPems interface{}, rootCAPems [][]byte, cacheTime tim
 
 }
 
+// Function to get CRL Object from CRL URL
+func GetCRL(crlArr []string) (*x509.RevocationList, error) {
+
+	if len(crlArr) < 1 {
+		return nil, errors.New("Invalid CRL count present in the certificate")
+	}
+
+	crl, err := url.Parse(crlArr[0])
+	if err != nil {
+		return nil, errors.Wrap(err, "Invalid CRL URL")
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12, // keeping TLS1.2 for compatibility with AWSGW
+				ServerName: crl.Hostname(),
+			},
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
+
+	var crlObj *x509.RevocationList
+
+	newRequest := func() (*http.Request, error) {
+		return http.NewRequest(http.MethodGet, crlArr[0], nil)
+	}
+	processResponse := func(resp *http.Response) error {
+		crlPem, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return errors.Errorf("Failed to read body from %s: %s", crlArr[0], err)
+		}
+
+		block, _ := pem.Decode([]byte(crlPem))
+		if block == nil {
+			return errors.New("No PEM data found")
+		}
+
+		crlObj, err = x509.ParseRevocationList(block.Bytes)
+		if err != nil {
+			return errors.Wrap(err, "Failed to parse revocation list")
+		}
+		return nil
+	}
+
+	if err := clients.RequestAndProcessResponse(client, newRequest, nil, nil, processResponse); err != nil {
+		return nil, err
+	}
+	return crlObj, nil
+}
+
+// Function to verify the Certificate against CRL
+func verifyCRL(crl *x509.RevocationList, leafCert *x509.Certificate, caCert *x509.Certificate) error {
+	if leafCert == nil || caCert == nil || crl == nil {
+		return errors.New("Leaf Cert or caCert or CRL is nil")
+	}
+
+	//Checking CRL signed by CA Certificate
+	err := crl.CheckSignatureFrom(caCert)
+	if err != nil {
+		return errors.Wrap(err, "CRL signature verification failed")
+	}
+
+	if crl.NextUpdate.Before(time.Now()) {
+		return errors.New("CRL not valid, outdated CRL")
+	}
+
+	for _, rCert := range crl.RevokedCertificates {
+		if rCert.SerialNumber.Cmp(leafCert.SerialNumber) == 0 {
+			return errors.New("Certificate already Revoked")
+		}
+	}
+	return nil
+}
+
 func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customClaims interface{}) (*Token, error) {
 
 	token := Token{}
@@ -162,6 +239,10 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 		}
 
 		var pubKey interface{}
+		var leafCert *x509.Certificate
+		var interCACert *x509.Certificate
+		var rootCert *x509.Certificate
+
 		processResponse := func(resp *http.Response) error {
 			jwks, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
@@ -184,7 +265,6 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 
 			root := x509.NewCertPool()
 			intermediate := x509.NewCertPool()
-			var leafCert *x509.Certificate
 
 			for i := 0; i < atsCerts.Len(); i++ {
 				atsCert, ok := atsCerts.Get(i)
@@ -199,8 +279,10 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 
 				if cer.IsCA && cer.BasicConstraintsValid && strings.Contains(cer.Subject.CommonName, "Root CA") {
 					root.AddCert(cer)
+					rootCert = cer
 				} else if strings.Contains(cer.Subject.CommonName, "Signing CA") {
 					intermediate.AddCert(cer)
+					interCACert = cer
 				} else {
 					leafCert = cer
 				}
@@ -225,6 +307,23 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 			return nil, err
 		}
 
+		rootCrl, err := GetCRL(interCACert.CRLDistributionPoints)
+		if err != nil {
+			return nil, errors.Errorf("Failed to get ROOT CA CRL Object: %v", err.Error())
+		}
+
+		if err = verifyCRL(rootCrl, interCACert, rootCert); err != nil {
+			return nil, errors.Errorf("Failed to check ATS CA Certificate against Root CA CRL: %v", err.Error())
+		}
+
+		atsCrl, err := GetCRL(leafCert.CRLDistributionPoints)
+		if err != nil {
+			return nil, errors.Errorf("Failed to get ATS CRL Object: %v", err.Error())
+		}
+
+		if err = verifyCRL(atsCrl, leafCert, interCACert); err != nil {
+			return nil, errors.Errorf("Failed to check ATS Leaf certificate against ATS CRL: %v", err.Error())
+		}
 		return pubKey, nil
 
 	})
