@@ -1,5 +1,4 @@
-# Copyright (C) 2022 Intel Corporation
-# SPDX-License-Identifier: BSD-3-Clause
+#Copyright(C) 2023 Intel Corporation. All Rights Reserved.
 
 
 ARG PACKAGES_TO_COVER="config\|keymanager\|transport\|service"

@@ -1,3 +1,4 @@
+// Copyright(C) 2023 Intel Corporation. All Rights Reserved.
 module intel/amber/kbs/v1
 
 go 1.20
