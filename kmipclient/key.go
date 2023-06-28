@@ -1,17 +1,15 @@
 /*
- * Copyright (C) 2020 Intel Corporation
- * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright(C) 2023 Intel Corporation. All Rights Reserved.
  */
 package kmipclient
 
 import (
-	"intel/amber/kbs/v1/constant"
-
 	"github.com/gemalto/kmip-go"
 	"github.com/gemalto/kmip-go/kmip14"
 	"github.com/gemalto/kmip-go/kmip20"
 	"github.com/gemalto/kmip-go/ttlv"
 	"github.com/pkg/errors"
+	"intel/amber/kbs/v1/constant"
 )
 
 // CreateSymmetricKey creates a symmetric key on kmip server

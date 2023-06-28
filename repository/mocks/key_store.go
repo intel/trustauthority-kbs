@@ -1,8 +1,6 @@
 /*
- * Copyright (C) 2020 Intel Corporation
- * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright(C) 2023 Intel Corporation. All Rights Reserved.
  */
-package mocks
 
 import (
 	"github.com/google/uuid"
