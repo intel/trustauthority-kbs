@@ -2,6 +2,8 @@
  * Copyright(C) 2023 Intel Corporation. All Rights Reserved.
  */
 
+package mocks
+
 import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
