@@ -57,7 +57,11 @@ jobs:
 
   checkmarx:
     runs-on: [ self-hosted ]
-    container: amr-registry.caas.intel.com/amber/checkmarx:isecl
+    container:
+      image: amr-registry.caas.intel.com/amber/checkmarx:isecl
+      credentials:
+         username: ${{ secrets.HARBOR_USERNAME }}
+         password: ${{secrets.HARBOR_PASSWORD }}
     env:
       HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
       HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
@@ -74,7 +78,6 @@ jobs:
       CX_FLOW_BUG_TRACKER: Sarif
       CHECKMARX_SCAN_PRESET: IntelDefault
       CXFLOW_PARAMS: "--namespace=${{ github.repository_owner }} --repo-name=${{ github.event.repository.name }} --branch=${{ github.ref }} --cx-flow.filterSeverity --cx-flow.filterCategory"
-
     steps:
       - name: Checkmarx CxFlow Action
         uses: actions/checkout@v2

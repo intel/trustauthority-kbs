@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"intel/amber/kbs/v1/constant"
 	"io"
@@ -144,12 +143,7 @@ func GetCRL(crlArr []string) (*x509.RevocationList, error) {
 			return errors.Errorf("Failed to read body from %s: %s", crlArr[0], err)
 		}
 
-		block, _ := pem.Decode([]byte(crlPem))
-		if block == nil {
-			return errors.New("No PEM data found")
-		}
-
-		crlObj, err = x509.ParseRevocationList(block.Bytes)
+		crlObj, err = x509.ParseRevocationList([]byte(crlPem))
 		if err != nil {
 			return errors.Wrap(err, "Failed to parse revocation list")
 		}
