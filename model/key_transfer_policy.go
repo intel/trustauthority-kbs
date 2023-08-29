@@ -19,7 +19,7 @@ type KeyTransferPolicy struct {
 	// Defines if SGX\TDX Attributes need to be part of key Transfer Policy
 	// required: true
 	// example: [ { "SGX" } ]
-	AttestationType []AttestationType `json:"attestation_type"`
+	AttestationType []AttesterType `json:"attestation_type"`
 	// List of SGX Enclave Attributes that are part of Enclave
 	SGX *SgxPolicy `json:"sgx,omitempty"`
 	// List of TDX TD Attributes that are part of TDX Policy

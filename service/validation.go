@@ -25,8 +25,8 @@ func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, tr
 
 	switch transferPolicy.AttestationType[0] {
 	case model.SGX:
-		if tokenClaims.AmberMatchedPolicyIds != nil && transferPolicy.SGX.PolicyIds != nil {
-			if isPolicyIdMatched(tokenClaims.AmberMatchedPolicyIds, transferPolicy.SGX.PolicyIds) {
+		if tokenClaims.PolicyIdsMatched != nil && transferPolicy.SGX.PolicyIds != nil {
+			if isPolicyIdMatched(tokenClaims.PolicyIdsMatched, transferPolicy.SGX.PolicyIds) {
 				return nil
 			}
 			if transferPolicy.SGX.Attributes == nil {
@@ -36,8 +36,8 @@ func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, tr
 		return validateSGXTokenClaims(tokenClaims, transferPolicy.SGX.Attributes)
 
 	case model.TDX:
-		if tokenClaims.AmberMatchedPolicyIds != nil && transferPolicy.TDX.PolicyIds != nil {
-			if isPolicyIdMatched(tokenClaims.AmberMatchedPolicyIds, transferPolicy.TDX.PolicyIds) {
+		if tokenClaims.PolicyIdsMatched != nil && transferPolicy.TDX.PolicyIds != nil {
+			if isPolicyIdMatched(tokenClaims.PolicyIdsMatched, transferPolicy.TDX.PolicyIds) {
 				return nil
 			}
 			if transferPolicy.TDX.Attributes == nil {
@@ -62,11 +62,11 @@ func isPolicyIdMatched(tokenPolicyIds []model.PolicyClaim, keyPolicyIds []uuid.U
 
 func validateSGXTokenClaims(tokenClaims *model.AttestationTokenClaim, sgxAttributes *model.SgxAttributes) error {
 
-	if validateMrSigner(tokenClaims.AmberSgxMrSigner, sgxAttributes.MrSigner) &&
-		validateIsvProdId(*tokenClaims.AmberSgxIsvproductId, sgxAttributes.IsvProductId) &&
-		validateMrEnclave(tokenClaims.AmberSgxMrEnclave, sgxAttributes.MrEnclave) &&
-		validateIsvSvn(*tokenClaims.AmberSgxIsvsvn, *sgxAttributes.IsvSvn) &&
-		validateTcbStatus(tokenClaims.AmberTcbStatus, *sgxAttributes.EnforceTCBUptoDate) {
+	if validateMrSigner(tokenClaims.SgxMrSigner, sgxAttributes.MrSigner) &&
+		validateIsvProdId(tokenClaims.SgxIsvProdId, sgxAttributes.IsvProductId) &&
+		validateMrEnclave(tokenClaims.SgxMrEnclave, sgxAttributes.MrEnclave) &&
+		validateIsvSvn(tokenClaims.SgxIsvSvn, *sgxAttributes.IsvSvn) &&
+		validateTcbStatus(tokenClaims.AttesterTcbStatus, *sgxAttributes.EnforceTCBUptoDate) {
 		log.Debug("All sgx attributes in attestation token matches with attributes in key transfer policy")
 		return nil
 	}
@@ -141,15 +141,15 @@ func validateTcbStatus(tcbStatus string, enforceTcbUptoDate bool) bool {
 
 func validateTDXTokenClaims(tokenClaims *model.AttestationTokenClaim, tdxAttributes *model.TdxAttributes) error {
 
-	if validateMrSignerSeam(tokenClaims.AmberTdxMrSignerSeam, tdxAttributes.MrSignerSeam) &&
-		validateMrSeam(tokenClaims.AmberTdxMrSeam, tdxAttributes.MrSeam) &&
-		validateSeamSvn(*tokenClaims.AmberTdxSeamSvn, *tdxAttributes.SeamSvn) &&
-		validateMrTD(tokenClaims.AmberTdxMRTD, tdxAttributes.MRTD) &&
-		validateRTMR(tokenClaims.AmberTdxRTMR0, tdxAttributes.RTMR0) &&
-		validateRTMR(tokenClaims.AmberTdxRTMR1, tdxAttributes.RTMR1) &&
-		validateRTMR(tokenClaims.AmberTdxRTMR2, tdxAttributes.RTMR2) &&
-		validateRTMR(tokenClaims.AmberTdxRTMR3, tdxAttributes.RTMR3) &&
-		validateTcbStatus(tokenClaims.AmberTcbStatus, *tdxAttributes.EnforceTCBUptoDate) {
+	if validateMrSignerSeam(tokenClaims.TdxMrSignerSeam, tdxAttributes.MrSignerSeam) &&
+		validateMrSeam(tokenClaims.TdxMrSeam, tdxAttributes.MrSeam) &&
+		validateSeamSvn(tokenClaims.TdxSeamSvn, *tdxAttributes.SeamSvn) &&
+		validateMrTD(tokenClaims.TdxMRTD, tdxAttributes.MRTD) &&
+		validateRTMR(tokenClaims.TdxRTMR0, tdxAttributes.RTMR0) &&
+		validateRTMR(tokenClaims.TdxRTMR1, tdxAttributes.RTMR1) &&
+		validateRTMR(tokenClaims.TdxRTMR2, tdxAttributes.RTMR2) &&
+		validateRTMR(tokenClaims.TdxRTMR3, tdxAttributes.RTMR3) &&
+		validateTcbStatus(tokenClaims.AttesterTcbStatus, *tdxAttributes.EnforceTCBUptoDate) {
 		log.Debug("All tdx attributes in attestation token matches with attributes in key transfer policy")
 		return nil
 	}

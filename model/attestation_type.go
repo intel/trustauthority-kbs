@@ -3,18 +3,18 @@
  */
 package model
 
-type AttestationType string
+type AttesterType string
 
 const (
-	TDX AttestationType = "TDX"
-	SGX AttestationType = "SGX"
+	TDX AttesterType = "TDX"
+	SGX AttesterType = "SGX"
 )
 
-func (at AttestationType) String() string {
+func (at AttesterType) String() string {
 	return string(at)
 }
 
-func (at AttestationType) Valid() bool {
+func (at AttesterType) Valid() bool {
 	switch at {
 	case TDX, SGX:
 		return true

@@ -14,10 +14,10 @@ type KeyTransferRequest struct {
 	Quote []byte `json:"quote,omitempty"`
 	// Signed entity comprising of a base64 encoded randomized 64 bytes, issued at timestamp and signature.
 	// example: { "val": "YKrm2nC9bZQLstn+ABSP6LCu4TcyU3evGx+Cc1uRRkqoq4Vf6qyQNlnNIs/BpiKs/ZWYV73xxexFU+O4PRzUXQ==", "iat": "MjAyMi0wNy0wNSAwOTozOToxOS4zNTEwNTM2NiArMDAwMCBVVEM=", "signature": "cipPzJ3Ar6QwBXJavzzIjNrH5wwuyUcDn28Wtfgzq2SBcMVTgsOVfCgqFocvS2OrwkKxNrZEna5ySoqdUg7FBQhfEPGY6zDGeiewIDUeklWdbzM8Ycpwh6u/VO2KDG74fA+Ozho/Itae1KpATce+f4g3J32Xpbp5UHM4W9HEQDtMW3XrMICDVi/bhZ5/qYbe4D2vde/ht7Nk+7rlzNYCVxaiiF1wMvWSdU+YwnToP+yJNTXBoqsiZoKvkbomvqrlbMd73/pmI7NGvcLGDHkCk7X6gDPsgk3EEiD7qvOT8YB4LyM+Vj/x005po7g/rUQscwpUQlrTkym7rY4lRyF6OqpRwEm3iRgsEr7SWdYS5KaFpY+hwpepAx3Pl2rbBOQpDc9ZJhW9xALACMHo87efD8iAIMSiXfUyW8NP4q+lfjA9ZMu10bRPNx+PSYHCvWcLm8QjU0HnUH+dIXtjxw9ujDwNSE37Ygqxgm2OstyR5Ysv0yid9QXKr4KsrJKVjnOk" }
-	Nonce *as.Nonce `json:"nonce,omitempty"`
+	VerifierNonce *as.VerifierNonce `json:"nonce,omitempty"`
 	// User data - enclave held data
 	// example: uJzueTbG8uTrkoBcSG7Duu2izGJ2lAZveRqx0E/exGnX81/4kJdU1Wh1FDkn0K8+
-	UserData []byte `json:"user_data,omitempty"`
+	RuntimeData []byte `json:"user_data,omitempty"`
 	// Log of all events that get extended to RTMRs (runtime-extendable measurement registers) . RTMR event log is available through ACPI.
 	// example: [ { "rtmr": {  "index":1....
 	EventLog []byte `json:"event_log,omitempty"`

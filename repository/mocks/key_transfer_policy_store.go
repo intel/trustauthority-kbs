@@ -78,7 +78,7 @@ func NewFakeKeyTransferPolicyStore() *MockKeyTransferPolicyStore {
 	_, err := store.Create(&model.KeyTransferPolicy{
 		ID:              uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
 		CreatedAt:       time.Now().UTC(),
-		AttestationType: []model.AttestationType{model.SGX},
+		AttestationType: []model.AttesterType{model.SGX},
 		SGX: &model.SgxPolicy{
 			PolicyIds: []uuid.UUID{uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")},
 			Attributes: &model.SgxAttributes{
@@ -98,7 +98,7 @@ func NewFakeKeyTransferPolicyStore() *MockKeyTransferPolicyStore {
 	_, err = store.Create(&model.KeyTransferPolicy{
 		ID:              uuid.MustParse("73755fda-c910-46be-821f-e8ddeab189e9"),
 		CreatedAt:       time.Now().UTC(),
-		AttestationType: []model.AttestationType{model.SGX},
+		AttestationType: []model.AttesterType{model.SGX},
 		SGX: &model.SgxPolicy{
 			Attributes: &model.SgxAttributes{
 				MrSigner:           []string{cns.ValidMrSigner},
@@ -119,7 +119,7 @@ func NewFakeKeyTransferPolicyStore() *MockKeyTransferPolicyStore {
 	_, err = store.Create(&model.KeyTransferPolicy{
 		ID:              uuid.MustParse("f64e25de-634f-44a3-b520-db480d8781ce"),
 		CreatedAt:       time.Now().UTC(),
-		AttestationType: []model.AttestationType{model.TDX},
+		AttestationType: []model.AttesterType{model.TDX},
 		TDX: &model.TdxPolicy{
 			Attributes: &model.TdxAttributes{
 				MrSignerSeam:       []string{cns.ValidMrSignerSeam},

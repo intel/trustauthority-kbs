@@ -18,11 +18,11 @@ import (
 )
 
 type AttestationTokenRequest struct {
-	Quote     []byte      `json:"quote"`
-	Nonce     *Nonce      `json:"nonce,omitempty"`
-	UserData  []byte      `json:"user_data,omitempty"`
-	PolicyIds []uuid.UUID `json:"policy_ids,omitempty"`
-	EventLog  []byte      `json:"event_log,omitempty"`
+	Quote         []byte         `json:"quote"`
+	VerifierNonce *VerifierNonce `json:"verifier_nonce,omitempty"`
+	RuntimeData   []byte         `json:"runtime_data,omitempty"`
+	PolicyIds     []uuid.UUID    `json:"policy_ids,omitempty"`
+	EventLog      []byte         `json:"event_log,omitempty"`
 }
 
 type AttestationTokenResponse struct {

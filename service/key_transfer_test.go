@@ -33,18 +33,21 @@ var (
 		Bytes: pubKeyBytes,
 	}
 	loadedPubKey, _ = loadPublicKey(pem.EncodeToMemory(publicKeyInPem))
+	nonce           = &as.VerifierNonce{}
 
 	jwtTok             = &jwt.Token{}
 	prodId      uint16 = 1
 	isvSvn      uint16 = 0
 	tokenClaims        = &model.AttestationTokenClaim{
-		AmberSgxMrEnclave:    cns.ValidMrEnclave,
-		AmberSgxMrSigner:     cns.ValidMrSigner,
-		AmberSgxIsvproductId: &prodId,
-		AmberSgxIsvsvn:       &isvSvn,
-		AmberEvidenceType:    "SGX",
-		AmberTcbStatus:       "false",
-		AmberTeeHeldData:     base64.StdEncoding.EncodeToString(loadedPubKey),
+		SGXClaims: &model.SGXClaims{
+			SgxMrEnclave: cns.ValidMrEnclave,
+			SgxMrSigner:  cns.ValidMrSigner,
+			SgxIsvProdId: prodId,
+			SgxIsvSvn:    isvSvn,
+		},
+		AttesterHeldData: base64.StdEncoding.EncodeToString(loadedPubKey),
+		VerifierNonce:    nonce,
+		AttesterType:     "SGX",
 	}
 )
 
@@ -64,12 +67,13 @@ func TestKeyTransferRSA(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.Nonce{}
+	nonce := &as.VerifierNonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:    []byte(""),
-		Nonce:    nonce,
-		UserData: []byte(""),
+		Quote:         []byte(""),
+		VerifierNonce: nonce,
+		RuntimeData:   []byte(""),
+		EventLog:      []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -84,8 +88,8 @@ func TestKeyTransferRSA(t *testing.T) {
 func TestSGXKeyTransfer(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	tokenClaims.AmberTcbStatus = "OUT_OF_DATE"
-	tokenClaims.AmberMatchedPolicyIds = []model.PolicyClaim{{Id: uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}}
+	tokenClaims.AttesterTcbStatus = "OUT_OF_DATE"
+	tokenClaims.PolicyIdsMatched = []model.PolicyClaim{{Id: uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")}}
 	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
@@ -98,12 +102,13 @@ func TestSGXKeyTransfer(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.Nonce{}
+	nonce := &as.VerifierNonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:    []byte(""),
-		Nonce:    nonce,
-		UserData: []byte(""),
+		Quote:         []byte(""),
+		VerifierNonce: nonce,
+		RuntimeData:   []byte(""),
+		EventLog:      []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -123,17 +128,20 @@ func TestTDXKeyTransfer(t *testing.T) {
 	var seamSvn uint8 = 0
 
 	tokenTDXClaims := &model.AttestationTokenClaim{
-		AmberTdxMrSignerSeam: cns.ValidMrSignerSeam,
-		AmberTdxMrSeam:       cns.ValidMrSeam,
-		AmberTdxSeamSvn:      &seamSvn,
-		AmberTdxMRTD:         cns.ValidMRTD,
-		AmberTdxRTMR0:        cns.ValidRTMR0,
-		AmberTdxRTMR1:        cns.ValidRTMR1,
-		AmberTdxRTMR2:        cns.ValidRTMR2,
-		AmberTdxRTMR3:        cns.ValidRTMR3,
-		AmberEvidenceType:    "TDX",
-		AmberTcbStatus:       "false",
-		AmberTeeHeldData:     base64.StdEncoding.EncodeToString(loadedPubKey),
+		SGXClaims: nil,
+		TDXClaims: &model.TDXClaims{
+			TdxMrSeam:       cns.ValidMrSeam,
+			TdxMrSignerSeam: cns.ValidMrSignerSeam,
+			TdxMRTD:         cns.ValidMRTD,
+			TdxRTMR0:        cns.ValidRTMR0,
+			TdxRTMR1:        cns.ValidRTMR1,
+			TdxRTMR2:        cns.ValidRTMR2,
+			TdxRTMR3:        cns.ValidRTMR3,
+			TdxSeamSvn:      seamSvn,
+		},
+		AttesterHeldData:  base64.StdEncoding.EncodeToString(loadedPubKey),
+		AttesterTcbStatus: "false",
+		AttesterType:      "TDX",
 	}
 	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
@@ -146,12 +154,13 @@ func TestTDXKeyTransfer(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.Nonce{}
+	nonce := &as.VerifierNonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:    []byte(""),
-		Nonce:    nonce,
-		UserData: []byte(""),
+		Quote:         []byte(""),
+		VerifierNonce: nonce,
+		RuntimeData:   []byte(""),
+		EventLog:      []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -163,6 +172,7 @@ func TestTDXKeyTransfer(t *testing.T) {
 	_, err := svc.TransferKeyWithEvidence(context.Background(), request)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
+
 func loadPublicKey(userData []byte) ([]byte, error) {
 	pubKeyBlock, _ := pem.Decode(userData)
 	pubKeyBytes, err := x509.ParsePKIXPublicKey(pubKeyBlock.Bytes)
@@ -193,12 +203,13 @@ func TestKeyTransferInvalidAttestaionType(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.Nonce{}
+	nonce := &as.VerifierNonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:    []byte(""),
-		Nonce:    nonce,
-		UserData: []byte(""),
+		Quote:         []byte(""),
+		VerifierNonce: nonce,
+		RuntimeData:   []byte(""),
+		EventLog:      []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -226,12 +237,13 @@ func TestKeyTransferInvalidKeyId(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.Nonce{}
+	nonce := &as.VerifierNonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:    []byte(""),
-		Nonce:    nonce,
-		UserData: []byte(""),
+		Quote:         []byte(""),
+		VerifierNonce: nonce,
+		RuntimeData:   []byte(""),
+		EventLog:      []byte(""),
 	}
 
 	request := TransferKeyRequest{
@@ -257,12 +269,13 @@ func TestKeyTransferInvalidSecretKey(t *testing.T) {
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
-	nonce := &as.Nonce{}
+	nonce := &as.VerifierNonce{}
 
 	transReq := &model.KeyTransferRequest{
-		Quote:    []byte(""),
-		Nonce:    nonce,
-		UserData: []byte(""),
+		Quote:         []byte(""),
+		VerifierNonce: nonce,
+		RuntimeData:   []byte(""),
+		EventLog:      []byte(""),
 	}
 
 	request := TransferKeyRequest{

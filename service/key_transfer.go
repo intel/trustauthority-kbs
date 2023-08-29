@@ -45,7 +45,7 @@ type TransferKeyRequest struct {
 
 type TransferKeyResponse struct {
 	AttestationType     string
-	Nonce               *as.Nonce
+	Nonce               *as.VerifierNonce
 	KeyTransferResponse *model.KeyTransferResponse
 }
 
@@ -113,11 +113,11 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 		}
 
 		tokenRequest := as.AttestationTokenRequest{
-			Quote:     req.KeyTransferRequest.Quote,
-			Nonce:     req.KeyTransferRequest.Nonce,
-			UserData:  req.KeyTransferRequest.UserData,
-			PolicyIds: policyIds,
-			EventLog:  req.KeyTransferRequest.EventLog,
+			Quote:         req.KeyTransferRequest.Quote,
+			VerifierNonce: req.KeyTransferRequest.VerifierNonce,
+			RuntimeData:   req.KeyTransferRequest.RuntimeData,
+			PolicyIds:     policyIds,
+			EventLog:      req.KeyTransferRequest.EventLog,
 		}
 
 		token, err = svc.asClient.GetAttestationToken(&tokenRequest)
@@ -134,12 +134,12 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 	}
 
 	tokenClaims := claims.(*model.AttestationTokenClaim)
-	if tokenClaims.AmberEvidenceType != transferPolicy.AttestationType[0] {
+	if tokenClaims.AttesterType != transferPolicy.AttestationType[0] {
 		log.Error("attestation-token is not valid for attestation-type in key-transfer policy")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-token is not valid for attestation-type in key-transfer policy"}
 	}
 
-	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.AmberTeeHeldData, req.KeyId)
+	transferResponse, httpStatus, err := svc.validateClaimsAndGetKey(tokenClaims, transferPolicy, key.KeyInfo.Algorithm, tokenClaims.AttesterHeldData, req.KeyId)
 	if err != nil {
 		return nil, &HandledError{Code: httpStatus, Message: err.Error()}
 	}
