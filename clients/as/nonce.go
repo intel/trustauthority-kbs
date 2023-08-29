@@ -13,14 +13,15 @@ import (
 	"intel/amber/kbs/v1/clients/constant"
 )
 
-type Nonce struct {
+// Unique VerifierNonce object consisting of signed random 64 bytes and issued timestamp
+type VerifierNonce struct {
 	Val       []byte `json:"val"`
 	Iat       []byte `json:"iat"`
 	Signature []byte `json:"signature"`
 }
 
 // GetNonce sends a GET request to Appraisal Service to create a new Nonce to be used as reportdata for quote generation
-func (ac *asClient) GetNonce() (*Nonce, error) {
+func (ac *asClient) GetNonce() (*VerifierNonce, error) {
 
 	newRequest := func() (*http.Request, error) {
 		url := fmt.Sprintf("%s/nonce", ac.BaseURL)
@@ -33,7 +34,7 @@ func (ac *asClient) GetNonce() (*Nonce, error) {
 		constant.HTTPHeaderKeyAccept:   constant.HTTPHeaderValueApplicationJson,
 	}
 
-	var Nonce Nonce
+	var Nonce VerifierNonce
 	processResponse := func(resp *http.Response) error {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {

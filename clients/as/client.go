@@ -10,7 +10,7 @@ import (
 
 type ASClient interface {
 	GetAttestationToken(*AttestationTokenRequest) (string, error)
-	GetNonce() (*Nonce, error)
+	GetNonce() (*VerifierNonce, error)
 }
 
 type asClient struct {
