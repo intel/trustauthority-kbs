@@ -1,1 +1,5 @@
-# applications.security.amber.key-broker-service
+# Key Broker Service (KBS)
+
+The Key Broker Service enables key distribution using TEE(Trusted Execution Environment) like SGX and TDX attestation to authorize key transfers by retaining image decryption keys. The Key Broker Service acts as a bridge between an attestation service (like Intel Trust Authority) and the existing ecosystem of key management platforms.  It “brokers” access to the secrets stored in the key management services by evaluating attestation tokens against a “key transfer policy” that informs the broker on the specific trust requirements for retrieving a key.
+
+The key Broker Service(KBS) provides and retains encryption/decryption keys for various purposes. When a TEE workload requests for the decryption key to operate on a resource, the KBS requests the workloads attestation from Intel Trust Authority(ITA), verifies all digital signatures and retains the final control over weather the decryption key is issued. If the workload's attestation meets the policy requirements, the KBS issues a decryption key itself, wrapped using the public key form the workload that was attested, cryptographically ensuring that only the attested workload can decrypt the requested key.
