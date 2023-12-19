@@ -5,6 +5,8 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"intel/amber/kbs/v1/clients/as"
 	"intel/amber/kbs/v1/jwt"
@@ -272,9 +274,11 @@ func TestKeyTransfer(t *testing.T) {
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
 
+	keyPair, _ := rsa.GenerateKey(rand.Reader, 3076)
+	pubKey := &keyPair.PublicKey
 	request := TransferKeyRequest{
 		KeyId:     uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
-		PublicKey: publicKey,
+		PublicKey: pubKey,
 	}
 
 	_, err := svc.TransferKey(context.Background(), request)

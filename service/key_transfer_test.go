@@ -5,10 +5,8 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/binary"
 	"encoding/pem"
 	"testing"
@@ -25,15 +23,8 @@ import (
 )
 
 var (
-	keyPair, _     = rsa.GenerateKey(rand.Reader, 2048)
-	publicKey      = &keyPair.PublicKey
-	pubKeyBytes, _ = x509.MarshalPKIXPublicKey(publicKey)
-	publicKeyInPem = &pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: pubKeyBytes,
-	}
-	loadedPubKey, _ = loadPublicKey(pem.EncodeToMemory(publicKeyInPem))
-	nonce           = &as.VerifierNonce{}
+	publicKey = "AQABAEWpyf19e2eARCPq/l07CvkPGIoJK+48tDtv5sB5WswB2OY63qSxb+DxOrZ/b54BNF6xeS/+s7W81z+5RKQwmewIageZZByWHp0xs6eOnhoGMpdDEHFhIfp9an5e4wP8tnoaYyzeD66J5Wgd3gX+sBv6GL1BBRq4M1bNVslXcz4w3s4xWWO2CLfgSpI1jAToEhxLxta+e5Istn4v2hXsuEmkeSL5NHrcfy7AmPhFISUoyyJZ9121jEkW/yl/oGbJegfeWwD316Af69gawFCO29xjupnfQa7XCR+YrB2XTIqDqHAbo1fQabrdG3HlyIivyayFYz6moztv0VMnoAfUFzZ70ZvcefcI2HACo2qIJmathyoisuwH3aZ0Ojcg53rSBsTK9QN4jzyYkIg0Dl0prjzrIIyTxerDf+/R/YDTNy9KC6OCluZe0xLmYwFfOcPMr6taWVEPDM7K8Rmub5Hw02mCPXNhNjOTrPxM5wqrLbX5xJ5fJs33wlv5e+XVi2agjQ=="
+	nonce     = &as.VerifierNonce{}
 
 	jwtTok             = &jwt.Token{}
 	prodId      uint16 = 1
@@ -45,7 +36,7 @@ var (
 			SgxIsvProdId: prodId,
 			SgxIsvSvn:    isvSvn,
 		},
-		AttesterHeldData: base64.StdEncoding.EncodeToString(loadedPubKey),
+		AttesterHeldData: publicKey,
 		VerifierNonce:    nonce,
 		AttesterType:     "SGX",
 	}
@@ -54,7 +45,6 @@ var (
 func TestKeyTransferRSA(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	t.Log("Pem Data:", base64.StdEncoding.EncodeToString(loadedPubKey))
 	asClient.On("GetAttestationToken", mock.Anything).Return("", nil)
 	jwtVerifier.On("ValidateTokenAndGetClaims", mock.Anything, mock.AnythingOfType("**model.AttestationTokenClaim")).Return(jwtTok, nil).Run(func(args mock.Arguments) {
 		tClaims := args.Get(1).(**model.AttestationTokenClaim)
@@ -139,7 +129,7 @@ func TestTDXKeyTransfer(t *testing.T) {
 			TdxRTMR3:        cns.ValidRTMR3,
 			TdxSeamSvn:      seamSvn,
 		},
-		AttesterHeldData:  base64.StdEncoding.EncodeToString(loadedPubKey),
+		AttesterHeldData:  publicKey,
 		AttesterTcbStatus: "false",
 		AttesterType:      "TDX",
 	}
@@ -183,10 +173,11 @@ func loadPublicKey(userData []byte) ([]byte, error) {
 	// Public key format : <exponent:E_SIZE_IN_BYTES><modulus:N_SIZE_IN_BYTES>
 	pub := pubKeyBytes.(*rsa.PublicKey)
 	pubBytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(pubBytes, uint32(pub.E))
+	binary.BigEndian.PutUint32(pubBytes, uint32(pub.E))
 	pubBytes = append(pubBytes, pub.N.Bytes()...)
 	return pubBytes, nil
 }
+
 func TestKeyTransferInvalidAttestaionType(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
