@@ -5,12 +5,11 @@ package config
 
 import (
 	"encoding/base64"
+	"intel/amber/kbs/v1/constant"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-
-	"intel/amber/kbs/v1/constant"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -46,11 +45,8 @@ const (
 )
 
 var (
-	UserOrEmailReg            = regexp.MustCompile(`^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
-	PasswordReg               = regexp.MustCompile("(?:([a-zA-Z0-9_\\\\.\\\\, @!#$%^+=>?:{}()\\[\\]\\\"|;~`'*-/]+))")
-	UserCredsMaxLen           = 256
-	maxTokenValidityInMinutes = 30
-	minTokenValidityInMinutes = 1
+	userOrEmailReg = regexp.MustCompile(`^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
+	passwordReg    = regexp.MustCompile("(?:([a-zA-Z0-9_\\\\.\\\\, @!#$%^+=>?:{}()\\[\\]\\\"|;~`'*-/]+))")
 )
 
 type Configuration struct {
@@ -143,21 +139,23 @@ func (conf *Configuration) Validate() error {
 		return errors.New("Either Admin username or password is missing")
 	}
 
-	if conf.BearerTokenValidityInMinutes < minTokenValidityInMinutes || conf.BearerTokenValidityInMinutes > maxTokenValidityInMinutes {
-		return errors.Errorf("Invalid Bearer Token Validity configured, it must be between %v to %v", minTokenValidityInMinutes, maxTokenValidityInMinutes)
+	if conf.BearerTokenValidityInMinutes < constant.MinTokenValidityInMinutes || conf.BearerTokenValidityInMinutes > constant.MaxTokenValidityInMinutes {
+		return errors.Errorf("Invalid Bearer Token Validity configured, it must be between %v to %v", constant.MinTokenValidityInMinutes, constant.MaxTokenValidityInMinutes)
 	}
 
 	// validate username
-	if len(conf.AdminUsername) > UserCredsMaxLen || !UserOrEmailReg.MatchString(conf.AdminUsername) {
-		return errors.New("Invalid admin username. The length of username must be <256 and must contain only valid characters")
+	err := ValidateUsername(conf.AdminUsername)
+	if err != nil {
+		return err
 	}
 
 	//validate password
-	if len(conf.AdminPassword) > UserCredsMaxLen || !PasswordReg.MatchString(conf.AdminPassword) {
-		return errors.New("Invalid admin password. The length of password must be <256 and must contain only valid characters")
+	err = ValidatePassword(conf.AdminPassword)
+	if err != nil {
+		return err
 	}
 
-	_, err := url.Parse(conf.ASBaseUrl)
+	_, err = url.Parse(conf.ASBaseUrl)
 	if err != nil {
 		return errors.Wrap(err, "AS URL is not a valid url")
 	}
@@ -168,4 +166,18 @@ func (conf *Configuration) Validate() error {
 	}
 
 	return nil
+}
+
+func ValidateUsername(username string) error {
+	if len(username) < constant.UserCredsMaxLen && userOrEmailReg.MatchString(username) {
+		return nil
+	}
+	return errors.New("Invalid input for ADMIN_USERNAME configuration")
+}
+
+func ValidatePassword(password string) error {
+	if len(password) < constant.UserCredsMaxLen && len(password) > constant.PasswordMinLen && passwordReg.MatchString(password) {
+		return nil
+	}
+	return errors.New("Invalid input for ADMIN_PASSWORD configuration")
 }

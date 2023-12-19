@@ -365,7 +365,7 @@ func TestUserCreateHandler(t *testing.T) {
 
 	user := `{
                "username": "userName",
-               "password": "password",
+               "password": "password@123",
                 "permissions": ["users:create"]
              }`
 
