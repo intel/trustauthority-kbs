@@ -5,7 +5,6 @@ package directory
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -38,7 +37,7 @@ func (ktps *keyTransferPolicyStore) Create(policy *model.KeyTransferPolicy) (*mo
 		return nil, errors.Wrap(err, "directory/key_transfer_policy_store:Create() Failed to marshal key transfer policy")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(ktps.dir, policy.ID.String()), bytes, 0600)
+	err = os.WriteFile(filepath.Join(ktps.dir, policy.ID.String()), bytes, 0600)
 	if err != nil {
 		return nil, errors.Wrap(err, "directory/key_transfer_policy_store:Create() Error in saving key transfer policy")
 	}
@@ -48,7 +47,7 @@ func (ktps *keyTransferPolicyStore) Create(policy *model.KeyTransferPolicy) (*mo
 
 func (ktps *keyTransferPolicyStore) Retrieve(id uuid.UUID) (*model.KeyTransferPolicy, error) {
 
-	bytes, err := ioutil.ReadFile(filepath.Join(ktps.dir, id.String()))
+	bytes, err := os.ReadFile(filepath.Join(ktps.dir, id.String()))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.New(RecordNotFound)
@@ -82,7 +81,7 @@ func (ktps *keyTransferPolicyStore) Delete(id uuid.UUID) error {
 func (ktps *keyTransferPolicyStore) Search(criteria *model.KeyTransferPolicyFilterCriteria) ([]model.KeyTransferPolicy, error) {
 
 	var policies = []model.KeyTransferPolicy{}
-	policyFiles, err := ioutil.ReadDir(ktps.dir)
+	policyFiles, err := os.ReadDir(ktps.dir)
 	if err != nil {
 		return nil, errors.New("directory/key_transfer_policy_store:Search() Unable to read the key transfer policy directory")
 	}

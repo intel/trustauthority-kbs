@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/service"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -61,7 +61,7 @@ func TestKeyDeleteHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -93,7 +93,7 @@ func TestKeySearchHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -125,7 +125,7 @@ func TestKeyCreateHandlerInvalidContReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -154,7 +154,7 @@ func TestKeyCreateHandlerEmptyReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -190,7 +190,7 @@ func TestKeyCreateHandlerInvalidReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -214,7 +214,7 @@ func TestKeyCreateHandlerInvalidReq(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -240,7 +240,7 @@ func TestKeyCreateHandlerInvalidReq(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -276,7 +276,7 @@ func TestKeyCreateHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -313,7 +313,7 @@ func TestKeyCreateInvalidKeyData(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -346,7 +346,7 @@ func TestKeySearchHandlerInvalidECCriteria(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -383,7 +383,7 @@ func TestKeySearchHandlerInvalidECData(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -417,7 +417,7 @@ func TestKeyRetrieveHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -451,7 +451,7 @@ func TestKeyTransferHandlerInvalidContReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -482,7 +482,7 @@ func TestKeyTransferHandlerEmptyReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -515,7 +515,7 @@ func TestKeyTransferHandlerInvalidReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -547,7 +547,7 @@ func TestKeyTransferHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -581,7 +581,7 @@ func TestKeyTransferInvalidKeyData(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}

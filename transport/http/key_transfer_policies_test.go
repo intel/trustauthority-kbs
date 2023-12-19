@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"intel/amber/kbs/v1/model"
 	cns "intel/amber/kbs/v1/repository/mocks/constants"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -41,7 +41,7 @@ func TestKeyTransferPolicyDeleteHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -72,7 +72,7 @@ func TestKeyTransferPolicyRetrieveHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -107,7 +107,7 @@ func TestKeyTransferPolicySearchHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -162,7 +162,7 @@ func TestKeyTransferPolicyCreateHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -212,7 +212,7 @@ func TestKeyTransferPolicyTDXCreateHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -244,7 +244,7 @@ func TestKeyTransferPolicyInvalidHeader(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -276,7 +276,7 @@ func TestKeyTransferPolicyInvalidReq(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -301,7 +301,7 @@ func TestKeyTransferPolicyInvalidReq(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -354,7 +354,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -395,7 +395,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -439,7 +439,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -483,7 +483,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -526,7 +526,7 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -575,7 +575,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -612,7 +612,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -650,7 +650,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -688,7 +688,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -726,7 +726,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -764,7 +764,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -802,7 +802,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -840,7 +840,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -878,7 +878,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}

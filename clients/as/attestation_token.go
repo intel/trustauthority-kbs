@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"intel/amber/kbs/v1/clients"
@@ -52,7 +52,7 @@ func (ac *asClient) GetAttestationToken(tokenRequest *AttestationTokenRequest) (
 
 	var tokenResponse AttestationTokenResponse
 	processResponse := func(resp *http.Response) error {
-		attestationToken, err := ioutil.ReadAll(resp.Body)
+		attestationToken, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}

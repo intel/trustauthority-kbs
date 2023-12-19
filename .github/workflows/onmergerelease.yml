@@ -47,46 +47,18 @@ jobs:
              exit 1
           fi
 
-      - name: Snyk Scan
-        run: |
-          snyk config set endpoint=${{ secrets.SNYK_URL }}
-          snyk config set api=${{ secrets.SYNK_API_TOKEN }}
-          snyk config set org=${{ secrets.ORG_NAME }}
-          snyk auth ${{ secrets.SNYK_AUTH_TOKEN }}
-          snyk test --insecure --all-projects --json-file-output=snyc-scan.json
-
   checkmarx:
-    runs-on: [ self-hosted ]
-    container:
-      image: amr-registry.caas.intel.com/amber/checkmarx:isecl
-      credentials:
-         username: ${{ secrets.HARBOR_USERNAME }}
-         password: ${{secrets.HARBOR_PASSWORD }}
-    env:
-      HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
-      HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
-      NO_PROXY: ${{ secrets.NO_PROXY }}
-      PROJECT: ${{ secrets.CHECKMARX_PROJECT }}
-      TEAM: ${{ secrets.CHECKMARX_TEAM }}
-      CHECKMARX_BASE_URL: ${{ secrets.CHECKMARX_URL }}
-      CHECKMARX_USERNAME: ${{ secrets.CHECKMARX_USERNAME }}
-      CHECKMARX_PASSWORD: ${{ secrets.CHECKMARX_PASSWORD }}
-      CHECKMARX_CLIENT_SECRET: ${{ secrets.CHECKMARX_CLIENT_SECRET }}
-      GITHUB_TOKEN: ${{secrets.GH_TOKEN}}
-      CX_FLOW_BREAK_BUILD: false
-      CX_FLOW_ENABLED_VULNERABILITY_SCANNERS: sast
-      CX_FLOW_BUG_TRACKER: Sarif
-      CHECKMARX_SCAN_PRESET: IntelDefault
-      CXFLOW_PARAMS: "--namespace=${{ github.repository_owner }} --repo-name=${{ github.event.repository.name }} --branch=${{ github.ref }} --cx-flow.filterSeverity --cx-flow.filterCategory"
+    runs-on: [ self-hosted, taas ]
+    environment: Pull_Request_Environment
     steps:
-      - name: Checkmarx CxFlow Action
-        uses: actions/checkout@v2
-
-      - name: Checkmarx CxFlow run
-        run: |
-          echo "Project - ${PROJECT}"
-          echo "scanner ${CX_FLOW_ENABLED_VULNERABILITY_SCANNERS}"
-          java ${JAVA_OPTS} -jar /app/cx-flow.jar --spring.profiles.active="${CX_FLOW_ENABLED_VULNERABILITY_SCANNERS}" --scan --github.api-url="${GITHUB_API_URL}/repos/" --cx-team="${TEAM}" --cx-project="${PROJECT}" --app="${APP}" --f=. ${CXFLOW_PARAMS}
+      - uses: actions/checkout@v3
+      - name: Scan
+        uses: intel-innersource/frameworks.devops.github.actions.checkmarx@main
+        with:
+          username: ${{ secrets.CHECKMARX_USERNAME }}
+          password: ${{ secrets.CHECKMARX_PASSWORD }}
+          project: Key Broker Service
+          team: /CxServer/SP/Intel/IntelProjects/IAP/36221
 
   docker-push:
     runs-on: [ self-hosted ]

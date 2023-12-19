@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/tasks"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -238,7 +237,7 @@ func GetDirFileContents(dir, pattern string) ([][]byte, error) {
 			return nil
 		}
 		if matched, _ := path.Match(pattern, info.Name()); matched {
-			if content, err := ioutil.ReadFile(fPath); err == nil {
+			if content, err := os.ReadFile(fPath); err == nil {
 				dirContents = append(dirContents, content)
 			}
 		}
@@ -255,7 +254,7 @@ func setupAuthZ() (*model.JwtAuthz, error) {
 	var strategy auth.Strategy
 	var keeper jwtStrategy.SecretsKeeper
 
-	bytes, err := ioutil.ReadFile(constant.DefaultJWTSigningKeyPath)
+	bytes, err := os.ReadFile(constant.DefaultJWTSigningKeyPath)
 	if err != nil {
 		return nil, err
 	}
