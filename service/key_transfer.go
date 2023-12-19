@@ -76,7 +76,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 	transferPolicy, err := svc.repository.KeyTransferPolicyStore.Retrieve(key.TransferPolicyID)
 	if err != nil {
 		log.WithError(err).Error("Key transfer policy retrieve failed")
-		return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key transfer policy"}
+		return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key transfer policy for the key"}
 	}
 
 	var token string

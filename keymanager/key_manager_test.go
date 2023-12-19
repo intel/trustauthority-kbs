@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestNewKmipKeyManager(t *testing.T) {
+func TestNewKmipKeyManagerNegative(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	cfg := &config.Configuration{}
 	_, errObj := NewKeyManager(cfg)

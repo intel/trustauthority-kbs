@@ -10,7 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"intel/amber/kbs/v1/model"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"intel/amber/kbs/v1/tasks"
 	"net/http"
 	"net/url"
@@ -20,11 +20,6 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
-
-	"github.com/shaj13/go-guardian/v2/auth"
-	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
-	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
-	"github.com/shaj13/libcache"
 
 	"intel/amber/kbs/v1/clients/as"
 	"intel/amber/kbs/v1/config"
@@ -98,7 +93,23 @@ func (app *App) startServer() error {
 		}
 	}
 
-	jwtAuthZ, err := setupAuthZ()
+	// initialize JWT authentication library
+	bytes, err := os.ReadFile(constant.DefaultJWTSigningKeyPath)
+	if err != nil {
+		log.WithError(err).Error("Error while reading JWT signing key")
+		return err
+	}
+
+	block, _ := pem.Decode(bytes)
+	privKey, _ := x509.ParsePKCS8PrivateKey(block.Bytes)
+	signingKey := privKey.(*rsa.PrivateKey)
+
+	jwtKeeper := jwtStrategy.StaticSecret{
+		ID:        "secret-id",
+		Secret:    signingKey,
+		Algorithm: jwtStrategy.PS384,
+	}
+	jwtAuthZ, err := service.SetupAuthZ(&jwtKeeper)
 	if err != nil {
 		return err
 	}
@@ -248,45 +259,4 @@ func GetDirFileContents(dir, pattern string) ([][]byte, error) {
 	}
 
 	return dirContents, nil
-}
-
-func setupAuthZ() (*model.JwtAuthz, error) {
-	var strategy auth.Strategy
-	var keeper jwtStrategy.SecretsKeeper
-
-	bytes, err := os.ReadFile(constant.DefaultJWTSigningKeyPath)
-	if err != nil {
-		return nil, err
-	}
-	block, _ := pem.Decode(bytes)
-	parseResult, _ := x509.ParsePKCS8PrivateKey(block.Bytes)
-	signingKey := parseResult.(*rsa.PrivateKey)
-
-	keeper = jwtStrategy.StaticSecret{
-		ID:        "secret-id",
-		Secret:    signingKey,
-		Algorithm: jwtStrategy.PS384,
-	}
-
-	cache := libcache.FIFO.New(0)
-	cache.SetTTL(time.Minute * 5)
-
-	opt := token.SetScopes(token.NewScope(constant.KeyTransferPolicyCreate, "/key-transfer-policies", "POST"),
-		token.NewScope(constant.KeyTransferPolicySearch, "/key-transfer-policies", "GET"),
-		token.NewScope(constant.KeyTransferPolicyDelete, "/key-transfer-policies", "DELETE"),
-		token.NewScope(constant.KeyCreate, "/keys", "POST"),
-		token.NewScope(constant.KeySearch, "/keys", "GET"),
-		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
-		token.NewScope(constant.KeyTransfer, "/keys/"+constant.UUIDReg, "POST"),
-		token.NewScope(constant.UserCreate, "/users", "POST"),
-		token.NewScope(constant.UserSearch, "/users", "GET"),
-		token.NewScope(constant.UserUpdate, "/users", "PUT"),
-		token.NewScope(constant.UserDelete, "/users", "DELETE"))
-	strategy = jwtStrategy.New(cache, keeper, opt)
-
-	jwtAuth := model.JwtAuthz{
-		JwtSecretKeeper: keeper,
-		AuthZStrategy:   strategy,
-	}
-	return &jwtAuth, nil
 }

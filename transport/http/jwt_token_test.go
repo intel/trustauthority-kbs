@@ -8,11 +8,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/onsi/gomega"
 	"github.com/shaj13/go-guardian/v2/auth"
-	"github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
 	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/service"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -161,11 +160,11 @@ func TestCreateJWTTokenInvalidContent(t *testing.T) {
 }
 
 func getTokenForTesting() string {
-	jwtAuthz := service.SetupGoguardianForTest()
 	u := auth.NewUserInfo("testAdmin", "testAdmin", nil, nil)
-	ns := jwt.SetNamedScopes(constant.AdminPermissions...)
-	exp := jwt.SetExpDuration(constant.DefaultTokenExpiration * time.Minute)
-	token, err := jwt.IssueAccessToken(u, jwtAuthz.JwtSecretKeeper, ns, exp)
+	ns := jwtStrategy.SetNamedScopes(constant.AdminPermissions...)
+	tokenExp := time.Duration(constant.DefaultTokenExpiration) * time.Minute
+	exp := jwtStrategy.SetExpDuration(tokenExp)
+	token, err := jwtStrategy.IssueAccessToken(u, jwtAuth.JwtSecretKeeper, ns, exp)
 	if err != nil {
 		log.WithError(err).Error("Error while generating a token")
 		return ""

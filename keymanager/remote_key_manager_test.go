@@ -55,6 +55,23 @@ func TestRemoteManagerCreateKey(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Validate create key with invalid input",
+			fields: fields{
+				store:   keyStore,
+				manager: keyManager,
+			},
+			args: args{
+				request: &model.KeyRequest{
+					KeyInfo: &model.KeyInfo{
+						Algorithm: "TestAlg",
+						KeyLength: 256,
+					},
+					TransferPolicyID: uuid.UUID{},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

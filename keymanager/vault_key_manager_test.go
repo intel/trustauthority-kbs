@@ -64,6 +64,22 @@ func TestVaultManagerCreateKey(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Supported curve type prime256",
+			args: args{
+				algorithm: "EC",
+				curveType: "prime256v1",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Supported curve type secp384",
+			args: args{
+				algorithm: "EC",
+				curveType: "secp384r1",
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

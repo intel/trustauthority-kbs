@@ -7,6 +7,7 @@ package service
 import (
 	"context"
 	"github.com/onsi/gomega"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"github.com/stretchr/testify/mock"
 	"intel/amber/kbs/v1/config"
 	"intel/amber/kbs/v1/model"
@@ -27,6 +28,13 @@ var svcJWTTestInstance Service = service{
 	remoteManager: kRemoteManager,
 	config:        &config.Configuration{BearerTokenValidityInMinutes: 5},
 }
+var keeper = jwtStrategy.StaticSecret{
+	ID:        "secret-id",
+	Secret:    []byte("testSecret@#12"),
+	Algorithm: jwtStrategy.HS384,
+}
+
+var jwtAuthz, _ = SetupAuthZ(&keeper)
 
 func TestAuthTokenCreate(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
@@ -35,7 +43,6 @@ func TestAuthTokenCreate(t *testing.T) {
 	g.Expect(svc).NotTo(gomega.BeNil())
 
 	var users []model.UserInfo
-	jwtAuthz := SetupGoguardianForTest()
 	request := model.AuthTokenRequest{
 		Username: "userAdmin",
 		Password: "userAdminPassword",
@@ -52,7 +59,6 @@ func TestAuthTokenCreateWithEmptyRequest(t *testing.T) {
 	svc := LoggingMiddleware()(svcJWTTestInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
 
-	jwtAuthz := SetupGoguardianForTest()
 	request := model.AuthTokenRequest{}
 
 	mockUserStore.On("Search", mock.Anything).Return(nil, nil).Once()
@@ -66,7 +72,6 @@ func TestAuthTokenCreateInvalidUsername(t *testing.T) {
 	svc := LoggingMiddleware()(svcJWTTestInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
 
-	jwtAuthz := SetupGoguardianForTest()
 	request := model.AuthTokenRequest{
 		Username: "userAdmin1",
 		Password: "userAdminPassword",
@@ -83,10 +88,30 @@ func TestAuthTokenCreateWithPasswordMismatch(t *testing.T) {
 	svc := LoggingMiddleware()(svcJWTTestInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
 
-	jwtAuthz := SetupGoguardianForTest()
 	request := model.AuthTokenRequest{
 		Username: "userAdmin",
 		Password: "invalidPassword",
+	}
+
+	mockUserStore.On("Search", mock.Anything).Return(nil, nil).Once()
+	_, err := svc.CreateAuthToken(context.Background(), request, jwtAuthz)
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestAuthTokenCreateWithInvalidJwtAuthz(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	svc := LoggingMiddleware()(svcJWTTestInstance)
+	g.Expect(svc).NotTo(gomega.BeNil())
+
+	jwtAuthz, _ := SetupAuthZ(&jwtStrategy.StaticSecret{
+		Secret:    nil,
+		ID:        "",
+		Algorithm: "",
+	})
+	request := model.AuthTokenRequest{
+		Username: "userAdmin",
+		Password: "userAdminPassword",
 	}
 
 	mockUserStore.On("Search", mock.Anything).Return(nil, nil).Once()

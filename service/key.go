@@ -6,7 +6,9 @@ package service
 import (
 	"context"
 	"crypto/sha512"
+	"intel/amber/kbs/v1/repository/directory"
 	"net/http"
+	"strings"
 	"time"
 
 	"intel/amber/kbs/v1/model"
@@ -35,15 +37,14 @@ func (mw loggingMiddleware) CreateKey(ctx context.Context, req model.KeyRequest)
 func (svc service) CreateKey(_ context.Context, keyCreateReq model.KeyRequest) (*model.KeyResponse, error) {
 
 	if keyCreateReq.TransferPolicyID != uuid.Nil {
-		transferPolicy, err := svc.repository.KeyTransferPolicyStore.Retrieve(keyCreateReq.TransferPolicyID)
+		_, err := svc.repository.KeyTransferPolicyStore.Retrieve(keyCreateReq.TransferPolicyID)
 		if err != nil {
+			if strings.Contains(err.Error(), directory.RecordNotFound) {
+				log.Errorf("Key transfer policy with specified id could not be located")
+				return nil, &HandledError{Code: http.StatusBadRequest, Message: "Key transfer policy with specified id does not exist"}
+			}
 			log.WithError(err).Error("Key transfer policy retrieve failed")
 			return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key transfer policy"}
-		}
-
-		if transferPolicy == nil {
-			log.Errorf("Key transfer policy with specified id could not be located")
-			return nil, &HandledError{Code: http.StatusBadRequest, Message: "Key transfer policy with specified id does not exist"}
 		}
 	}
 

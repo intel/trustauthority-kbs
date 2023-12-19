@@ -53,7 +53,7 @@ func TestKeyRegister(t *testing.T) {
 		TransferPolicyId: uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
 		TransferLink:     "/kbs/v1/keys/" + keyId.String() + "/transfer",
 	}
-	kmipKeyManager.On("RegisterKey", mock.Anything).Return(&keyAttr, nil).Once()
+	kmipKeyManager.On("RegisterKey", mock.Anything).Return(&keyAttr, nil)
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
@@ -84,7 +84,7 @@ func TestKeyAES256Create(t *testing.T) {
 		TransferPolicyId: uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
 		TransferLink:     "/kbs/v1/keys/186d560f-95d5-4d39-92cc-f67e989d2e55/transfer",
 	}
-	kmipKeyManager.On("CreateKey", mock.Anything).Return(&keyAttr, nil).Once()
+	kmipKeyManager.On("CreateKey", mock.Anything).Return(&keyAttr, nil)
 
 	svc := LoggingMiddleware()(svcInstance)
 	g.Expect(svc).NotTo(gomega.BeNil())
@@ -102,6 +102,36 @@ func TestKeyAES256Create(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
 
+func TestKeyAES256CreateWithInvalidPolicy(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	keyAttr := model.KeyAttributes{
+		ID:               uuid.MustParse("186d560f-95d5-4d39-92cc-f67e989d2e55"),
+		Algorithm:        "AES",
+		KeyLength:        256,
+		KmipKeyID:        "1",
+		TransferPolicyId: uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
+		TransferLink:     "/kbs/v1/keys/186d560f-95d5-4d39-92cc-f67e989d2e55/transfer",
+	}
+	kmipKeyManager.On("CreateKey", mock.Anything).Return(&keyAttr, nil)
+
+	svc := LoggingMiddleware()(svcInstance)
+	g.Expect(svc).NotTo(gomega.BeNil())
+
+	request := model.KeyRequest{}
+	keyJson := `{"key_information": 
+    {
+        "algorithm": "AES",
+        "key_length": 256
+    },
+    "transfer_policy_id" : "17ccc153-7465-4f2e-be86-84eeb8fd4470"
+}`
+
+	json.Unmarshal([]byte(keyJson), &request)
+	_, err := svc.CreateKey(context.Background(), request)
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
 func TestKeyRetrieve(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
@@ -110,6 +140,16 @@ func TestKeyRetrieve(t *testing.T) {
 
 	_, err := svc.RetrieveKey(context.Background(), gKeyId)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
+}
+
+func TestKeyRetrieveNegative(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	svc := LoggingMiddleware()(svcInstance)
+	g.Expect(svc).NotTo(gomega.BeNil())
+
+	_, err := svc.RetrieveKey(context.Background(), uuid.New())
+	g.Expect(err).To(gomega.HaveOccurred())
 }
 
 func TestKeyDelete(t *testing.T) {

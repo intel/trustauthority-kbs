@@ -26,3 +26,16 @@ func TestNewValidService(t *testing.T) {
 	)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
+
+func TestStatusCode(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	he := HandledError{
+		Code:    400,
+		Message: "Bad Request",
+	}
+	code := he.StatusCode()
+	err := he.Error()
+
+	g.Expect(err).NotTo(gomega.BeNil())
+	g.Expect(code).NotTo(gomega.BeNil())
+}
