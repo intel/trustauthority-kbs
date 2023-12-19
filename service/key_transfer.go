@@ -169,12 +169,12 @@ func (svc service) validateClaimsAndGetKey(tokenClaims *model.AttestationTokenCl
 		return nil, http.StatusUnauthorized, &HandledError{Message: "Token claims validation against key-transfer-policy failed"}
 	}
 
-	return svc.getWrappedKey(keyAlgorithm, userData, keyId)
+	return svc.getWrappedKey(keyAlgorithm, userData, keyId, transferPolicy.AttestationType[0])
 }
 
-func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID) (interface{}, int, error) {
+func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, attesterType model.AttesterType) (interface{}, int, error) {
 
-	publicKey, err := getPublicKey(userData)
+	publicKey, err := getPublicKey(userData, attesterType)
 	if err != nil {
 		log.WithError(err).Error("Error in getting public key")
 		return nil, http.StatusInternalServerError, &HandledError{Message: "Error in getting public key"}
@@ -259,7 +259,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID) (i
 	return transferResponse, http.StatusOK, nil
 }
 
-func getPublicKey(userData string) (*rsa.PublicKey, error) {
+func getPublicKey(userData string, attesterType model.AttesterType) (*rsa.PublicKey, error) {
 
 	key, err := base64.StdEncoding.DecodeString(userData)
 	if err != nil {
@@ -267,16 +267,20 @@ func getPublicKey(userData string) (*rsa.PublicKey, error) {
 	}
 
 	modArr := key[4:]
-	// Endianess : Key Buffer transmitted from Enclave is in LE.
-	for i := 0; i < len(modArr)/2; i++ {
-		modArr[i], modArr[len(modArr)-i-1] = modArr[len(modArr)-i-1], modArr[i]
-	}
-
+	var eb uint32
 	n := big.Int{}
-	n.SetBytes(modArr)
-	eb := binary.LittleEndian.Uint32(key[:])
-	pubKey := rsa.PublicKey{N: &n, E: int(eb)}
 
+	if attesterType == model.SGX {
+		// Endianess : Key Buffer transmitted from Enclave is in LE
+		for i := 0; i < len(modArr)/2; i++ {
+			modArr[i], modArr[len(modArr)-i-1] = modArr[len(modArr)-i-1], modArr[i]
+		}
+		eb = binary.LittleEndian.Uint32(key[:])
+	} else {
+		eb = binary.BigEndian.Uint32(key[:])
+	}
+	n.SetBytes(modArr)
+	pubKey := rsa.PublicKey{N: &n, E: int(eb)}
 	return &pubKey, nil
 }
 
