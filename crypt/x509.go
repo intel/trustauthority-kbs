@@ -15,7 +15,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -28,7 +28,7 @@ const (
 
 func GetCertsFromDir(path string) ([]x509.Certificate, error) {
 	var certificates []x509.Certificate
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return certificates, fmt.Errorf("Error while reading certs from dir %s", path)
 	}
@@ -52,7 +52,7 @@ func GetCertsFromDir(path string) ([]x509.Certificate, error) {
 func GetSubjectCertsMapFromPemFile(path string) ([]x509.Certificate, error) {
 	log.Debugf("Loading certificates from  %s", path)
 
-	certsBytes, err := ioutil.ReadFile(path)
+	certsBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

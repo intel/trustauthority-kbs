@@ -6,7 +6,7 @@ package as
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"intel/amber/kbs/v1/clients"
@@ -36,7 +36,7 @@ func (ac *asClient) GetNonce() (*VerifierNonce, error) {
 
 	var Nonce VerifierNonce
 	processResponse := func(resp *http.Response) error {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}

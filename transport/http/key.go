@@ -7,7 +7,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -225,7 +225,7 @@ func decodeTransferHTTPRequest(_ context.Context, r *http.Request) (interface{},
 	id := uuid.MustParse(mux.Vars(r)["id"])
 
 	// Read the incoming data
-	bytes, err := ioutil.ReadAll(r.Body)
+	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.WithError(err).Error(ErrReadRequestFailed.Error())
 		return nil, ErrReadRequestFailed

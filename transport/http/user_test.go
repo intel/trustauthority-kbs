@@ -12,7 +12,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"intel/amber/kbs/v1/model"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -45,7 +45,7 @@ func TestUserDeleteHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -76,7 +76,7 @@ func TestUserSearchHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -107,7 +107,7 @@ func TestUserSearchHandlerInvalidHeaders(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -139,7 +139,7 @@ func TestUserSearchHandlerInvalidQueryParam(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -172,7 +172,7 @@ func TestUserCreateHandlerInvalidHeaders(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -189,7 +189,7 @@ func TestUserCreateHandlerInvalidHeaders(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -218,7 +218,7 @@ func TestUserCreateHandlerEmptyRequest(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -253,7 +253,7 @@ func TestUserCreateHandlerInvalidRequest(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -276,7 +276,7 @@ func TestUserCreateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -299,7 +299,7 @@ func TestUserCreateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -322,7 +322,7 @@ func TestUserCreateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -345,7 +345,7 @@ func TestUserCreateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -380,7 +380,7 @@ func TestUserCreateHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -414,7 +414,7 @@ func TestUserUpdateHandlerInvalidHeaders(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -431,7 +431,7 @@ func TestUserUpdateHandlerInvalidHeaders(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -460,7 +460,7 @@ func TestUpdateHandlerEmptyUserId(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -495,7 +495,7 @@ func TestUserUpdateHandlerInvalidRequest(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -516,7 +516,7 @@ func TestUserUpdateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -537,7 +537,7 @@ func TestUserUpdateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -558,7 +558,7 @@ func TestUserUpdateHandlerInvalidRequest(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -588,7 +588,7 @@ func TestUserUpdateHandlerEmptyRequest(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -622,7 +622,7 @@ func TestUserUpdateHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -656,7 +656,7 @@ func TestUserRetrieveHandler(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -690,7 +690,7 @@ func TestUserRetrieveHandlerWithNoAuth(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -724,7 +724,7 @@ func TestUserRetrieveHandlerWithInvalidHeader(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}

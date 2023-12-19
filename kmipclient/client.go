@@ -7,7 +7,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
+	"os"
 
 	"intel/amber/kbs/v1/constant"
 
@@ -99,7 +99,7 @@ func (kc *kmipClient) InitializeClient(version, serverIP, serverPort, hostname, 
 		log.Info("kmipclient/kmipclient:InitializeClient() KMIP authentication with credential type UsernameAndPassword is added")
 	}
 
-	caCertificate, err := ioutil.ReadFile(rootCertificateFilePath)
+	caCertificate, err := os.ReadFile(rootCertificateFilePath)
 	if err != nil {
 		return errors.Wrap(err, "kmipclient/kmipclient:InitializeClient() Unable to read root certificate")
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/service"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -44,7 +44,7 @@ func TestCreateJWTToken(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -77,7 +77,7 @@ func TestCreateJWTTokenInvalidHeaders(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -93,7 +93,7 @@ func TestCreateJWTTokenInvalidHeaders(t *testing.T) {
 	res = recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -120,7 +120,7 @@ func TestCreateJWTTokenEmptyRequest(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}
@@ -152,7 +152,7 @@ func TestCreateJWTTokenInvalidContent(t *testing.T) {
 	res := recorder.Result()
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
 		t.Errorf("expected error to be nil got %v", err)
 	}

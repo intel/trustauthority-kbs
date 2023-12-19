@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"intel/amber/kbs/v1/model"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,7 +35,7 @@ func (u *userStore) Create(user *model.UserInfo) (*model.UserInfo, error) {
 		return nil, errors.Wrap(err, "directory/user_store:Create() Failed to marshal user attributes")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(u.dir, user.ID.String()), bytes, 0600)
+	err = os.WriteFile(filepath.Join(u.dir, user.ID.String()), bytes, 0600)
 	if err != nil {
 		return nil, errors.Wrap(err, "directory/user_store:Create() Failed to store user attributes in file")
 	}
@@ -46,7 +45,7 @@ func (u *userStore) Create(user *model.UserInfo) (*model.UserInfo, error) {
 
 func (u *userStore) Retrieve(userID uuid.UUID) (*model.UserInfo, error) {
 
-	bytes, err := ioutil.ReadFile(filepath.Join(u.dir, userID.String()))
+	bytes, err := os.ReadFile(filepath.Join(u.dir, userID.String()))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.New(RecordNotFound)
@@ -79,7 +78,7 @@ func (u *userStore) Delete(userID uuid.UUID) error {
 func (u *userStore) Search(criteria *model.UserFilterCriteria) ([]model.UserInfo, error) {
 
 	var users = []model.UserInfo{}
-	userFiles, err := ioutil.ReadDir(u.dir)
+	userFiles, err := os.ReadDir(u.dir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "directory/user_store:Search() Error in reading the users directory : %s", u.dir)
 	}

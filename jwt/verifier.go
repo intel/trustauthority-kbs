@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"intel/amber/kbs/v1/constant"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -237,7 +236,7 @@ func (v *verifierPrivate) ValidateTokenAndGetClaims(tokenString string, customCl
 		var rootCert *x509.Certificate
 
 		processResponse := func(resp *http.Response) error {
-			jwks, err := ioutil.ReadAll(resp.Body)
+			jwks, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return fmt.Errorf("Failed to read body from %s: %s", tokenSignCertUrl, err)
 			}
