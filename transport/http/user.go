@@ -11,6 +11,7 @@ import (
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"intel/amber/kbs/v1/clients/constant"
 	"intel/amber/kbs/v1/config"
@@ -143,13 +144,13 @@ func decodeCreateUserHTTPRequest(_ context.Context, r *http.Request) (interface{
 	}
 
 	// validate username
-	if len(userCreateReq.Username) > config.UserCredsMaxLen || !config.UserOrEmailReg.MatchString(userCreateReq.Username) {
+	if err = config.ValidateUsername(userCreateReq.Username); err != nil {
 		log.Error("Invalid input for username")
 		return nil, ErrInvalidRequest
 	}
 
 	//validate password
-	if len(userCreateReq.Password) > config.UserCredsMaxLen || !config.PasswordReg.MatchString(userCreateReq.Password) {
+	if err = config.ValidatePassword(userCreateReq.Password); err != nil {
 		log.Error("Invalid input for password")
 		return nil, ErrInvalidRequest
 	}
@@ -195,14 +196,14 @@ func decodeUpdateUserHTTPRequest(_ context.Context, r *http.Request) (interface{
 	}
 
 	if user.Username != "" {
-		if len(user.Username) > config.UserCredsMaxLen || !config.UserOrEmailReg.MatchString(user.Username) {
+		if err = config.ValidateUsername(user.Username); err != nil {
 			log.Error("Invalid input for username")
 			return nil, ErrInvalidRequest
 		}
 	}
 	if user.Password != "" {
 		// validate password
-		if len(user.Password) > config.UserCredsMaxLen || !config.PasswordReg.MatchString(user.Password) {
+		if err = config.ValidatePassword(user.Password); err != nil {
 			log.Error("Invalid input for password")
 			return nil, ErrInvalidRequest
 		}
@@ -234,13 +235,16 @@ func decodeSearchUserHTTPRequest(_ context.Context, r *http.Request) (interface{
 
 	queryValues := r.URL.Query()
 	if err := ValidateQueryParamKeys(queryValues, queryKeys); err != nil {
-		return nil, err
+		return nil, ErrInvalidQueryParam
 	}
 
 	criteria := model.UserFilterCriteria{}
 
 	// username query
 	if param := strings.TrimSpace(queryValues.Get(Username)); param != "" {
+		if err := config.ValidateUsername(param); err != nil {
+			return nil, errors.New("Invalid username")
+		}
 		criteria.Username = param
 	}
 
