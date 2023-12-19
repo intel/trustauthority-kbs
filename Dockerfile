@@ -13,12 +13,21 @@ RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
         VERSION=${VERSION:-v0.0.0}; \
         BUILDDATE=$(TZ=UTC date +%Y-%m-%dT%H:%M:%S%z); \
         cd cmd && GOOS=linux GOSUMDB=off \
-        go build -ldflags "-X intel/amber/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/v1/version.Version=${VERSION} -X intel/amber/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
+        go build -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/amber/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/v1/version.Version=${VERSION} -X intel/amber/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
 
-FROM gcr.io/distroless/base-debian11 AS final
+FROM debian:bullseye AS final
+ARG USERNAME=kbs
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+
 WORKDIR /
 COPY --from=builder /app/cmd/kbs .
 EXPOSE 9443
+RUN chown $USER_UID:$USER_GID kbs
+USER $USERNAME
 ENTRYPOINT ["/kbs"]
 CMD ["run"]
 
