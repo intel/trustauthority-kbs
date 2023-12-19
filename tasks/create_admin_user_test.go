@@ -35,3 +35,16 @@ func TestCreateAdminUserWithInvalidCreds(t *testing.T) {
 	err := ac.CreateAdminUser()
 	g.Expect(err).To(gomega.HaveOccurred())
 }
+
+func TestCreateAdminUserWithSameName(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	var userStore *mocks.MockUserStore = mocks.NewFakeUserStore()
+	ac := CreateAdminUser{
+		AdminUsername: "userAdmin",
+		AdminPassword: "testPassword",
+		UserStore:     userStore,
+	}
+
+	err := ac.CreateAdminUser()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+}

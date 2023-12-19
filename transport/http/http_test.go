@@ -127,6 +127,6 @@ func createMockHandler(mockService *MockService) http.Handler {
 		LogLevel:    "debug",
 	}
 
-	handler, _ := NewHTTPHandler(mockService, &cfg, service.SetupGoguardianForTest())
+	handler, _ := NewHTTPHandler(mockService, &cfg, jwtAuth)
 	return handler
 }

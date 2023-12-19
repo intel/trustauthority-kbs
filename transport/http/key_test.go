@@ -5,6 +5,7 @@ package http
 
 import (
 	"bytes"
+	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/service"
 	"io"
@@ -20,9 +21,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var jwtAuth = service.SetupGoguardianForTest()
-var authToken = getTokenForTesting()
-var envelopeKey = `-----BEGIN PUBLIC KEY-----
+var (
+	keeper = jwtStrategy.StaticSecret{
+		ID:        "secret-id",
+		Secret:    []byte("testSecret@#12"),
+		Algorithm: jwtStrategy.HS384,
+	}
+
+	jwtAuth, _  = service.SetupAuthZ(&keeper)
+	authToken   = getTokenForTesting()
+	envelopeKey = `-----BEGIN PUBLIC KEY-----
 MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAr9Kz+bYryBDw4L9+sgpS
 pGuQw+Nnk6FT7h6qpr35QgqmZgx5sK4+E3mbdQ5xGrc5sR7CxsAPHWjPf8ScFclK
 KlfPG+8A/M7CpsJ9hJ7mLY7oNlTX1FBZOByTE1FtsNoR8nQBe9NMRL2PQF5dSO08
@@ -33,6 +41,7 @@ u0mDClZtWJQ+ewwWq3xrvj68/Qpub7aw+2Kus4JbzZG0BgiDd2aU2Smmg3UMq4QJ
 MzMsWEYYiA/c1TDRXHAKeq+3oKjbUVlrmPUyMl0HX40am2FWdODBcw7qfb6RuSzw
 hyYcKxrzDNcMfD+XUN5nNbEXQEnh6kyfw4mDS+XIb69nAgMBAAE=
 -----END PUBLIC KEY-----`
+)
 
 func TestKeyDeleteHandler(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)

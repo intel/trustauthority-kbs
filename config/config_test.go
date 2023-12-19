@@ -4,6 +4,7 @@
 package config
 
 import (
+	"github.com/onsi/gomega"
 	"os"
 	"strings"
 	"testing"
@@ -143,4 +144,66 @@ func TestValidate(t *testing.T) {
 		t.Log(err)
 	}
 	clearEnv()
+}
+
+func TestValidateInvalidConfig(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	g := gomega.NewGomegaWithT(t)
+	// invalid service port
+	cfg.ServicePort = 10
+
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// invalid API key and URL
+	cfg, err = LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.ASApiKey = ""
+	cfg.ASBaseUrl = ""
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// invalid username and password
+	cfg, err = LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.AdminPassword = ""
+	cfg.AdminUsername = ""
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// invalid username
+	cfg, err = LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.AdminUsername = "!!!"
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// invalid api key
+	cfg, err = LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.ASApiKey = "123"
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// invalid api url
+	cfg, err = LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.ASBaseUrl = ":invalid-url"
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
 }

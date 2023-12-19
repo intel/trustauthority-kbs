@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"intel/amber/kbs/v1/repository/directory"
 	"reflect"
 	"time"
 
@@ -30,7 +31,7 @@ func (store *MockKeyTransferPolicyStore) Retrieve(id uuid.UUID) (*model.KeyTrans
 	if p, ok := store.KeyTransferPolicyStore[id]; ok {
 		return p, nil
 	}
-	return nil, errors.New("Record Not Found")
+	return nil, errors.New(directory.RecordNotFound)
 }
 
 // Update KeyTransferPolicy record in the store

@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	defaultLog "github.com/sirupsen/logrus"
 	"intel/amber/kbs/v1/model"
+	"intel/amber/kbs/v1/repository/directory"
 	"reflect"
 	"time"
 )
@@ -29,7 +30,7 @@ func (store *MockKeyStore) Retrieve(id uuid.UUID) (*model.KeyAttributes, error) 
 	if k, ok := store.KeyStore[id]; ok {
 		return k, nil
 	}
-	return nil, errors.New("Record not found")
+	return nil, errors.New(directory.RecordNotFound)
 }
 
 // Delete deletes Key from the store
