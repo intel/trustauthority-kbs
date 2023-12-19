@@ -79,7 +79,7 @@ func (app *App) startServer() error {
 	}
 
 	// Initialize the Service
-	svc, err := service.NewService(asClient, jwtVerifier, repository, remoteManager)
+	svc, err := service.NewService(asClient, jwtVerifier, repository, remoteManager, configuration)
 	if err != nil {
 		msg := "Failed to initialize Service"
 		log.WithError(err).Error(msg)

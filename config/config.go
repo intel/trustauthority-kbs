@@ -21,47 +21,51 @@ import (
 // Constants for viper variable names. Will be used to set
 // default values as well as to get each value
 const (
-	ServicePort        = "service-port"
-	LogLevel           = "log-level"
-	LogCaller          = "log-caller"
-	ASBaseUrl          = "as-base-url"
-	ASApiKey           = "as-api-key"
-	KeyManager         = "key-manager"
-	AdminUsername      = "admin-username"
-	AdminPassword      = "admin-password"
-	SanList            = "san-list"
-	KmipVersion        = "kmip.version"
-	KmipServerIP       = "kmip.server-ip"
-	KmipServerPort     = "kmip.server-port"
-	KmipHostname       = "kmip.hostname"
-	KmipUsername       = "kmip.username"
-	KmipPassword       = "kmip.password"
-	KmipClientKeyPath  = "kmip.client-key-path"
-	KmipClientCertPath = "kmip.client-cert-path"
-	KmipRootCertPath   = "kmip.root-cert-path"
-	VaultClientToken   = "vault.client-token"
-	VaultServerIP      = "vault.server-ip"
-	VaultServerPort    = "vault.server-port"
+	ServicePort                  = "service-port"
+	LogLevel                     = "log-level"
+	LogCaller                    = "log-caller"
+	ASBaseUrl                    = "as-base-url"
+	ASApiKey                     = "as-api-key"
+	KeyManager                   = "key-manager"
+	AdminUsername                = "admin-username"
+	AdminPassword                = "admin-password"
+	BearerTokenValidityInMinutes = "bearer-token-validity-in-minutes"
+	SanList                      = "san-list"
+	KmipVersion                  = "kmip.version"
+	KmipServerIP                 = "kmip.server-ip"
+	KmipServerPort               = "kmip.server-port"
+	KmipHostname                 = "kmip.hostname"
+	KmipUsername                 = "kmip.username"
+	KmipPassword                 = "kmip.password"
+	KmipClientKeyPath            = "kmip.client-key-path"
+	KmipClientCertPath           = "kmip.client-cert-path"
+	KmipRootCertPath             = "kmip.root-cert-path"
+	VaultClientToken             = "vault.client-token"
+	VaultServerIP                = "vault.server-ip"
+	VaultServerPort              = "vault.server-port"
 )
 
 var (
-	UserOrEmailReg  = regexp.MustCompile(`^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
-	PasswordReg     = regexp.MustCompile("(?:([a-zA-Z0-9_\\\\.\\\\, @!#$%^+=>?:{}()\\[\\]\\\"|;~`'*-/]+))")
-	UserCredsMaxLen = 256
+	UserOrEmailReg            = regexp.MustCompile(`^[a-zA-Z0-9.-_]+@?[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
+	PasswordReg               = regexp.MustCompile("(?:([a-zA-Z0-9_\\\\.\\\\, @!#$%^+=>?:{}()\\[\\]\\\"|;~`'*-/]+))")
+	UserCredsMaxLen           = 256
+	maxTokenValidityInMinutes = 30
+	minTokenValidityInMinutes = 1
 )
 
 type Configuration struct {
-	ServicePort   int         `yaml:"service-port" mapstructure:"service-port"`
-	LogLevel      string      `yaml:"log-level" mapstructure:"log-level"`
-	LogCaller     bool        `yaml:"log-caller" mapstructure:"log-caller"`
-	ASBaseUrl     string      `yaml:"as-base-url" mapstructure:"as-base-url"`
-	ASApiKey      string      `yaml:"as-api-key" mapstructure:"as-api-key"`
-	KeyManager    string      `yaml:"key-manager" mapstructure:"key-manager"`
-	AdminUsername string      `yaml:"admin-username" mapstructure:"admin-username"`
-	AdminPassword string      `yaml:"admin-password" mapstructure:"admin-password"`
-	SanList       string      `yaml:"san-list" mapstructure:"san-list"`
-	Kmip          KmipConfig  `yaml:"kmip"`
-	Vault         VaultConfig `yaml:"vault"`
+	ServicePort                  int         `yaml:"service-port" mapstructure:"service-port"`
+	LogLevel                     string      `yaml:"log-level" mapstructure:"log-level"`
+	LogCaller                    bool        `yaml:"log-caller" mapstructure:"log-caller"`
+	ASBaseUrl                    string      `yaml:"as-base-url" mapstructure:"as-base-url"`
+	ASApiKey                     string      `yaml:"as-api-key" mapstructure:"as-api-key"`
+	KeyManager                   string      `yaml:"key-manager" mapstructure:"key-manager"`
+	AdminUsername                string      `yaml:"admin-username" mapstructure:"admin-username"`
+	AdminPassword                string      `yaml:"admin-password" mapstructure:"admin-password"`
+	BearerTokenValidityInMinutes int         `yaml:"bearer-token-validity-in-minutes" mapstructure:"bearer-token-validity-in-minutes"`
+	SanList                      string      `yaml:"san-list" mapstructure:"san-list"`
+	Kmip                         KmipConfig  `yaml:"kmip"`
+	Vault                        VaultConfig `yaml:"vault"`
 }
 
 type KmipConfig struct {
@@ -137,6 +141,10 @@ func (conf *Configuration) Validate() error {
 
 	if conf.AdminUsername == "" || conf.AdminPassword == "" {
 		return errors.New("Either Admin username or password is missing")
+	}
+
+	if conf.BearerTokenValidityInMinutes < minTokenValidityInMinutes || conf.BearerTokenValidityInMinutes > maxTokenValidityInMinutes {
+		return errors.Errorf("Invalid Bearer Token Validity configured, it must be between %v to %v", minTokenValidityInMinutes, maxTokenValidityInMinutes)
 	}
 
 	// validate username

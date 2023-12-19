@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestCreateJWTToken(t *testing.T) {
@@ -163,7 +164,7 @@ func getTokenForTesting() string {
 	jwtAuthz := service.SetupGoguardianForTest()
 	u := auth.NewUserInfo("testAdmin", "testAdmin", nil, nil)
 	ns := jwt.SetNamedScopes(constant.AdminPermissions...)
-	exp := jwt.SetExpDuration(constant.DefaultTokenExpiration)
+	exp := jwt.SetExpDuration(constant.DefaultTokenExpiration * time.Minute)
 	token, err := jwt.IssueAccessToken(u, jwtAuthz.JwtSecretKeeper, ns, exp)
 	if err != nil {
 		log.WithError(err).Error("Error while generating a token")

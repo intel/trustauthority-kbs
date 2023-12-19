@@ -3,10 +3,6 @@
  */
 package constant
 
-import (
-	"time"
-)
-
 // general KBS constants
 const (
 	ServiceName         = "kbs"
@@ -47,7 +43,7 @@ const (
 	JWTSigningCertsPath      = ConfigDir + "certs/signing-keys/"
 	DefaultJWTSigningKeyPath = JWTSigningCertsPath + "jwt-signing.key"
 	DefaultKeyLength         = 3072
-	DefaultTokenExpiration   = time.Hour
+	DefaultTokenExpiration   = 5
 
 	// service remove command
 	ServiceRemoveCmd = "systemctl disable kbs"
