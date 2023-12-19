@@ -17,6 +17,7 @@ func init() {
 	viper.SetDefault(config.LogLevel, constant.DefaultLogLevel)
 	viper.SetDefault(config.LogCaller, false)
 	viper.SetDefault(config.SanList, constant.DefaultTlsSan)
+	viper.SetDefault(config.BearerTokenValidityInMinutes, constant.DefaultTokenExpiration)
 
 	viper.SetDefault(config.KeyManager, constant.DefaultKeyManager)
 
@@ -32,15 +33,16 @@ func defaultConfig() *config.Configuration {
 	var cfg *config.Configuration
 
 	cfg = &config.Configuration{
-		ServicePort:   viper.GetInt(config.ServicePort),
-		LogLevel:      viper.GetString(config.LogLevel),
-		LogCaller:     viper.GetBool(config.LogCaller),
-		ASBaseUrl:     viper.GetString(config.ASBaseUrl),
-		ASApiKey:      viper.GetString(config.ASApiKey),
-		KeyManager:    viper.GetString(config.KeyManager),
-		AdminPassword: viper.GetString(config.AdminPassword),
-		AdminUsername: viper.GetString(config.AdminUsername),
-		SanList:       viper.GetString(config.SanList),
+		ServicePort:                  viper.GetInt(config.ServicePort),
+		LogLevel:                     viper.GetString(config.LogLevel),
+		LogCaller:                    viper.GetBool(config.LogCaller),
+		ASBaseUrl:                    viper.GetString(config.ASBaseUrl),
+		ASApiKey:                     viper.GetString(config.ASApiKey),
+		KeyManager:                   viper.GetString(config.KeyManager),
+		AdminPassword:                viper.GetString(config.AdminPassword),
+		AdminUsername:                viper.GetString(config.AdminUsername),
+		SanList:                      viper.GetString(config.SanList),
+		BearerTokenValidityInMinutes: viper.GetInt(config.BearerTokenValidityInMinutes),
 	}
 
 	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {

@@ -10,7 +10,6 @@ import (
 	"github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"intel/amber/kbs/v1/constant"
 	"intel/amber/kbs/v1/model"
 	"net/http"
 	"time"
@@ -51,7 +50,8 @@ func (svc service) CreateAuthToken(ctx context.Context, request model.AuthTokenR
 	// generate token
 	u := auth.NewUserInfo(request.Username, users[0].ID.String(), nil, nil)
 	ns := jwt.SetNamedScopes(users[0].Permissions...)
-	exp := jwt.SetExpDuration(constant.DefaultTokenExpiration)
+	tokenExp := time.Duration(svc.config.BearerTokenValidityInMinutes) * time.Minute
+	exp := jwt.SetExpDuration(tokenExp)
 	token, err := jwt.IssueAccessToken(u, jwtAuth.JwtSecretKeeper, ns, exp)
 	if err != nil {
 		log.WithError(err).Error("Error while generating a token")

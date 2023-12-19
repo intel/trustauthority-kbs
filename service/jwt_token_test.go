@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"intel/amber/kbs/v1/config"
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/repository"
 	"intel/amber/kbs/v1/repository/mocks"
@@ -24,6 +25,7 @@ var svcJWTTestInstance Service = service{
 		KeyTransferPolicyStore: keyTransPolicyStore,
 	},
 	remoteManager: kRemoteManager,
+	config:        &config.Configuration{BearerTokenValidityInMinutes: 5},
 }
 
 func TestAuthTokenCreate(t *testing.T) {
