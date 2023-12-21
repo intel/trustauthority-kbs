@@ -6,9 +6,7 @@ package service
 import (
 	"context"
 	"crypto/sha512"
-	"intel/amber/kbs/v1/repository/directory"
 	"net/http"
-	"strings"
 	"time"
 
 	"intel/amber/kbs/v1/model"
@@ -39,7 +37,7 @@ func (svc service) CreateKey(_ context.Context, keyCreateReq model.KeyRequest) (
 	if keyCreateReq.TransferPolicyID != uuid.Nil {
 		_, err := svc.repository.KeyTransferPolicyStore.Retrieve(keyCreateReq.TransferPolicyID)
 		if err != nil {
-			if strings.Contains(err.Error(), directory.RecordNotFound) {
+			if err.Error() == RecordNotFound {
 				log.Errorf("Key transfer policy with specified id could not be located")
 				return nil, &HandledError{Code: http.StatusBadRequest, Message: "Key transfer policy with specified id does not exist"}
 			}
@@ -143,6 +141,46 @@ func (svc service) RetrieveKey(_ context.Context, keyId uuid.UUID) (interface{},
 	}
 
 	return key, nil
+}
+
+func (mw loggingMiddleware) UpdateKey(ctx context.Context, request model.KeyUpdateRequest) (*model.KeyResponse, error) {
+	var err error
+	defer func(begin time.Time) {
+		log.Tracef("UpdateKey took %s since %s", time.Since(begin), begin)
+		if err != nil {
+			log.WithError(err)
+		}
+	}(time.Now())
+	resp, err := mw.next.UpdateKey(ctx, request)
+	return resp, err
+}
+
+func (svc service) UpdateKey(ctx context.Context, keyUpdateReq model.KeyUpdateRequest) (*model.KeyResponse, error) {
+	var err error
+	// check if the key transfer policy exists
+	if keyUpdateReq.TransferPolicyID != uuid.Nil {
+		transferPolicy, err := svc.repository.KeyTransferPolicyStore.Retrieve(keyUpdateReq.TransferPolicyID)
+		if err != nil || transferPolicy == nil {
+			log.WithError(err).Error("Key transfer policy retrieve failed")
+			return nil, &HandledError{Code: http.StatusBadRequest, Message: "Failed to retrieve key transfer policy"}
+		}
+	} else {
+		log.WithError(err).Error("Key transfer policy must be provided")
+		return nil, &HandledError{Code: http.StatusBadRequest, Message: "Key transfer policy must be provided"}
+	}
+
+	updatedKey, err := svc.remoteManager.UpdateKey(&keyUpdateReq)
+	if err != nil {
+		if err.Error() == RecordNotFound {
+			log.WithError(err).Errorf("Key update request failed, key with ID %s not found", keyUpdateReq.KeyId.String())
+			return nil, &HandledError{Code: http.StatusNotFound, Message: "Failed to update key with the given key transfer policy ID. Invalid keyID."}
+		} else {
+			log.WithError(err).Error("Key update request failed")
+			return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to update key with the given key transfer policy ID"}
+		}
+	}
+	return updatedKey, err
+
 }
 
 func (mw loggingMiddleware) TransferKey(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {

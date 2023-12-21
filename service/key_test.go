@@ -173,6 +173,7 @@ func TestKeySearchWithNilCriteriaObject(t *testing.T) {
 	_, err := svc.SearchKeys(context.Background(), nil)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
+
 func TestKeySearch(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
@@ -250,6 +251,7 @@ func TestKeyECRegister(t *testing.T) {
 	_, err := svc.CreateKey(context.Background(), request)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
+
 func TestKeyRetrieveInvalidKey(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
@@ -323,4 +325,41 @@ func TestKeyTransfer(t *testing.T) {
 
 	_, err := svc.TransferKey(context.Background(), request)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
+}
+
+func TestKeyUpdate(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	svc := LoggingMiddleware()(svcInstance)
+	g.Expect(svc).NotTo(gomega.BeNil())
+
+	keyUpdateReq := model.KeyUpdateRequest{
+		KeyId:            uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
+		TransferPolicyID: uuid.MustParse("f64e25de-634f-44a3-b520-db480d8781ce"),
+	}
+	_, err := svc.UpdateKey(context.Background(), keyUpdateReq)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+}
+
+func TestKeyUpdateNegative(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	svc := LoggingMiddleware()(svcInstance)
+	g.Expect(svc).NotTo(gomega.BeNil())
+
+	// invalid key
+	keyUpdateReq := model.KeyUpdateRequest{
+		KeyId:            uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e1"),
+		TransferPolicyID: uuid.MustParse("f64e25de-634f-44a3-b520-db480d8781ce"),
+	}
+	_, err := svc.UpdateKey(context.Background(), keyUpdateReq)
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// invalid key-transfer-policy
+	keyUpdateReq = model.KeyUpdateRequest{
+		KeyId:            uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
+		TransferPolicyID: uuid.MustParse("f64e25de-634f-44a3-b520-db480d8781cf"),
+	}
+	_, err = svc.UpdateKey(context.Background(), keyUpdateReq)
+	g.Expect(err).To(gomega.HaveOccurred())
 }

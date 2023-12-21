@@ -5,11 +5,10 @@ package directory
 
 import (
 	"encoding/json"
+	"intel/amber/kbs/v1/model"
 	"os"
 	"path/filepath"
 	"reflect"
-
-	"intel/amber/kbs/v1/model"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -101,6 +100,27 @@ func (ks *keyStore) Search(criteria *model.KeyFilterCriteria) ([]model.KeyAttrib
 	}
 
 	return keys, nil
+}
+
+func (ks *keyStore) Update(keyUpdated *model.KeyAttributes) (*model.KeyAttributes, error) {
+
+	bytes, err := json.Marshal(keyUpdated)
+	if err != nil {
+		return nil, errors.Wrap(err, "directory/key_store:Update() Failed to marshal key attributes")
+	}
+
+	// read the existing key file
+	existingKeyFile, err := os.OpenFile(filepath.Clean(filepath.Join(ks.dir, keyUpdated.ID.String())), os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		return nil, errors.Wrapf(err, "directory/key_store:Update() Error in updating key with ID : %s", keyUpdated.ID.String())
+	}
+
+	// writing the new key info into existing file
+	_, err = existingKeyFile.Write(bytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "directory/key_store:Update() Failed to store key attributes in file")
+	}
+	return keyUpdated, nil
 }
 
 // helper function to filter the keys based on given filter criteria.

@@ -25,8 +25,7 @@ func NewKmipManager(c kmipclient.KmipClient) *KmipManager {
 func (km *KmipManager) CreateKey(request *model.KeyRequest) (*model.KeyAttributes, error) {
 
 	keyAttributes := &model.KeyAttributes{
-		Algorithm:        request.KeyInfo.Algorithm,
-		TransferPolicyId: request.TransferPolicyID,
+		Algorithm: request.KeyInfo.Algorithm,
 	}
 
 	switch request.KeyInfo.Algorithm {
@@ -54,6 +53,7 @@ func (km *KmipManager) CreateKey(request *model.KeyRequest) (*model.KeyAttribute
 	}
 	keyAttributes.ID = newUuid
 	keyAttributes.CreatedAt = time.Now().UTC()
+	keyAttributes.TransferPolicyId = request.TransferPolicyID
 
 	return keyAttributes, nil
 }

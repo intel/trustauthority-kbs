@@ -14,6 +14,7 @@ import (
 type (
 	KeyStore interface {
 		Create(*model.KeyAttributes) (*model.KeyAttributes, error)
+		Update(*model.KeyAttributes) (*model.KeyAttributes, error)
 		Retrieve(uuid.UUID) (*model.KeyAttributes, error)
 		Delete(uuid.UUID) error
 		Search(criteria *model.KeyFilterCriteria) ([]model.KeyAttributes, error)

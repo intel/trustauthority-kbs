@@ -35,6 +35,11 @@ type MockService struct {
 	mock.Mock
 }
 
+func (svc *MockService) UpdateKey(ctx context.Context, request model.KeyUpdateRequest) (*model.KeyResponse, error) {
+	args := svc.Called(ctx)
+	return args.Get(0).(*model.KeyResponse), args.Error(1)
+}
+
 func (svc *MockService) DeleteKeyTransferPolicy(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx, id)
 	return args.Get(0).(interface{}), args.Error(1)

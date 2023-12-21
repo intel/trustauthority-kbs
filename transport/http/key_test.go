@@ -596,3 +596,190 @@ func TestKeyTransferInvalidKeyData(t *testing.T) {
 	}
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 }
+
+func TestKeyUpdateHandler(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	resp := &model.KeyResponse{}
+
+	keyId := uuid.New()
+
+	mockService := &MockService{}
+	mockService.On("UpdateKey", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	options := []httpTransport.ServerOption{
+		httpTransport.ServerErrorEncoder(errorEncoder),
+	}
+
+	err := setKeyHandler(mockService, mux.NewRouter(), options, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	updateReqBody := `{
+		"transfer_policy_id" : "43972e48-67c6-4b00-bd01-924f62751d1d"
+        }`
+	req, _ := http.NewRequest(http.MethodPut, "/kbs/v1/keys/"+keyId.String(), bytes.NewReader([]byte(updateReqBody)))
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusCreated))
+}
+
+func TestKeyUpdateHandlerInvalidPolicy(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	resp := &model.KeyResponse{}
+
+	keyId := uuid.New()
+
+	mockService := &MockService{}
+	mockService.On("UpdateKey", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	options := []httpTransport.ServerOption{
+		httpTransport.ServerErrorEncoder(errorEncoder),
+	}
+
+	err := setKeyHandler(mockService, mux.NewRouter(), options, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	updateReqBody := `{
+		"transfer_policy_id" : "43972e48-67c6-4b00"
+        }`
+	req, _ := http.NewRequest(http.MethodPut, "/kbs/v1/keys/"+keyId.String(), bytes.NewReader([]byte(updateReqBody)))
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
+}
+
+func TestKeyUpdateHandlerInvalidContentTypeHeader(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	resp := &model.KeyResponse{}
+
+	keyId := uuid.New()
+
+	mockService := &MockService{}
+	mockService.On("UpdateKey", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	options := []httpTransport.ServerOption{
+		httpTransport.ServerErrorEncoder(errorEncoder),
+	}
+
+	err := setKeyHandler(mockService, mux.NewRouter(), options, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	updateReqBody := `{
+		"transfer_policy_id" : "43972e48-67c6-4b00-bd01-924f62751d1d"
+        }`
+	req, _ := http.NewRequest(http.MethodPut, "/kbs/v1/keys/"+keyId.String(), bytes.NewReader([]byte(updateReqBody)))
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusUnsupportedMediaType))
+}
+
+func TestKeyUpdateHandlerInvalidAcceptHeader(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	resp := &model.KeyResponse{}
+
+	keyId := uuid.New()
+
+	mockService := &MockService{}
+	mockService.On("UpdateKey", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	options := []httpTransport.ServerOption{
+		httpTransport.ServerErrorEncoder(errorEncoder),
+	}
+
+	err := setKeyHandler(mockService, mux.NewRouter(), options, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	updateReqBody := `{
+		"transfer_policy_id" : "43972e48-67c6-4b00-bd01-924f62751d1d"
+        }`
+	req, _ := http.NewRequest(http.MethodPut, "/kbs/v1/keys/"+keyId.String(), bytes.NewReader([]byte(updateReqBody)))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusUnsupportedMediaType))
+}
+
+func TestKeyUpdateHandlerInvalidTokenHeader(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	resp := &model.KeyResponse{}
+
+	keyId := uuid.New()
+
+	mockService := &MockService{}
+	mockService.On("UpdateKey", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	options := []httpTransport.ServerOption{
+		httpTransport.ServerErrorEncoder(errorEncoder),
+	}
+
+	err := setKeyHandler(mockService, mux.NewRouter(), options, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	updateReqBody := `{
+		"transfer_policy_id" : "43972e48-67c6-4b00-bd01-924f62751d1d"
+        }`
+	req, _ := http.NewRequest(http.MethodPut, "/kbs/v1/keys/"+keyId.String(), bytes.NewReader([]byte(updateReqBody)))
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Content-type", HTTPMediaTypeJson)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusUnauthorized))
+}

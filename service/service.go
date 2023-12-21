@@ -26,6 +26,7 @@ type Service interface {
 	CreateKey(context.Context, model.KeyRequest) (*model.KeyResponse, error)
 	SearchKeys(context.Context, *model.KeyFilterCriteria) ([]*model.KeyResponse, error)
 	DeleteKey(context.Context, uuid.UUID) (interface{}, error)
+	UpdateKey(context.Context, model.KeyUpdateRequest) (*model.KeyResponse, error)
 	RetrieveKey(context.Context, uuid.UUID) (interface{}, error)
 	CreateKeyTransferPolicy(context.Context, model.KeyTransferPolicy) (*model.KeyTransferPolicy, error)
 	SearchKeyTransferPolicies(context.Context, *model.KeyTransferPolicyFilterCriteria) ([]model.KeyTransferPolicy, error)
@@ -90,6 +91,7 @@ func SetupAuthZ(jwtKeeper *jwtStrategy.StaticSecret) (*model.JwtAuthz, error) {
 		token.NewScope(constant.KeyCreate, "/keys", "POST"),
 		token.NewScope(constant.KeySearch, "/keys", "GET"),
 		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
+		token.NewScope(constant.KeyUpdate, "/keys", "PUT"),
 		token.NewScope(constant.KeyTransfer, "/keys/"+constant.UUIDReg, "POST"),
 		token.NewScope(constant.UserCreate, "/users", "POST"),
 		token.NewScope(constant.UserSearch, "/users", "GET"),

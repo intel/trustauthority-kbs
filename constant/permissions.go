@@ -9,6 +9,7 @@ const (
 	KeyDelete   = "keys:delete"
 	KeySearch   = "keys:search"
 	KeyTransfer = "keys:transfer"
+	KeyUpdate   = "keys:update"
 
 	KeyTransferPolicyCreate = "key_transfer_policies:create"
 	KeyTransferPolicyDelete = "key_transfer_policies:delete"
@@ -20,4 +21,4 @@ const (
 	UserUpdate = "users:update"
 )
 
-var AdminPermissions = []string{KeySearch, KeyCreate, KeyDelete, KeyTransfer, KeyTransferPolicyCreate, KeyTransferPolicySearch, KeyTransferPolicyDelete, UserDelete, UserSearch, UserCreate, UserUpdate}
+var AdminPermissions = []string{KeySearch, KeyCreate, KeyDelete, KeyTransfer, KeyUpdate, KeyTransferPolicyCreate, KeyTransferPolicySearch, KeyTransferPolicyDelete, UserDelete, UserSearch, UserCreate, UserUpdate}

@@ -5,7 +5,6 @@ package keymanager
 
 import (
 	"fmt"
-
 	"intel/amber/kbs/v1/model"
 	"intel/amber/kbs/v1/repository"
 
@@ -77,6 +76,21 @@ func (rm *RemoteManager) SearchKeys(criteria *model.KeyFilterCriteria) ([]*model
 	}
 
 	return keyResponses, nil
+}
+
+func (rm *RemoteManager) UpdateKey(keyUpdateRequest *model.KeyUpdateRequest) (*model.KeyResponse, error) {
+
+	keyAttributes, err := rm.store.Retrieve(keyUpdateRequest.KeyId)
+	if err != nil {
+		return nil, err
+	}
+	keyAttributes.TransferPolicyId = keyUpdateRequest.TransferPolicyID
+	updatedKey, err := rm.store.Update(keyAttributes)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedKey.ToKeyResponse(), nil
 }
 
 func (rm *RemoteManager) RegisterKey(request *model.KeyRequest) (*model.KeyResponse, error) {

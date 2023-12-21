@@ -19,6 +19,11 @@ type MockKeyStore struct {
 	KeyStore map[uuid.UUID]*model.KeyAttributes
 }
 
+func (store *MockKeyStore) Update(k *model.KeyAttributes) (*model.KeyAttributes, error) {
+	store.KeyStore[k.ID] = k
+	return k, nil
+}
+
 // Create inserts a Key into the store
 func (store *MockKeyStore) Create(k *model.KeyAttributes) (*model.KeyAttributes, error) {
 	store.KeyStore[k.ID] = k
