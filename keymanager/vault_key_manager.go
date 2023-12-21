@@ -30,8 +30,7 @@ type VaultManager struct {
 
 func (vm *VaultManager) CreateKey(request *model.KeyRequest) (*model.KeyAttributes, error) {
 	keyAttributes := &model.KeyAttributes{
-		Algorithm:        request.KeyInfo.Algorithm,
-		TransferPolicyId: request.TransferPolicyID,
+		Algorithm: request.KeyInfo.Algorithm,
 	}
 
 	var err error
@@ -89,6 +88,7 @@ func (vm *VaultManager) CreateKey(request *model.KeyRequest) (*model.KeyAttribut
 	keyAttributes.KeyData = ""
 	keyAttributes.PrivateKey = ""
 	keyAttributes.PublicKey = ""
+	keyAttributes.TransferPolicyId = request.TransferPolicyID
 	return keyAttributes, nil
 }
 
@@ -152,14 +152,13 @@ func (vm *VaultManager) RegisterKey(request *model.KeyRequest) (*model.KeyAttrib
 		return nil, errors.Wrap(err, "failed to create new UUID")
 	}
 	keyAttributes := &model.KeyAttributes{
-		ID:               newUuid,
-		Algorithm:        request.KeyInfo.Algorithm,
-		KeyLength:        request.KeyInfo.KeyLength,
-		KeyData:          key,
-		PublicKey:        publicKey,
-		PrivateKey:       privateKey,
-		TransferPolicyId: request.TransferPolicyID,
-		CreatedAt:        time.Now().UTC(),
+		ID:         newUuid,
+		Algorithm:  request.KeyInfo.Algorithm,
+		KeyLength:  request.KeyInfo.KeyLength,
+		KeyData:    key,
+		PublicKey:  publicKey,
+		PrivateKey: privateKey,
+		CreatedAt:  time.Now().UTC(),
 	}
 	err = vm.client.CreateKey(keyAttributes)
 	if err != nil {
@@ -169,6 +168,7 @@ func (vm *VaultManager) RegisterKey(request *model.KeyRequest) (*model.KeyAttrib
 	keyAttributes.KeyData = ""
 	keyAttributes.PrivateKey = ""
 	keyAttributes.PublicKey = ""
+	keyAttributes.TransferPolicyId = request.TransferPolicyID
 	return keyAttributes, nil
 }
 

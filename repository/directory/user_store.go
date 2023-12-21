@@ -113,7 +113,7 @@ func (u *userStore) Search(criteria *model.UserFilterCriteria) ([]model.UserInfo
 func (u *userStore) Update(user *model.UserInfo) (*model.UserInfo, error) {
 
 	// read the existing user file
-	existingUserFile, err := os.OpenFile(filepath.Clean(filepath.Join(u.dir, user.ID.String())), os.O_RDWR, 0600)
+	existingUserFile, err := os.OpenFile(filepath.Clean(filepath.Join(u.dir, user.ID.String())), os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return nil, errors.Wrapf(err, "directory/user_store:Update() Error in updating user with ID : %s", user.ID)
 	}

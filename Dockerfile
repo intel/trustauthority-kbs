@@ -15,7 +15,11 @@ RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
         cd cmd && GOOS=linux GOSUMDB=off \
         go build -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/amber/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/v1/version.Version=${VERSION} -X intel/amber/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
 
-FROM debian:bullseye AS final
+FROM ubuntu:20.04 AS final
+# Install ca-certificates package to get the system certificates
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 ARG USERNAME=kbs
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID

@@ -102,7 +102,7 @@ func TestSGXKeyTransfer(t *testing.T) {
 	}
 
 	request := TransferKeyRequest{
-		KeyId:              uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2"),
+		KeyId:              rsaKeyId,
 		AttestationType:    "SGX",
 		KeyTransferRequest: transReq,
 	}

@@ -46,7 +46,7 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 	createKeyHandler := httpTransport.NewServer(
 		makeCreateKeyEndpoint(svc),
 		decodeCreateKeyHTTPRequest,
-		encodeCreateKeyHTTPResponse,
+		encodeCreateUpdateKeyHTTPResponse,
 		options...,
 	)
 
@@ -78,6 +78,15 @@ func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransp
 	)
 
 	router.Handle("/keys", authMiddleware(searchKeysHandler, auth)).Methods(http.MethodGet)
+
+	updateKeyHandler := httpTransport.NewServer(
+		makeUpdateKeyEndpoint(svc),
+		decodeUpdateKeyHTTPRequest,
+		encodeCreateUpdateKeyHTTPResponse,
+		options...,
+	)
+
+	router.Handle(keyIdExpr, authMiddleware(updateKeyHandler, auth)).Methods(http.MethodPut)
 
 	transferKeyHandler := httpTransport.NewServer(
 		makeTransferKeyEndpoint(svc),
@@ -116,6 +125,13 @@ func makeRetrieveKeyEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		id := request.(uuid.UUID)
 		return svc.RetrieveKey(ctx, id)
+	}
+}
+
+func makeUpdateKeyEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(model.KeyUpdateRequest)
+		return svc.UpdateKey(ctx, req)
 	}
 }
 
@@ -176,6 +192,43 @@ func decodeDeleteHTTPRequest(_ context.Context, r *http.Request) (interface{}, e
 
 	id := uuid.MustParse(mux.Vars(r)["id"])
 	return id, nil
+}
+
+func decodeUpdateKeyHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
+
+	if r.Header.Get(constant.HTTPHeaderKeyContentType) != constant.HTTPHeaderValueApplicationJson {
+		log.Error(ErrInvalidContentTypeHeader.Error())
+		return nil, ErrInvalidContentTypeHeader
+	}
+
+	if r.Header.Get(constant.HTTPHeaderKeyAccept) != constant.HTTPHeaderValueApplicationJson {
+		log.Error(ErrInvalidAcceptHeader.Error())
+		return nil, ErrInvalidAcceptHeader
+	}
+
+	if r.ContentLength == 0 {
+		log.Error(ErrEmptyRequestBody.Error())
+		return nil, ErrEmptyRequestBody
+	}
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	var keyUpdateReq model.KeyUpdateRequest
+	err := dec.Decode(&keyUpdateReq)
+	if err != nil {
+		log.WithError(err).Error(ErrJsonDecodeFailed.Error())
+		return nil, ErrJsonDecodeFailed
+	}
+
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		log.WithError(err).Error("Invalid key UUID format")
+		return nil, errors.New("Invalid key UUID format")
+	}
+	keyUpdateReq.KeyId = id
+
+	return keyUpdateReq, nil
 }
 
 func decodeSearchKeysHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -246,7 +299,7 @@ func decodeTransferHTTPRequest(_ context.Context, r *http.Request) (interface{},
 	return req, nil
 }
 
-func encodeCreateKeyHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeCreateUpdateKeyHTTPResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(*model.KeyResponse)
 
 	header := w.Header()

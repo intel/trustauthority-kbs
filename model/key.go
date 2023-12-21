@@ -17,6 +17,11 @@ type KeyRequest struct {
 	TransferPolicyID uuid.UUID `json:"transfer_policy_id,omitempty"`
 }
 
+type KeyUpdateRequest struct {
+	KeyId            uuid.UUID
+	TransferPolicyID uuid.UUID `json:"transfer_policy_id"`
+}
+
 type KeyResponse struct {
 	// Universal Unique IDentifier of the Key created
 	// required: true
