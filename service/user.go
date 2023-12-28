@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 	"net/http"
 	"time"
 )

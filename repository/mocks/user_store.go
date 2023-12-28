@@ -10,7 +10,7 @@ import (
 	defaultLog "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 	"reflect"
 	"time"
 )

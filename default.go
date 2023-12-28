@@ -4,11 +4,10 @@
 package kbs
 
 import (
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	"strings"
-
 	"github.com/spf13/viper"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
+	"strings"
 )
 
 // This init function sets the default values for viper keys.
@@ -36,8 +35,9 @@ func defaultConfig() *config.Configuration {
 		ServicePort:                  viper.GetInt(config.ServicePort),
 		LogLevel:                     viper.GetString(config.LogLevel),
 		LogCaller:                    viper.GetBool(config.LogCaller),
-		ASBaseUrl:                    viper.GetString(config.ASBaseUrl),
-		ASApiKey:                     viper.GetString(config.ASApiKey),
+		TrustAuthorityApiUrl:         viper.GetString(config.TrustAuthorityApiUrl),
+		TrustAuthorityBaseUrl:        viper.GetString(config.TrustAuthorityBaseUrl),
+		TrustAuthorityApiKey:         viper.GetString(config.TrustAuthorityApiKey),
 		KeyManager:                   viper.GetString(config.KeyManager),
 		AdminPassword:                viper.GetString(config.AdminPassword),
 		AdminUsername:                viper.GetString(config.AdminUsername),

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -1,8 +1,9 @@
 service-port: "9443"
 log-level: "debug"
 log-caller: true
-as-base-url: "https://as.taas.cluster.local:15000/as/v1"
-as-api-key: "testkey"
+trustauthority-base-url: "https://ita.cluster.local:15000/v1"
+trustauthority-api-url: "https://ita.api.cluster.local:15000/v1"
+trustauthority-api-key: "testkey"
 key-manager: "KMIP"
 admin-username: "admin"
 admin-password: "password"

@@ -4,13 +4,13 @@
 package keymanager
 
 import (
-	"intel/amber/kbs/v1/vaultclient"
+	"intel/kbs/v1/vaultclient"
 	"strings"
 
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/kmipclient"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/kmipclient"
+	"intel/kbs/v1/model"
 
 	"github.com/pkg/errors"
 )

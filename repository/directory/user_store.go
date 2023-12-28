@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 	"os"
 	"path/filepath"
 	"reflect"

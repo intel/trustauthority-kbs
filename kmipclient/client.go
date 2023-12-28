@@ -9,7 +9,7 @@ import (
 	"crypto/x509"
 	"os"
 
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 
 	"github.com/gemalto/kmip-go"
 	"github.com/gemalto/kmip-go/kmip14"

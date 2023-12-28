@@ -6,7 +6,7 @@ package kbs
 import (
 	"fmt"
 
-	"intel/amber/kbs/v1/version"
+	"intel/kbs/v1/version"
 )
 
 const helpStr = `Usage:

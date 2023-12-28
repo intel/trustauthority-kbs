@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 	"math/big"
 	"net"
 	"os"

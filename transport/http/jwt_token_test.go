@@ -11,7 +11,7 @@ import (
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 	"io"
 	"net/http"
 	"net/http/httptest"

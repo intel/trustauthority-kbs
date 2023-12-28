@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 	"io"
 	"net/http"
 	"net/http/httptest"

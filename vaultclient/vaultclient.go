@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	constants "intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/model"
+	constants "intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
 	"net/url"
 )
 

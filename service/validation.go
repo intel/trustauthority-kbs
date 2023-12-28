@@ -5,8 +5,8 @@ package service
 
 import (
 	_ "github.com/shaj13/libcache/fifo"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
 	"reflect"
 
 	"github.com/google/uuid"

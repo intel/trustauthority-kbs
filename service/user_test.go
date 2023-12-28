@@ -8,23 +8,24 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/onsi/gomega"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
-	"intel/amber/kbs/v1/repository/mocks"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
+	"intel/kbs/v1/repository/mocks"
 	"testing"
 )
 
 var userID uuid.UUID
 var userStore *mocks.MockUserStore = mocks.NewFakeUserStore()
 var svcUserTestInstance Service = service{
-	asClient:    asClient,
-	jwtVerifier: jwtVerifier,
+	itaApiClient:           itaClientConnector,
+	itaTokenVerifierClient: itaClientConnector,
 	repository: &repository.Repository{
 		UserStore:              userStore,
 		KeyStore:               keyStore,
 		KeyTransferPolicyStore: keyTransPolicyStore,
 	},
 	remoteManager: kRemoteManager,
+	config:        nil,
 }
 
 func TestUserCreate(t *testing.T) {

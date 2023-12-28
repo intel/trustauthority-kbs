@@ -13,11 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"intel/amber/kbs/v1/clients/constant"
-	consts "intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/crypt"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/service"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/crypt"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/service"
 
 	"github.com/go-kit/kit/endpoint"
 	httpTransport "github.com/go-kit/kit/transport/http"
@@ -352,7 +351,7 @@ func validateKeyCreateRequest(keyCreateReq model.KeyRequest) error {
 		return errors.New("key algorithm is not supported")
 	}
 
-	if strings.ToUpper(algorithm) == consts.CRYPTOALGEC {
+	if strings.ToUpper(algorithm) == constant.CRYPTOALGEC {
 		if keyCreateReq.KeyInfo.CurveType == "" {
 			return errors.New("curve_type must be provided")
 		} else if !allowedCurveTypes[keyCreateReq.KeyInfo.CurveType] {

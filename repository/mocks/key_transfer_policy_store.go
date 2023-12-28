@@ -7,12 +7,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/repository/directory"
+	"intel/kbs/v1/repository/directory"
 	"reflect"
 	"time"
 
-	"intel/amber/kbs/v1/model"
-	cns "intel/amber/kbs/v1/repository/mocks/constants"
+	"intel/kbs/v1/model"
+	cns "intel/kbs/v1/repository/mocks/constants"
 )
 
 // MockKeyTransferPolicyStore provides a mocked implementation of interface domain.KeyTransferPolicyStore
@@ -84,7 +84,7 @@ func NewFakeKeyTransferPolicyStore() *MockKeyTransferPolicyStore {
 			PolicyIds: []uuid.UUID{uuid.MustParse("232bffd9-7ab3-4bb5-bc6c-1852123d1a01")},
 			Attributes: &model.SgxAttributes{
 				MrSigner:           []string{cns.ValidMrSigner},
-				IsvProductId:       []uint16{1},
+				IsvProductId:       []uint16{0},
 				MrEnclave:          []string{cns.ValidMrEnclave},
 				IsvSvn:             &i,
 				ClientPermissions:  []string{"nginx", "USA"},
@@ -115,7 +115,7 @@ func NewFakeKeyTransferPolicyStore() *MockKeyTransferPolicyStore {
 		log.WithError(err).Errorf("Error creating key transfer policy")
 	}
 
-	var j uint8 = 0
+	var j uint8 = 3
 
 	_, err = store.Create(&model.KeyTransferPolicy{
 		ID:              uuid.MustParse("f64e25de-634f-44a3-b520-db480d8781ce"),

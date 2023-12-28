@@ -9,7 +9,7 @@ import (
 	"github.com/gemalto/kmip-go/kmip20"
 	"github.com/gemalto/kmip-go/ttlv"
 	"github.com/pkg/errors"
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 )
 
 // CreateSymmetricKey creates a symmetric key on kmip server

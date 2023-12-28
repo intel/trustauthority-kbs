@@ -21,13 +21,8 @@ const (
 	KeysTransferPolicyDir = "keys-transfer-policy/"
 	UserDir               = "users/"
 
-	// certificates' path
-	TrustedJWTSigningCertsDir = ConfigDir + "certs/trustedjwt/"
-	TrustedCACertsDir         = ConfigDir + "certs/trustedca/"
-
 	// defaults
 	DefaultKeyManager     = "Kmip"
-	DefaultEndpointUrl    = "http://localhost"
 	DefaultConfigFilePath = ConfigDir + "config.yml"
 
 	// default locations for tls certificate and key
@@ -47,9 +42,6 @@ const (
 
 	// service remove command
 	ServiceRemoveCmd = "systemctl disable kbs"
-
-	// jwt constants
-	JWTCertsCacheTime = "1m"
 
 	// log constants
 	DefaultLogLevel = "info"
@@ -83,7 +75,13 @@ const (
 
 	MaxQueryParamsLength = 50
 	UUIDReg              = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}"
-	AtsCertChainMaxLen   = 10
+
+	HTTPHeaderKeyContentType           = "Content-Type"
+	HTTPHeaderValueApplicationJwt      = "application/jwt"
+	HTTPHeaderValueApplicationJson     = "application/json"
+	HTTPHeaderValueApplicationXPEMFile = "application/x-pem-file"
+	HTTPHeaderKeyAccept                = "Accept"
+	HTTPHeaderKeyAttestationType       = "Attestation-Type"
 
 	UserCredsMaxLen           = 256
 	PasswordMinLen            = 8

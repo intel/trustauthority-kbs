@@ -13,7 +13,7 @@ RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
         VERSION=${VERSION:-v0.0.0}; \
         BUILDDATE=$(TZ=UTC date +%Y-%m-%dT%H:%M:%S%z); \
         cd cmd && GOOS=linux GOSUMDB=off \
-        go build -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/amber/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/v1/version.Version=${VERSION} -X intel/amber/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
+        go build -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/kbs/v1/version.Version=${VERSION} -X intel/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
 
 FROM ubuntu:20.04 AS final
 # Install ca-certificates package to get the system certificates
@@ -47,7 +47,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off \
     /usr/local/go/bin/go test ./... \
         -coverpkg="${COVER_PACKAGES}" -coverprofile cover.out \
-    -ldflags "-X intel/amber/kbs/cache/v1/version.BuildDate=${BUILDDATE} -X intel/amber/kbs/cache/v1/version.Version=${VERSION} -X intel/amber/kbs/cache/v1/version.GitHash=${GITCOMMIT}"
+    -ldflags "-X intel/kbs/cache/v1/version.BuildDate=${BUILDDATE} -X intel/kbs/cache/v1/version.Version=${VERSION} -X intel/kbs/cache/v1/version.GitHash=${GITCOMMIT}"
 RUN  /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
 
 FROM builder AS swagger

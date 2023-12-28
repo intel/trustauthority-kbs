@@ -7,7 +7,7 @@ package http
 import (
 	"github.com/shaj13/go-guardian/v2/auth"
 	log "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 
 	"net/http"
 )

@@ -5,10 +5,11 @@ package directory
 
 import (
 	"encoding/json"
-	"intel/amber/kbs/v1/model"
 	"os"
 	"path/filepath"
 	"reflect"
+
+	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"

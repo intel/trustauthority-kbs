@@ -28,7 +28,7 @@ all: docker
 
 kbs:
 	cd cmd && go mod tidy && \
-                go build -ldflags "-X intel/amber/kbs/v1/version.BuildDate=$(BUILDDATE) -X intel/amber/kbs/v1/version.Version=$(VERSION) -X intel/amber/kbs/v1/version.GitHash=$(GITCOMMIT)" -o kbs
+                go build -ldflags "-X intel/kbs/v1/version.BuildDate=$(BUILDDATE) -X intel/kbs/v1/version.Version=$(VERSION) -X intel/kbs/v1/version.GitHash=$(GITCOMMIT)" -o kbs
 
 installer: kbs
 	mkdir -p installer

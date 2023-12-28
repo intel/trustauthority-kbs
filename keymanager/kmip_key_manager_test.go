@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/kmipclient"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/kmipclient"
+	"intel/kbs/v1/model"
 )
 
 func TestKmipManagerCreateKey(t *testing.T) {

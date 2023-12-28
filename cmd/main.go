@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"intel/amber/kbs/v1"
+	"intel/kbs/v1"
 )
 
 func main() {

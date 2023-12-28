@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"

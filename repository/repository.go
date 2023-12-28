@@ -4,9 +4,9 @@
 package repository
 
 import (
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository/directory"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository/directory"
 
 	"github.com/google/uuid"
 )

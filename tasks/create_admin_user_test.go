@@ -6,7 +6,7 @@ package tasks
 
 import (
 	"github.com/onsi/gomega"
-	"intel/amber/kbs/v1/repository/mocks"
+	"intel/kbs/v1/repository/mocks"
 	"testing"
 )
 

@@ -8,13 +8,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
-	"intel/amber/kbs/v1/clients/as"
-	"intel/amber/kbs/v1/jwt"
-	"intel/amber/kbs/v1/keymanager"
-	"intel/amber/kbs/v1/kmipclient"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
-	"intel/amber/kbs/v1/repository/mocks"
+	"intel/kbs/v1/clients/ita"
+	"intel/kbs/v1/keymanager"
+	"intel/kbs/v1/kmipclient"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
+	"intel/kbs/v1/repository/mocks"
 	"testing"
 
 	"github.com/google/uuid"
@@ -24,21 +23,21 @@ import (
 
 var gKeyId uuid.UUID
 var rsaKeyId uuid.UUID
-var asClient *as.MockClient = as.NewMockClient()
-var jwtVerifier *jwt.MockVerifier = jwt.NewMockVerifier()
+var itaClientConnector *ita.MockClient = ita.NewMockClient()
 var keyStore *mocks.MockKeyStore = mocks.NewFakeKeyStore()
 var keyTransPolicyStore *mocks.MockKeyTransferPolicyStore = mocks.NewFakeKeyTransferPolicyStore()
 var kmipClient kmipclient.MockKmipClient = kmipclient.MockKmipClient{}
 var kmipKeyManager *keymanager.MockKmipManager = keymanager.NewMockKmipManager(kmipClient)
 var kRemoteManager *keymanager.RemoteManager = keymanager.NewRemoteManager(keyStore, kmipKeyManager)
 var svcInstance Service = service{
-	asClient:    asClient,
-	jwtVerifier: jwtVerifier,
+	itaApiClient:           itaClientConnector,
+	itaTokenVerifierClient: itaClientConnector,
 	repository: &repository.Repository{
 		KeyStore:               keyStore,
 		KeyTransferPolicyStore: keyTransPolicyStore,
 	},
 	remoteManager: kRemoteManager,
+	config:        nil,
 }
 var key = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}
 

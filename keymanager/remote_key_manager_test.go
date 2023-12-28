@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/kmipclient"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
-	"intel/amber/kbs/v1/repository/mocks"
+	"intel/kbs/v1/kmipclient"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
+	"intel/kbs/v1/repository/mocks"
 )
 
 func TestRemoteManagerCreateKey(t *testing.T) {

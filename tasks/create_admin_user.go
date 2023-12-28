@@ -9,9 +9,9 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
 )
 
 type CreateAdminUser struct {

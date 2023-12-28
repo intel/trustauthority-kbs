@@ -7,8 +7,8 @@ package keymanager
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/vaultclient"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/vaultclient"
 	"testing"
 )
 

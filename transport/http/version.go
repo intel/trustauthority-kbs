@@ -5,10 +5,10 @@ package http
 
 import (
 	"context"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 	"net/http"
 
-	"intel/amber/kbs/v1/service"
+	"intel/kbs/v1/service"
 
 	"github.com/go-kit/kit/endpoint"
 	httpTransport "github.com/go-kit/kit/transport/http"

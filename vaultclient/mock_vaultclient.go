@@ -6,7 +6,7 @@ package vaultclient
 
 import (
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 )
 
 // MockVaultClient is a mock of VaultClient interface

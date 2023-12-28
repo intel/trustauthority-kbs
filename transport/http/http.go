@@ -12,10 +12,10 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/shaj13/libcache/fifo"
 	log "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/service"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/service"
 	"net/http"
 )
 

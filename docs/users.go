@@ -3,7 +3,7 @@
  */
 package kbs
 
-import "intel/amber/kbs/v1/model"
+import "intel/kbs/v1/model"
 
 // user request payload
 // swagger:parameters User
