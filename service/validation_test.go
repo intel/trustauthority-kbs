@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/onsi/gomega"
-	"intel/amber/kbs/v1/model"
-	cns "intel/amber/kbs/v1/repository/mocks/constants"
+	"intel/kbs/v1/model"
+	cns "intel/kbs/v1/repository/mocks/constants"
 	"testing"
 )
 

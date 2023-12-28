@@ -5,27 +5,27 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"intel/amber/kbs/v1/clients/as"
+	itaConnector "github.com/intel/trustauthority-client/go-connector"
 )
 
 type AttestationTokenClaim struct {
 	*SGXClaims
 	*TDXClaims
-	AttesterHeldData    string                  `json:"attester_held_data,omitempty"` // Is this finalized?
-	AttesterInittime    map[string]interface{}  `json:"attester_inittime_data,omitempty"`
-	AttesterRuntime     map[string]interface{}  `json:"attester_runtime_data,omitempty"`
-	VerifierNonce       *as.VerifierNonce       `json:"verifier_nonce,omitempty"`
-	PolicyIdsMatched    []PolicyClaim           `json:"policy_ids_matched,omitempty"`
-	PolicyIdsUnmatched  []PolicyClaim           `json:"policy_ids_unmatched,omitempty"`
-	PolicyDefinedClaims *map[string]interface{} `json:"policy_defined_claims,omitempty"`
-	AttesterTcbStatus   string                  `json:"attester_tcb_status"`
-	AttesterAdvisoryIds []string                `json:"attester_advisory_ids,omitempty"`
-	AttesterType        AttesterType            `json:"attester_type"`
-	VerifierInstanceIds []uuid.UUID             `json:"verifier_instance_ids"`
-	DbgStat             string                  `json:"dbgstat,omitempty"`     // EAT claims
-	EatProfile          string                  `json:"eat_profile,omitempty"` // EAT claims
-	IntUse              string                  `json:"intuse,omitempty"`      // EAT claims
-	Version             string                  `json:"ver"`
+	AttesterHeldData    string                      `json:"attester_held_data,omitempty"` // Is this finalized?
+	AttesterInittime    map[string]interface{}      `json:"attester_inittime_data,omitempty"`
+	AttesterRuntime     map[string]interface{}      `json:"attester_runtime_data,omitempty"`
+	VerifierNonce       *itaConnector.VerifierNonce `json:"verifier_nonce,omitempty"`
+	PolicyIdsMatched    []PolicyClaim               `json:"policy_ids_matched,omitempty"`
+	PolicyIdsUnmatched  []PolicyClaim               `json:"policy_ids_unmatched,omitempty"`
+	PolicyDefinedClaims *map[string]interface{}     `json:"policy_defined_claims,omitempty"`
+	AttesterTcbStatus   string                      `json:"attester_tcb_status"`
+	AttesterAdvisoryIds []string                    `json:"attester_advisory_ids,omitempty"`
+	AttesterType        AttesterType                `json:"attester_type"`
+	VerifierInstanceIds []uuid.UUID                 `json:"verifier_instance_ids"`
+	DbgStat             string                      `json:"dbgstat,omitempty"`     // EAT claims
+	EatProfile          string                      `json:"eat_profile,omitempty"` // EAT claims
+	IntUse              string                      `json:"intuse,omitempty"`      // EAT claims
+	Version             string                      `json:"ver"`
 }
 
 type SGXClaims struct {

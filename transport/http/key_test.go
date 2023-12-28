@@ -5,20 +5,19 @@ package http
 
 import (
 	"bytes"
+	httpTransport "github.com/go-kit/kit/transport/http"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/onsi/gomega"
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/service"
+	"github.com/stretchr/testify/mock"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/service"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	httpTransport "github.com/go-kit/kit/transport/http"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/onsi/gomega"
-	"github.com/stretchr/testify/mock"
 )
 
 var (

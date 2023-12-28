@@ -9,30 +9,6 @@ To run all unit tests
 ## Push
 To push docker images to registry
 
-## Snyk scan
-To scan code dependencies for vulnerabities.
-
-### Snyk Setup instructions for runners
-
-1. Install brew
-```shell
-sudo apt-get install build-essential
-sudo apt install git -y
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-```
-
-2. Install snyk
-```shell
-brew tap snyk/tap
-brew install snyk
-```
-
-3. Add snyk to PATH
-```shell
-sudo cp /home/linuxbrew/.linuxbrew/bin/snyk /usr/bin/
-```
-
 ## Checkmarx scan
 Static code analysis tool
 

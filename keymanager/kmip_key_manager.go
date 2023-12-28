@@ -6,9 +6,9 @@ package keymanager
 import (
 	"time"
 
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/kmipclient"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/kmipclient"
+	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"

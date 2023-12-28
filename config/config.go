@@ -5,7 +5,7 @@ package config
 
 import (
 	"encoding/base64"
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -23,12 +23,12 @@ const (
 	ServicePort                  = "service-port"
 	LogLevel                     = "log-level"
 	LogCaller                    = "log-caller"
-	ASBaseUrl                    = "as-base-url"
-	ASApiKey                     = "as-api-key"
+	TrustAuthorityBaseUrl        = "trustauthority-base-url"
+	TrustAuthorityApiUrl         = "trustauthority-api-url"
+	TrustAuthorityApiKey         = "trustauthority-api-key"
 	KeyManager                   = "key-manager"
 	AdminUsername                = "admin-username"
 	AdminPassword                = "admin-password"
-	BearerTokenValidityInMinutes = "bearer-token-validity-in-minutes"
 	SanList                      = "san-list"
 	KmipVersion                  = "kmip.version"
 	KmipServerIP                 = "kmip.server-ip"
@@ -42,6 +42,7 @@ const (
 	VaultClientToken             = "vault.client-token"
 	VaultServerIP                = "vault.server-ip"
 	VaultServerPort              = "vault.server-port"
+	BearerTokenValidityInMinutes = "bearer-token-validity-in-minutes"
 )
 
 var (
@@ -53,15 +54,16 @@ type Configuration struct {
 	ServicePort                  int         `yaml:"service-port" mapstructure:"service-port"`
 	LogLevel                     string      `yaml:"log-level" mapstructure:"log-level"`
 	LogCaller                    bool        `yaml:"log-caller" mapstructure:"log-caller"`
-	ASBaseUrl                    string      `yaml:"as-base-url" mapstructure:"as-base-url"`
-	ASApiKey                     string      `yaml:"as-api-key" mapstructure:"as-api-key"`
+	TrustAuthorityBaseUrl        string      `yaml:"trustauthority-base-url" mapstructure:"trustauthority-base-url"`
+	TrustAuthorityApiUrl         string      `yaml:"trustauthority-api-url" mapstructure:"trustauthority-api-url"`
+	TrustAuthorityApiKey         string      `yaml:"trustauthority-api-key" mapstructure:"trustauthority-api-key"`
 	KeyManager                   string      `yaml:"key-manager" mapstructure:"key-manager"`
 	AdminUsername                string      `yaml:"admin-username" mapstructure:"admin-username"`
 	AdminPassword                string      `yaml:"admin-password" mapstructure:"admin-password"`
-	BearerTokenValidityInMinutes int         `yaml:"bearer-token-validity-in-minutes" mapstructure:"bearer-token-validity-in-minutes"`
 	SanList                      string      `yaml:"san-list" mapstructure:"san-list"`
 	Kmip                         KmipConfig  `yaml:"kmip"`
 	Vault                        VaultConfig `yaml:"vault"`
+	BearerTokenValidityInMinutes int         `yaml:"bearer-token-validity-in-minutes" mapstructure:"bearer-token-validity-in-minutes"`
 }
 
 type KmipConfig struct {
@@ -131,8 +133,8 @@ func (conf *Configuration) Validate() error {
 		return errors.New("Configured port is not valid")
 	}
 
-	if conf.ASBaseUrl == "" || conf.ASApiKey == "" {
-		return errors.New("Either AS URL or APIKey is missing")
+	if conf.TrustAuthorityApiUrl == "" || conf.TrustAuthorityApiKey == "" || conf.TrustAuthorityBaseUrl == "" {
+		return errors.New("Either TRUSTAUTHORITY_API_URL or TRUSTAUTHORITY_API_KEY or TRUSTAUTHORITY_BASE_URL is missing")
 	}
 
 	if conf.AdminUsername == "" || conf.AdminPassword == "" {
@@ -155,14 +157,19 @@ func (conf *Configuration) Validate() error {
 		return err
 	}
 
-	_, err = url.Parse(conf.ASBaseUrl)
+	_, err = url.Parse(conf.TrustAuthorityApiUrl)
 	if err != nil {
-		return errors.Wrap(err, "AS URL is not a valid url")
+		return errors.Wrap(err, "ITA TRUSTAUTHORITY_API_URL is not a valid url")
 	}
 
-	_, err = base64.URLEncoding.DecodeString(conf.ASApiKey)
+	_, err = url.Parse(conf.TrustAuthorityBaseUrl)
 	if err != nil {
-		return errors.Wrap(err, "AS ApiKey is not a valid base64 string")
+		return errors.Wrap(err, "ITA TRUSTAUTHORITY_BASE_URL is not a valid url")
+	}
+
+	_, err = base64.URLEncoding.DecodeString(conf.TrustAuthorityApiKey)
+	if err != nil {
+		return errors.Wrap(err, "ITA TRUSTAUTHORITY_API_KEY  is not a valid base64 string")
 	}
 
 	return nil

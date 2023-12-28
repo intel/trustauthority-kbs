@@ -5,8 +5,8 @@ package keymanager
 
 import (
 	"fmt"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
 
 	"github.com/google/uuid"
 )

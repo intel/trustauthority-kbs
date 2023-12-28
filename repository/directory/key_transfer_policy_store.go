@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"time"
 
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"

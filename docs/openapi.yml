@@ -2,7 +2,7 @@ basePath: /kbs/v1
 definitions:
     AttestationType:
         type: string
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     AuthTokenRequest:
         properties:
             password:
@@ -19,7 +19,7 @@ definitions:
             - username
             - password
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     KeyInfo:
         properties:
             algorithm:
@@ -50,7 +50,7 @@ definitions:
             - algorithm
             - key_length
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     KeyRequest:
         properties:
             key_information:
@@ -64,7 +64,7 @@ definitions:
         required:
             - transfer_policy_id
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     KeyResponse:
         properties:
             created_at:
@@ -92,17 +92,17 @@ definitions:
             - id
             - transfer_policy_id
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     KeyResponses:
         items:
             $ref: '#/definitions/KeyResponse'
         type: array
-        x-go-package: intel/amber/kbs/v1/docs
+        x-go-package: intel/kbs/v1/docs
     KeyTransferPolicies:
         items:
             $ref: '#/definitions/KeyTransferPolicy'
         type: array
-        x-go-package: intel/amber/kbs/v1/docs
+        x-go-package: intel/kbs/v1/docs
     KeyTransferPolicy:
         properties:
             attestation_type:
@@ -132,7 +132,7 @@ definitions:
             - id
             - attestation_type
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     KeyTransferResponse:
         properties:
             wrapped_key:
@@ -148,7 +148,7 @@ definitions:
                 type: array
                 x-go-name: WrappedSWK
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     SgxAttributes:
         properties:
             client_permissions:
@@ -194,7 +194,7 @@ definitions:
                 type: array
                 x-go-name: MrSigner
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     SgxPolicy:
         properties:
             attributes:
@@ -208,7 +208,7 @@ definitions:
                 type: array
                 x-go-name: PolicyIds
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     TdxAttributes:
         properties:
             enforce_tcb_upto_date:
@@ -264,7 +264,7 @@ definitions:
                 type: integer
                 x-go-name: SeamSvn
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     TdxPolicy:
         properties:
             attributes:
@@ -278,7 +278,7 @@ definitions:
                 type: array
                 x-go-name: PolicyIds
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     User:
         properties:
             password:
@@ -303,7 +303,7 @@ definitions:
             - password
             - permissions
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
     UserResponse:
         properties:
             created_at:
@@ -339,7 +339,7 @@ definitions:
                 type: string
                 x-go-name: Username
         type: object
-        x-go-package: intel/amber/kbs/v1/model
+        x-go-package: intel/kbs/v1/model
 host: kbs.com:9443
 info:
     description: |-

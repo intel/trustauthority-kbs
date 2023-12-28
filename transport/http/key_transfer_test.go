@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"intel/amber/kbs/v1/service"
+	"intel/kbs/v1/service"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"

@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	"intel/amber/kbs/v1/version"
+	"intel/kbs/v1/version"
 
 	log "github.com/sirupsen/logrus"
 )

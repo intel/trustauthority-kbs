@@ -7,10 +7,10 @@ import (
 	"context"
 	"net/http"
 
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/service"
-	"intel/amber/kbs/v1/version"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/service"
+	"intel/kbs/v1/version"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"

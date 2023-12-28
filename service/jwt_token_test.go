@@ -9,17 +9,17 @@ import (
 	"github.com/onsi/gomega"
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"github.com/stretchr/testify/mock"
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
-	"intel/amber/kbs/v1/repository/mocks"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
+	"intel/kbs/v1/repository/mocks"
 	"testing"
 )
 
 var mockUserStore *mocks.MockUserStore = mocks.NewFakeUserStore()
 var svcJWTTestInstance Service = service{
-	asClient:    asClient,
-	jwtVerifier: jwtVerifier,
+	itaApiClient:           itaClientConnector,
+	itaTokenVerifierClient: itaClientConnector,
 	repository: &repository.Repository{
 		UserStore:              mockUserStore,
 		KeyStore:               keyStore,

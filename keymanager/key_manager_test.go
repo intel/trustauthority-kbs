@@ -5,8 +5,8 @@ package keymanager
 
 import (
 	"github.com/onsi/gomega"
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
 	"testing"
 )
 

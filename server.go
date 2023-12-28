@@ -11,25 +11,21 @@ import (
 	"encoding/pem"
 	"fmt"
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
-	"intel/amber/kbs/v1/tasks"
+	"intel/kbs/v1/clients/ita"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/tasks"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"path"
-	"path/filepath"
 	"syscall"
 	"time"
 
-	"intel/amber/kbs/v1/clients/as"
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/crypt"
-	"intel/amber/kbs/v1/jwt"
-	"intel/amber/kbs/v1/keymanager"
-	"intel/amber/kbs/v1/repository"
-	"intel/amber/kbs/v1/service"
-	httpTransport "intel/amber/kbs/v1/transport/http"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/keymanager"
+	"intel/kbs/v1/repository"
+	"intel/kbs/v1/service"
+	httpTransport "intel/kbs/v1/transport/http"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -60,21 +56,30 @@ func (app *App) startServer() error {
 	repository := repository.NewDirectoryRepository(constant.HomeDir)
 	remoteManager := keymanager.NewRemoteManager(repository.KeyStore, keyManager)
 
-	// Initialize AS client
-	asClient, err := newASClient(configuration)
+	itaApiServername, err := url.Parse(config.TrustAuthorityApiUrl)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error parsing Trust Authority API url")
 	}
 
-	// Initialize JwtVerifier
-	var cacheTime, _ = time.ParseDuration(constant.JWTCertsCacheTime)
-	jwtVerifier, err := newJwtVerifier(constant.TrustedJWTSigningCertsDir, constant.TrustedCACertsDir, cacheTime)
+	// initialize ITA client
+	itaApiClient, err := ita.NewITAClient(configuration, itaApiServername.Hostname())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed to initialize TrustAuthority Client")
+	}
+
+	// initialize ITA client for token verification
+	itaTokenVerifierServername, err := url.Parse(config.TrustAuthorityBaseUrl)
+	if err != nil {
+		return errors.Wrap(err, "Error parsing Trust Authority Base url")
+	}
+
+	itaTokenVerifierClient, err := ita.NewITAClient(configuration, itaTokenVerifierServername.Hostname())
+	if err != nil {
+		return errors.Wrap(err, "Failed to initialize TrustAuthority Client for attestation token verification")
 	}
 
 	// Initialize the Service
-	svc, err := service.NewService(asClient, jwtVerifier, repository, remoteManager, configuration)
+	svc, err := service.NewService(itaApiClient, itaTokenVerifierClient, repository, remoteManager, configuration)
 	if err != nil {
 		msg := "Failed to initialize Service"
 		log.WithError(err).Error(msg)
@@ -188,75 +193,4 @@ func (app *App) startServer() error {
 	}
 	log.Info("service stopped")
 	return nil
-}
-
-func newASClient(cfg *config.Configuration) (as.ASClient, error) {
-
-	asBaseUrl, err := url.Parse(cfg.ASBaseUrl)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing AS url")
-	}
-
-	caCerts, err := crypt.GetCertsFromDir(constant.TrustedCACertsDir)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error loading CA certificates")
-	}
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12, // keeping TLS1.2 for compatibility with AWSGW
-				RootCAs:    crypt.GetCertPool(caCerts),
-				ServerName: asBaseUrl.Hostname(),
-			},
-			Proxy: http.ProxyFromEnvironment,
-		},
-	}
-
-	asClient := as.NewASClient(client, asBaseUrl, cfg.ASApiKey)
-
-	return asClient, nil
-}
-
-func newJwtVerifier(signingCertsDir, trustedCAsDir string, cacheTime time.Duration) (jwt.Verifier, error) {
-
-	certPems, err := GetDirFileContents(signingCertsDir, "*.pem")
-	if err != nil {
-		return nil, err
-	}
-
-	rootPems, err := GetDirFileContents(trustedCAsDir, "*.pem")
-	if err != nil {
-		return nil, err
-	}
-
-	return jwt.NewVerifier(certPems, rootPems, cacheTime)
-}
-
-func GetDirFileContents(dir, pattern string) ([][]byte, error) {
-	dirContents := make([][]byte, 0)
-	//if we are passed in an empty pattern, set pattern to * to match all files
-	if pattern == "" {
-		pattern = "*"
-	}
-
-	err := filepath.Walk(dir, func(fPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if matched, _ := path.Match(pattern, info.Name()); matched {
-			if content, err := os.ReadFile(fPath); err == nil {
-				dirContents = append(dirContents, content)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return dirContents, nil
 }

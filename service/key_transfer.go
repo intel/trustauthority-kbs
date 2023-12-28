@@ -13,17 +13,17 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/pem"
+	itaConnector "github.com/intel/trustauthority-client/go-connector"
 	"hash"
+	"intel/kbs/v1/crypt"
 	"io"
 	"math/big"
 	"net/http"
-	"strings"
 	"time"
 
-	"intel/amber/kbs/v1/clients/as"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/keymanager"
-	"intel/amber/kbs/v1/model"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/keymanager"
+	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -45,7 +45,7 @@ type TransferKeyRequest struct {
 
 type TransferKeyResponse struct {
 	AttestationType     string
-	Nonce               *as.VerifierNonce
+	Nonce               *itaConnector.VerifierNonce
 	KeyTransferResponse *model.KeyTransferResponse
 }
 
@@ -80,16 +80,18 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 	}
 
 	var token string
+	itaRequestID := req.KeyId.String()
 	if req.AttestationType == "" {
 		if req.KeyTransferRequest.AttestationToken == "" {
-			nonce, err := svc.asClient.GetNonce()
+			nonceArgs := itaConnector.GetNonceArgs{RequestId: itaRequestID}
+			nonceResp, err := svc.itaApiClient.GetNonce(nonceArgs)
 			if err != nil {
-				log.WithError(err).Error("Error retrieving nonce from appraisal service")
-				return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving nonce from appraisal service"}
+				log.WithError(err).Error("Error retrieving nonce from Trust Authority service")
+				return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving nonce from Trust Authority service"}
 			}
 
 			resp := &TransferKeyResponse{
-				Nonce:               nonce,
+				Nonce:               nonceResp.Nonce,
 				AttestationType:     transferPolicy.AttestationType[0].String(),
 				KeyTransferResponse: nil,
 			}
@@ -112,19 +114,24 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 			policyIds = transferPolicy.TDX.PolicyIds
 		}
 
-		tokenRequest := as.AttestationTokenRequest{
-			Quote:         req.KeyTransferRequest.Quote,
-			VerifierNonce: req.KeyTransferRequest.VerifierNonce,
-			RuntimeData:   req.KeyTransferRequest.RuntimeData,
-			PolicyIds:     policyIds,
-			EventLog:      req.KeyTransferRequest.EventLog,
+		evidence := itaConnector.Evidence{
+			Evidence: req.KeyTransferRequest.Quote,
+			UserData: req.KeyTransferRequest.RuntimeData,
+			EventLog: req.KeyTransferRequest.EventLog,
+		}
+		tokenRequest := itaConnector.GetTokenArgs{
+			Nonce:     req.KeyTransferRequest.VerifierNonce,
+			Evidence:  &evidence,
+			PolicyIds: policyIds,
+			RequestId: itaRequestID,
 		}
 
-		token, err = svc.asClient.GetAttestationToken(&tokenRequest)
+		tokenResp, err := svc.itaApiClient.GetToken(tokenRequest)
 		if err != nil {
-			log.WithError(err).Error("Error retrieving token from appraisal service")
-			return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving token from appraisal service"}
+			log.WithError(err).Error("Error retrieving token from Trust Authority service")
+			return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving token from Trust Authority service"}
 		}
+		token = tokenResp.Token
 	}
 
 	claims, err := svc.authenticateToken(token)
@@ -153,11 +160,15 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 func (svc service) authenticateToken(token string) (interface{}, error) {
 
 	claims := &model.AttestationTokenClaim{}
-	_, err := svc.jwtVerifier.ValidateTokenAndGetClaims(strings.TrimSpace(token), &claims)
+	jwtToken, err := svc.itaTokenVerifierClient.VerifyToken(token)
 	if err != nil {
-		return nil, errors.Wrap(err, "token validation failure")
+		return nil, errors.Wrap(err, "Error while verifying the token")
 	}
 
+	_, err = crypt.GetTokenClaims(jwtToken, token, &claims)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error while parsing the token claims")
+	}
 	return claims, nil
 }
 

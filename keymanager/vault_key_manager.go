@@ -13,15 +13,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/crypt"
+	"intel/kbs/v1/crypt"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/pkg/errors"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/vaultclient"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/vaultclient"
 )
 
 type VaultManager struct {

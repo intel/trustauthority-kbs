@@ -5,13 +5,11 @@ package config
 
 import (
 	"github.com/onsi/gomega"
+	"github.com/spf13/viper"
+	"intel/kbs/v1/constant"
 	"os"
 	"strings"
 	"testing"
-
-	"intel/amber/kbs/v1/constant"
-
-	"github.com/spf13/viper"
 )
 
 // go test intel/amber/kbs/v1/config -v
@@ -20,8 +18,9 @@ func clearEnv() {
 	os.Unsetenv("SERVICE_PORT")
 	os.Unsetenv("LOG_LEVEL")
 	os.Unsetenv("LOG_CALLER")
-	os.Unsetenv("AS_BASE_URL")
-	os.Unsetenv("AS_API_KEY")
+	os.Unsetenv("TRUSTAUTHORITY_API_URL")
+	os.Unsetenv("TRUSTAUTHORITY_API_KEY")
+	os.Unsetenv("TRUSTAUTHORITY_BASE_URL")
 	os.Unsetenv("KEY_MANAGER")
 	os.Unsetenv("BEARER_TOKEN_VALIDITY_IN_MINUTES")
 	os.Unsetenv("KMIP_VERSION")
@@ -42,8 +41,9 @@ func setValidEnv() {
 	os.Setenv("SERVICE_PORT", "6566")
 	os.Setenv("LOG_LEVEL", "info")
 	os.Setenv("LOG_CALLER", "true")
-	os.Setenv("AS_BASE_URL", "https://as.taas.cluster.local")
-	os.Setenv("AS_API_KEY", "YXBpa2V5")
+	os.Setenv("TRUSTAUTHORITY_API_URL", "https://as.taas.cluster.local")
+	os.Setenv("TRUSTAUTHORITY_API_KEY", "YXBpa2V5")
+	os.Setenv("TRUSTAUTHORITY_BASE_URL", "https://as.taas.cluster.local")
 	os.Setenv("BEARER_TOKEN_VALIDITY_IN_MINUTES", "5")
 	os.Setenv("KEY_MANAGER", "KMIP")
 	os.Setenv("KMIP_VERSION", "2.0")
@@ -160,16 +160,6 @@ func TestValidateInvalidConfig(t *testing.T) {
 	err = cfg.Validate()
 	g.Expect(err).To(gomega.HaveOccurred())
 
-	// invalid API key and URL
-	cfg, err = LoadConfiguration()
-	if err != nil {
-		t.Log(err)
-	}
-	cfg.ASApiKey = ""
-	cfg.ASBaseUrl = ""
-	err = cfg.Validate()
-	g.Expect(err).To(gomega.HaveOccurred())
-
 	// invalid username and password
 	cfg, err = LoadConfiguration()
 	if err != nil {
@@ -189,12 +179,23 @@ func TestValidateInvalidConfig(t *testing.T) {
 	err = cfg.Validate()
 	g.Expect(err).To(gomega.HaveOccurred())
 
+	// invalid API key and URL
+	cfg, err = LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	cfg.TrustAuthorityApiKey = ""
+	cfg.TrustAuthorityBaseUrl = ""
+	cfg.TrustAuthorityApiUrl = ""
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+
 	// invalid api key
 	cfg, err = LoadConfiguration()
 	if err != nil {
 		t.Log(err)
 	}
-	cfg.ASApiKey = "123"
+	cfg.TrustAuthorityApiKey = "123"
 	err = cfg.Validate()
 	g.Expect(err).To(gomega.HaveOccurred())
 
@@ -203,7 +204,20 @@ func TestValidateInvalidConfig(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
-	cfg.ASBaseUrl = ":invalid-url"
+	cfg.TrustAuthorityBaseUrl = ":invalid-url"
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestInvalidTokenValidity(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	g := gomega.NewGomegaWithT(t)
+	cfg.BearerTokenValidityInMinutes = 0
 	err = cfg.Validate()
 	g.Expect(err).To(gomega.HaveOccurred())
 }

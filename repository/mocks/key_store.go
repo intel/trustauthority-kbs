@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	defaultLog "github.com/sirupsen/logrus"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository/directory"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository/directory"
 	"reflect"
 	"time"
 )

@@ -6,17 +6,16 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/intel/trustauthority-client/go-connector"
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"github.com/shaj13/go-guardian/v2/auth/strategies/token"
 	"github.com/shaj13/libcache"
-	"intel/amber/kbs/v1/clients/as"
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	"intel/amber/kbs/v1/jwt"
-	"intel/amber/kbs/v1/keymanager"
-	"intel/amber/kbs/v1/model"
-	"intel/amber/kbs/v1/repository"
-	"intel/amber/kbs/v1/version"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/keymanager"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
+	"intel/kbs/v1/version"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,23 +43,23 @@ type Service interface {
 }
 
 type service struct {
-	asClient      as.ASClient
-	jwtVerifier   jwt.Verifier
-	repository    *repository.Repository
-	remoteManager *keymanager.RemoteManager
-	config        *config.Configuration
+	itaApiClient           connector.Connector
+	itaTokenVerifierClient connector.Connector
+	repository             *repository.Repository
+	remoteManager          *keymanager.RemoteManager
+	config                 *config.Configuration
 }
 
-func NewService(asClient as.ASClient, jwtVerifier jwt.Verifier, repo *repository.Repository, remoteManager *keymanager.RemoteManager, config *config.Configuration) (Service, error) {
+func NewService(itaApiClient connector.Connector, itaTokenVerifierClient connector.Connector, repo *repository.Repository, remoteManager *keymanager.RemoteManager, configuration *config.Configuration) (Service, error) {
 
 	var svc Service
 	{
 		svc = service{
-			asClient:      asClient,
-			jwtVerifier:   jwtVerifier,
-			repository:    repo,
-			remoteManager: remoteManager,
-			config:        config,
+			itaApiClient:           itaApiClient,
+			itaTokenVerifierClient: itaTokenVerifierClient,
+			repository:             repo,
+			remoteManager:          remoteManager,
+			config:                 configuration,
 		}
 	}
 

@@ -5,8 +5,8 @@ package http
 
 import (
 	"bytes"
-	"intel/amber/kbs/v1/model"
-	cns "intel/amber/kbs/v1/repository/mocks/constants"
+	"intel/kbs/v1/model"
+	cns "intel/kbs/v1/repository/mocks/constants"
 	"io"
 	"net/http"
 	"net/http/httptest"

@@ -13,9 +13,9 @@ import (
 	"strconv"
 	"strings"
 
-	"intel/amber/kbs/v1/config"
-	"intel/amber/kbs/v1/constant"
-	constants "intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
+	constants "intel/kbs/v1/constant"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

@@ -6,7 +6,7 @@ package version
 import (
 	"fmt"
 
-	"intel/amber/kbs/v1/constant"
+	"intel/kbs/v1/constant"
 )
 
 var Version = ""
