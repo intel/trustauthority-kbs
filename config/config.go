@@ -7,14 +7,10 @@ import (
 	"encoding/base64"
 	"intel/kbs/v1/constant"
 	"net/url"
-	"os"
-	"path/filepath"
 	"regexp"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 // Constants for viper variable names. Will be used to set
@@ -106,25 +102,6 @@ func LoadConfiguration() (*Configuration, error) {
 		return &ret, errors.Wrap(err, "Failed to unmarshal config")
 	}
 	return &ret, nil
-}
-
-// Save saves application specific configuration to config.yml
-func (config *Configuration) Save(filename string) error {
-	configFile, err := os.OpenFile(filepath.Clean(filename), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
-	if err != nil {
-		return errors.Wrap(err, "Failed to create config file")
-	}
-	defer func() {
-		derr := configFile.Close()
-		if derr != nil {
-			log.WithError(derr).Error("Error closing config file")
-		}
-	}()
-	err = yaml.NewEncoder(configFile).Encode(config)
-	if err != nil {
-		return errors.Wrap(err, "Failed to encode config structure")
-	}
-	return nil
 }
 
 func (conf *Configuration) Validate() error {
