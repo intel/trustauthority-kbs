@@ -9,21 +9,17 @@ const (
 	ExplicitServiceName = "Key Broker Service"
 	ServiceDir          = "kbs/"
 	ApiVersion          = "v1"
-	ServiceUserName     = "kbs"
 
-	HomeDir      = "/opt/" + ServiceDir
-	RunDirPath   = "/run/" + ServiceDir
-	ExecLinkPath = "/usr/bin/" + ServiceName
-	ConfigDir    = "/etc/" + ServiceDir
-	ConfigFile   = "config"
+	HomeDir    = "/opt/" + ServiceDir
+	ConfigDir  = "/etc/" + ServiceDir
+	ConfigFile = "config"
 
 	KeysDir               = "keys/"
 	KeysTransferPolicyDir = "keys-transfer-policy/"
 	UserDir               = "users/"
 
 	// defaults
-	DefaultKeyManager     = "Kmip"
-	DefaultConfigFilePath = ConfigDir + "config.yml"
+	DefaultKeyManager = "Vault"
 
 	// default locations for tls certificate and key
 	TLSCertsPath       = ConfigDir + "certs/tls/"
@@ -40,9 +36,6 @@ const (
 	DefaultKeyLength         = 3072
 	DefaultTokenExpiration   = 5
 
-	// service remove command
-	ServiceRemoveCmd = "systemctl disable kbs"
-
 	// log constants
 	DefaultLogLevel = "info"
 
@@ -50,14 +43,9 @@ const (
 	DefaultHttpPort = 9443
 
 	// kmipmanager constants
-	KmipKeyManager     = "kmip"
-	VaultKeyManager    = "vault"
-	DefaultKmipPort    = 5696
-	DefaultVaultPort   = 8200
-	KmipCertsPath      = ConfigDir + "certs/kmip/"
-	KmipClientKeyPath  = KmipCertsPath + "client_key.pem"
-	KmipClientCertPath = KmipCertsPath + "client_certificate.pem"
-	KmipRootCertPath   = KmipCertsPath + "root_certificate.pem"
+	KmipKeyManager   = "kmip"
+	VaultKeyManager  = "vault"
+	DefaultVaultPort = 8200
 
 	// algorithm constants
 	CRYPTOALGAES = "AES"

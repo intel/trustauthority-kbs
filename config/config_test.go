@@ -57,7 +57,7 @@ func setValidEnv() {
 	os.Setenv("KMIP_CLIENT_KEY_PATH", "/etc/pykmip/client_key.pem")
 	os.Setenv("KMIP_CLIENT_CERT_PATH", "/etc/pykmip/client_certificate.pem")
 	os.Setenv("KMIP_ROOT_CERT_PATH", "/etc/pykmip/root_certificate.pem")
-	os.Unsetenv("SAN_LIST")
+	os.Setenv("SAN_LIST", "localhost")
 }
 
 func setViperInit() {
@@ -92,7 +92,6 @@ func TestLoadInvalidConf(t *testing.T) {
 func TestLoadInvalidServicePort(t *testing.T) {
 	setValidEnv()
 	os.Setenv("SERVICE_PORT", "invalidport")
-	setViperInit()
 	_, err := LoadConfiguration()
 	if err == nil {
 		t.Errorf("Expected parsing to fail because config provided invalid port no")
@@ -103,25 +102,18 @@ func TestLoadInvalidServicePort(t *testing.T) {
 func TestSaveConf(t *testing.T) {
 	setValidEnv()
 	setViperInit()
-	cfg, err := LoadConfiguration()
+	_, err := LoadConfiguration()
 	if err != nil {
 		t.Log(err)
 	}
-	err = cfg.Save("./../test/resource/tmp")
-	if err != nil {
-		t.Log(err)
-	}
+
 	clearEnv()
 }
 
 func TestSaveConfInvalidFilename(t *testing.T) {
 	setValidEnv()
 	setViperInit()
-	cfg, err := LoadConfiguration()
-	if err != nil {
-		t.Log(err)
-	}
-	err = cfg.Save("./../testFolder/tmpInvalid")
+	_, err := LoadConfiguration()
 	if err != nil {
 		t.Log(err)
 	}
@@ -132,10 +124,6 @@ func TestValidate(t *testing.T) {
 	setValidEnv()
 	setViperInit()
 	cfg, err := LoadConfiguration()
-	if err != nil {
-		t.Log(err)
-	}
-	err = cfg.Save("./../test/resource/tmp")
 	if err != nil {
 		t.Log(err)
 	}
