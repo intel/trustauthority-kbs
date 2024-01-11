@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"intel/kbs/v1/constant"
+	"intel/kbs/v1/crypt"
 	"os"
 	"path/filepath"
 )
@@ -22,11 +23,13 @@ type CreateSigningKey struct {
 
 func (csk *CreateSigningKey) CreateJWTSigningKey() error {
 	key, err := rsa.GenerateKey(rand.Reader, constant.DefaultKeyLength)
+	defer crypt.ZeroizeRSAPrivateKey(key)
 	if err != nil {
 		return errors.Wrap(err, "Could not generate rsa key pair, Error")
 	}
 	// store key and cert to file
 	keyDer, err := x509.MarshalPKCS8PrivateKey(key)
+	defer crypt.ZeroizeByteArray(keyDer)
 	if err != nil {
 		return errors.Wrap(err, "Failed to marshal private key")
 	}
