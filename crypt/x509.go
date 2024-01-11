@@ -6,14 +6,13 @@ package crypt
 import (
 	"crypto"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	MaxCertChainLength = 10
+	"golang.org/x/crypto/hkdf"
+	"io"
 )
 
 // GetPrivateKeyFromPem retrieve the private key from a private pem block
@@ -46,11 +45,26 @@ func GetPublicKeyFromPem(keyPem []byte) (crypto.PublicKey, error) {
 	return key, nil
 }
 
-// GetRandomBytes retrieves a byte array of 'length'
-func GetRandomBytes(length int) ([]byte, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return nil, err
+// GetDerivedKey is used to get an AES key of given length using crypto hkdf function
+func GetDerivedKey(keySize int) ([]byte, error) {
+	hash := sha256.New
+	secret := make([]byte, keySize)
+	_, err := rand.Read(secret)
+	defer ZeroizeByteArray(secret)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed during rand initialization for secret value")
 	}
-	return bytes, nil
+
+	salt := make([]byte, hash().Size())
+	if _, err := rand.Read(salt); err != nil {
+		return nil, errors.New("Failed during rand initialization for salt value")
+	}
+
+	// generate 256-bit derived key
+	hkdFunc := hkdf.New(hash, secret, salt, nil)
+	key := make([]byte, keySize)
+	if _, err := io.ReadFull(hkdFunc, key); err != nil {
+		return nil, errors.New("Failed while reading hkdf buffer into key")
+	}
+	return key, nil
 }

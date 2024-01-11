@@ -36,6 +36,7 @@ func (vm *VaultManager) CreateKey(request *model.KeyRequest) (*model.KeyAttribut
 	var err error
 	if request.KeyInfo.Algorithm == constant.CRYPTOALGAES {
 		keyBytes, err := generateAESKey(request.KeyInfo.KeyLength)
+		defer crypt.ZeroizeByteArray(keyBytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "Could not generate AES key")
 		}
@@ -43,7 +44,6 @@ func (vm *VaultManager) CreateKey(request *model.KeyRequest) (*model.KeyAttribut
 		keyAttributes.KeyLength = request.KeyInfo.KeyLength
 		keyAttributes.KeyData = base64.StdEncoding.EncodeToString(keyBytes)
 	} else {
-
 		var public crypto.PublicKey
 		var private crypto.PrivateKey
 		if request.KeyInfo.Algorithm == constant.CRYPTOALGRSA {
@@ -59,13 +59,14 @@ func (vm *VaultManager) CreateKey(request *model.KeyRequest) (*model.KeyAttribut
 			}
 			keyAttributes.CurveType = request.KeyInfo.CurveType
 		}
-
 		privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(private)
+		defer crypt.ZeroizeByteArray(privateKeyBytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to marshal private key")
 		}
 
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(public)
+		defer crypt.ZeroizeByteArray(publicKeyBytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to marshal public key")
 		}
@@ -198,7 +199,7 @@ func (vm *VaultManager) TransferKey(attributes *model.KeyAttributes) ([]byte, er
 }
 
 func generateAESKey(length int) ([]byte, error) {
-	return crypt.GetRandomBytes(length / 8)
+	return crypt.GetDerivedKey(length / 8)
 }
 
 func generateRSAKeyPair(length int) (crypto.PrivateKey, crypto.PublicKey, error) {

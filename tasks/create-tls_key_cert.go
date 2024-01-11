@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"intel/kbs/v1/constant"
+	"intel/kbs/v1/crypt"
 	"math/big"
 	"net"
 	"os"
@@ -30,6 +31,7 @@ type TLSKeyAndCert struct {
 
 func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 	key, err := rsa.GenerateKey(rand.Reader, constant.DefaultKeyLength)
+	defer crypt.ZeroizeRSAPrivateKey(key)
 	if err != nil {
 		return fmt.Errorf("could not generate rsa key pair, Error: %s", err)
 	}
@@ -64,11 +66,13 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 		}
 	}
 	selfSignCert, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	defer crypt.ZeroizeByteArray(selfSignCert)
 	if err != nil {
 		return errors.Wrap(err, "x509.CreateCertificate Failed")
 	}
 	// store key and cert to file
 	keyDer, err := x509.MarshalPKCS8PrivateKey(key)
+	defer crypt.ZeroizeByteArray(keyDer)
 	if err != nil {
 		return errors.Wrap(err, "Failed to marshal private key")
 	}

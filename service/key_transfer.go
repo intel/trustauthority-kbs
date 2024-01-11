@@ -192,11 +192,13 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 	}
 
 	secretKey, status, err := getSecretKey(svc.remoteManager, id)
+	defer crypt.ZeroizeByteArray(secretKey.([]byte))
 	if err != nil {
 		return nil, status, err
 	}
 
 	swk, err := CreateSwk()
+	defer crypt.ZeroizeByteArray(swk)
 	if err != nil {
 		log.Error("Error in creating SWK key")
 		return nil, http.StatusInternalServerError, &HandledError{Message: "Error in creating SWK key"}
@@ -221,6 +223,8 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 			return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to decode secret key"}
 		}
 		keyByte = decodedBlock.Bytes
+		defer crypt.ZeroizeByteArray(decodedBlock.Bytes)
+		defer crypt.ZeroizeByteArray(privatePem)
 
 	case constant.CRYPTOALGEC:
 		privatePem := pem.EncodeToMemory(
@@ -236,8 +240,11 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 			return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to decode secret key"}
 		}
 		keyByte = decodedBlock.Bytes
+		defer crypt.ZeroizeByteArray(decodedBlock.Bytes)
+		defer crypt.ZeroizeByteArray(privatePem)
 	}
 
+	defer crypt.ZeroizeByteArray(keyByte)
 	// Wrap secret key with swk
 	bytes, nonceByte, err = AesEncrypt(keyByte, swk)
 	if err != nil {
@@ -291,6 +298,12 @@ func getPublicKey(userData string, attesterType model.AttesterType) (*rsa.Public
 		eb = binary.BigEndian.Uint32(key[:])
 	}
 	n.SetBytes(modArr)
+
+	// imposing lower limit on the size of the public key for enhanced security reasons
+	if n.BitLen() <= 2048 {
+		return nil, errors.New("RSA key size must be greater than 2048 bits")
+	}
+
 	pubKey := rsa.PublicKey{N: &n, E: int(eb)}
 	return &pubKey, nil
 }
@@ -326,12 +339,10 @@ func wrapKey(publicKey *rsa.PublicKey, secretKey []byte, hash hash.Hash, label [
 func CreateSwk() ([]byte, error) {
 
 	// create an AES Key here of 256 bits
-	keyBytes := make([]byte, 32)
-	_, err := rand.Read(keyBytes)
+	keyBytes, err := crypt.GetDerivedKey(32)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to generate random key bytes")
 	}
-
 	return keyBytes, nil
 }
 

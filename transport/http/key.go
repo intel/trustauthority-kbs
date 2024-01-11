@@ -34,9 +34,10 @@ const (
 )
 
 var (
-	allowedAlgorithms = map[string]bool{"AES": true, "RSA": true, "EC": true, "aes": true, "rsa": true, "ec": true}
-	allowedCurveTypes = map[string]bool{"secp256r1": true, "secp384r1": true, "secp521r1": true, "prime256v1": true}
-	allowedKeyLengths = map[int]bool{128: true, 192: true, 256: true, 2048: true, 3072: true, 4096: true, 7680: true}
+	allowedAlgorithms    = map[string]bool{"AES": true, "RSA": true, "EC": true, "aes": true, "rsa": true, "ec": true}
+	allowedCurveTypes    = map[string]bool{"secp256r1": true, "secp384r1": true, "secp521r1": true, "prime256v1": true}
+	allowedAESKeyLengths = map[int]bool{128: true, 192: true, 256: true}
+	allowedRSAKeyLengths = map[int]bool{2048: true, 3072: true, 4096: true, 7680: true}
 )
 
 func setKeyHandler(svc service.Service, router *mux.Router, options []httpTransport.ServerOption, auth *model.JwtAuthz) error {
@@ -357,10 +358,18 @@ func validateKeyCreateRequest(keyCreateReq model.KeyRequest) error {
 		} else if !allowedCurveTypes[keyCreateReq.KeyInfo.CurveType] {
 			return errors.New("curve_type is not supported")
 		}
+	}
+
+	if keyCreateReq.KeyInfo.KeyLength == 0 {
+		return errors.New("Key length is missing")
+	}
+
+	if strings.ToUpper(algorithm) == constant.CRYPTOALGAES {
+		if !allowedAESKeyLengths[keyCreateReq.KeyInfo.KeyLength] {
+			return errors.New("key_length is not supported")
+		}
 	} else {
-		if keyCreateReq.KeyInfo.KeyLength == 0 {
-			return errors.New("Key length is missing")
-		} else if !allowedKeyLengths[keyCreateReq.KeyInfo.KeyLength] {
+		if !allowedRSAKeyLengths[keyCreateReq.KeyInfo.KeyLength] {
 			return errors.New("key_length is not supported")
 		}
 	}
@@ -399,7 +408,7 @@ func getKeyFilterCriteria(params url.Values) (*model.KeyFilterCriteria, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "Invalid keyLength query param value, must be Integer")
 		}
-		if !allowedKeyLengths[length] {
+		if !allowedAESKeyLengths[length] && !allowedRSAKeyLengths[length] {
 			return nil, errors.New("Valid keyLength must be specified")
 		}
 		criteria.KeyLength = length
