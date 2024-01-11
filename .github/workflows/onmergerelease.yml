@@ -80,11 +80,6 @@ jobs:
           logout: false
 
       - name: Push Image
-        uses: docker/login-action@v2
-        with:
-          registry: amr-registry.caas.intel.com
-          username: ${{ secrets.HARBOR_USERNAME  }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
         run: |
           make REPO=amr-registry.caas.intel.com/amber push-commit
 
