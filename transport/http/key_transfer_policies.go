@@ -160,31 +160,21 @@ func encodeSearchKeyTransferPoliciesHTTPResponse(ctx context.Context, w http.Res
 
 func validateKeyTransferPolicy(policyCreateReq model.KeyTransferPolicy) error {
 
-	if policyCreateReq.AttestationType == nil {
+	if policyCreateReq.AttestationType == "" {
 		return errors.New("Attestation_type must be specified")
 	}
 
-	if len(policyCreateReq.AttestationType) != 1 {
-		return errors.New("Only one attestation type is supported in key transfer policy")
-	}
-
-	if !policyCreateReq.AttestationType[0].Valid() {
+	if !policyCreateReq.AttestationType.Valid() {
 		return errors.New("Invalid attestation type")
 	}
 
-	if policyCreateReq.AttestationType[0] == model.SGX && policyCreateReq.SGX.Attributes != nil {
-		if policyCreateReq.SGX.Attributes.MrSigner == nil || policyCreateReq.SGX.Attributes.IsvProductId == nil {
-			return errors.New("MrSigner and IsvProductId must be specified for SGX policy")
-		}
+	if policyCreateReq.AttestationType == model.SGX && policyCreateReq.SGX.Attributes != nil {
 		if err := validateSGXAttributes(policyCreateReq.SGX.Attributes); err != nil {
 			return errors.Wrap(err, "Input validation failed for SGX Attributes")
 		}
 	}
 
-	if policyCreateReq.AttestationType[0] == model.TDX && policyCreateReq.TDX.Attributes != nil {
-		if policyCreateReq.TDX.Attributes.MrSignerSeam == nil || policyCreateReq.TDX.Attributes.MrSeam == nil {
-			return errors.New("MrSignerSeam and MrSeam must be specified for TDX policy")
-		}
+	if policyCreateReq.AttestationType == model.TDX && policyCreateReq.TDX.Attributes != nil {
 		if err := validateTDXAttributes(policyCreateReq.TDX.Attributes); err != nil {
 			return errors.Wrap(err, "Input validation failed for TDX Attributes")
 		}
@@ -208,11 +198,6 @@ func validateSGXAttributes(sgxPolicyAttributes *model.SgxAttributes) error {
 		}
 	}
 
-	if sgxPolicyAttributes.ClientPermissions != nil {
-		if err := ValidateStrings(sgxPolicyAttributes.ClientPermissions); err != nil {
-			return errors.Wrap(err, "Input validation failed for client permissions")
-		}
-	}
 	return nil
 }
 

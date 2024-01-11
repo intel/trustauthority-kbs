@@ -24,9 +24,7 @@ func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 	tmpId := uuid.New().String()
 	policyReqJsonStr := string(`{
 					"id": "` + tmpId + `",
-					"attestation_type":[
-                                           "SGX"
-                                        ],
+					"attestation_type": "SGX",
                                         "sgx":{
                                            "attributes":{
                                                   "mrsigner":[
@@ -39,10 +37,6 @@ func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 						  	"` + cns.ValidMrEnclave + `"
                                                   ],
                                                   "isvsvn":1,
-                                                  "client_permissions":[
-                                                         "nginx",
-                                                         "USA"
-                                                  ],
                                                   "enforce_tcb_upto_date":true
                                            }
                                         }
@@ -142,9 +136,7 @@ func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 
 	policyReqJsonStr = string(`{
 					"id": "` + tmpId + `",
-					"attestation_type":[
-                                           "SGX"
-                                        ],
+					"attestation_type":"SGX",
 					"sgx":
 					    "attributes" : {}
 				}`)
@@ -159,9 +151,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 
 	policyReqJsonStr := `{
 			"id": "3b9d565a-6ff5-4e5a-a0a8-64f3183d1722",
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -370,9 +360,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 
 	policyReqJsonStr = `{
 		"id": "3b9d565a-6ff5-4e5a-a0a8-64f3183d1722",
-		"attestation_type": [
-		  "TDX"
-		],
+		"attestation_type": "TDX",
 		"tdx": {
 			  "attributes": {}
 		}
@@ -387,9 +375,7 @@ func TestValidateAttestationTokenClaims(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	policyReqJsonStr := string(`{
-		"attestation_type":[
-							   "TPM"
-							]
+		"attestation_type":"TPM"
 	}`)
 
 	tokenClaims := &model.AttestationTokenClaim{}

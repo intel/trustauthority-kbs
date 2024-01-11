@@ -92,7 +92,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 
 			resp := &TransferKeyResponse{
 				Nonce:               nonceResp.Nonce,
-				AttestationType:     transferPolicy.AttestationType[0].String(),
+				AttestationType:     transferPolicy.AttestationType.String(),
 				KeyTransferResponse: nil,
 			}
 			return resp, nil
@@ -100,13 +100,13 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 			token = req.KeyTransferRequest.AttestationToken
 		}
 	} else {
-		if req.AttestationType != transferPolicy.AttestationType[0].String() {
+		if req.AttestationType != transferPolicy.AttestationType.String() {
 			log.Error("attestation-type in request header does not match with attestation-type in key-transfer policy")
 			return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-type in request header does not match with attestation-type in key-transfer policy"}
 		}
 
 		var policyIds []uuid.UUID
-		switch transferPolicy.AttestationType[0] {
+		switch transferPolicy.AttestationType {
 		case model.SGX:
 			policyIds = transferPolicy.SGX.PolicyIds
 
@@ -141,7 +141,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 	}
 
 	tokenClaims := claims.(*model.AttestationTokenClaim)
-	if tokenClaims.AttesterType != transferPolicy.AttestationType[0] {
+	if tokenClaims.AttesterType != transferPolicy.AttestationType {
 		log.Error("attestation-token is not valid for attestation-type in key-transfer policy")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-token is not valid for attestation-type in key-transfer policy"}
 	}
@@ -180,7 +180,7 @@ func (svc service) validateClaimsAndGetKey(tokenClaims *model.AttestationTokenCl
 		return nil, http.StatusUnauthorized, &HandledError{Message: "Token claims validation against key-transfer-policy failed"}
 	}
 
-	return svc.getWrappedKey(keyAlgorithm, userData, keyId, transferPolicy.AttestationType[0])
+	return svc.getWrappedKey(keyAlgorithm, userData, keyId, transferPolicy.AttestationType)
 }
 
 func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, attesterType model.AttesterType) (interface{}, int, error) {
