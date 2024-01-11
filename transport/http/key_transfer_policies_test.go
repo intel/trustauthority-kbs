@@ -115,6 +115,42 @@ func TestKeyTransferPolicySearchHandler(t *testing.T) {
 	t.Log("Response: ", string(data))
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusOK))
 }
+
+func TestKeyTransferPolicySearchHandlerInvalidAcceptHeader(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	var resp []model.KeyTransferPolicy
+
+	mockService := &MockService{}
+	mockService.On("SearchKeyTransferPolicies", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	req, _ := http.NewRequest(http.MethodGet, "/kbs/v1/key-transfer-policies", nil)
+	req.Header.Set("Accept", "test/plain")
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	q := req.URL.Query()
+	q.Add(Algorithm, "AES")
+	q.Add(KeyLength, "128")
+	req.URL.RawQuery = q.Encode()
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+
+	t.Log("Response: ", string(data))
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusUnsupportedMediaType))
+}
+
 func TestKeyTransferPolicyCreateHandler(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	res1 := &model.KeyTransferPolicy{}
@@ -127,15 +163,9 @@ func TestKeyTransferPolicyCreateHandler(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
-			"attestation_type": [
-			  "SGX"
-			],
+			"attestation_type": "SGX",
 			"sgx": {
 				  "attributes": {
-					    "client_permissions": [
-					      "nginx",
-					      "USA"
-					    ],
 					    "enforce_tcb_upto_date": true,
 					    "isvprodid": [
 					      0
@@ -183,9 +213,7 @@ func TestKeyTransferPolicyTDXCreateHandler(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -220,6 +248,7 @@ func TestKeyTransferPolicyTDXCreateHandler(t *testing.T) {
 	t.Log("Response: ", string(data))
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusCreated))
 }
+
 func TestKeyTransferPolicyInvalidHeader(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	res1 := &model.KeyTransferPolicy{}
@@ -252,6 +281,71 @@ func TestKeyTransferPolicyInvalidHeader(t *testing.T) {
 	t.Log("Response: ", string(data))
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusUnsupportedMediaType))
 }
+
+func TestKeyTransferPolicyCreateInvalidHeaders(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	res1 := &model.KeyTransferPolicy{}
+
+	mockService := &MockService{}
+	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
+	handler := createMockHandler(mockService)
+
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	keyJson := `{}`
+
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
+	req.Header.Set("Accept", "plain/text")
+	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+
+	t.Log("Response: ", string(data))
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusUnsupportedMediaType))
+}
+
+func TestKeyTransferPolicyCreateInvalidContentLength(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	res1 := &model.KeyTransferPolicy{}
+
+	mockService := &MockService{}
+	mockService.On("CreateKeyTransferPolicy", mock.Anything, mock.Anything).Return(res1, nil)
+	handler := createMockHandler(mockService)
+
+	err := setKeyTransferPolicyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", nil)
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+
+	t.Log("Response: ", string(data))
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
+}
+
 func TestKeyTransferPolicyInvalidReq(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	res1 := &model.KeyTransferPolicy{}
@@ -322,15 +416,9 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
-		"attestation_type": [
-		  "SGX"
-		],
+		"attestation_type": "SGX",
 		"sgx": {
 			  "attributes": {
-					"client_permissions": [
-					  "nginx",
-					  "USA"
-					],
 					"enforce_tcb_upto_date": true,
 					"isvsvn": 0,
 					"mrenclave": [
@@ -363,15 +451,9 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-		"attestation_type": [
-		  "SGX"
-		],
+		"attestation_type": "SGX",
 		"sgx": {
 			  "attributes": {
-					"client_permissions": [
-					  "nginx",
-					  "USA"
-					],
 					"enforce_tcb_upto_date": true,
 					"isvprodid": [
 					  0
@@ -404,15 +486,9 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-		"attestation_type": [
-		  "SGX"
-		],
+		"attestation_type": "SGX",
 		"sgx": {
 			  "attributes": {
-					"client_permissions": [
-					  "nginx",
-					  "USA"
-					],
 					"enforce_tcb_upto_date": true,
 					"isvprodid": [
 					  0
@@ -448,15 +524,9 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-		"attestation_type": [
-		  "SGX"
-		],
+		"attestation_type": "SGX",
 		"sgx": {
 			  "attributes": {
-					"client_permissions": [
-					  "nginx",
-					  "USA"
-					],
 					"enforce_tcb_upto_date": true,
 					"isvprodid": [
 					  0
@@ -467,49 +537,6 @@ func TestCreateKeyTransferPolicyInvalidSGXData(t *testing.T) {
 					],
 					"mrsigner": [
 					  "InvalidMrSigner"
-					]
-				}
-		}
-	}`
-
-	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
-	req.Header.Set("Accept", HTTPMediaTypeJson)
-	req.Header.Set("Content-type", HTTPMediaTypeJson)
-	req.Header.Set("Authorization", "Bearer "+authToken)
-
-	recorder = httptest.NewRecorder()
-	handler.ServeHTTP(recorder, req)
-
-	res = recorder.Result()
-	defer res.Body.Close()
-
-	data, err = io.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("expected error to be nil got %v", err)
-	}
-
-	t.Log("Response: ", string(data))
-	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
-
-	keyJson = `{
-		"attestation_type": [
-		  "SGX"
-		],
-		"sgx": {
-			  "attributes": {
-					"client_permissions": [
-					  "nginx,USA"
-					],
-					"enforce_tcb_upto_date": true,
-					"isvprodid": [
-					  0
-					],
-					"isvsvn": 0,
-					"mrenclave": [
-						"` + cns.ValidMrEnclave + `"
-					],
-					"mrsigner": [
-						"` + cns.ValidMrSigner + `"
 					]
 				}
 		}
@@ -547,22 +574,21 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	keyJson := `{
-			"attestation_type": [
-			  "TDX"
-			],
-			"tdx": {
-				  "attributes": {
-					    "mrseam": ["` + cns.ValidMrSeam + `"],
-					    "seamsvn": 0,
-					    "mrtd": ["` + cns.ValidMRTD + `"],
-					    "rtmr0": "` + cns.ValidRTMR0 + `",
-					    "rtmr1": "` + cns.ValidRTMR1 + `",
-					    "rtmr2": "` + cns.ValidRTMR2 + `",
-					    "rtmr3": "` + cns.ValidRTMR3 + `",
-					    "enforce_tcb_upto_date": false
-				    }
-			}
-		}`
+		"attestation_type": "TDX",
+		"tdx": {
+			  "attributes": {
+					"mrsignerseam": ["0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"],
+					"mrseam": ["` + cns.ValidMrSeam + `"],
+					"seamsvn": 0,
+					"mrtd": ["` + cns.ValidMRTD + `"],
+					"rtmr0": "` + cns.ValidRTMR0 + `",
+					"rtmr1": "` + cns.ValidRTMR1 + `",
+					"rtmr2": "` + cns.ValidRTMR2 + `",
+					"rtmr3": "` + cns.ValidRTMR3 + `",
+					"enforce_tcb_upto_date": false
+				}
+		}
+	}`
 
 	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
 	req.Header.Set("Accept", HTTPMediaTypeJson)
@@ -584,84 +610,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-		"attestation_type": [
-		  "TDX"
-		],
-		"tdx": {
-			  "attributes": {
-					"mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
-					"seamsvn": 0,
-					"mrtd": ["` + cns.ValidMRTD + `"],
-					"rtmr0": "` + cns.ValidRTMR0 + `",
-					"rtmr1": "` + cns.ValidRTMR1 + `",
-					"rtmr2": "` + cns.ValidRTMR2 + `",
-					"rtmr3": "` + cns.ValidRTMR3 + `",
-					"enforce_tcb_upto_date": false
-				}
-		}
-	}`
-
-	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
-	req.Header.Set("Accept", HTTPMediaTypeJson)
-	req.Header.Set("Content-type", HTTPMediaTypeJson)
-	req.Header.Set("Authorization", "Bearer "+authToken)
-
-	recorder = httptest.NewRecorder()
-	handler.ServeHTTP(recorder, req)
-
-	res = recorder.Result()
-	defer res.Body.Close()
-
-	data, err = io.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("expected error to be nil got %v", err)
-	}
-
-	t.Log("Response: ", string(data))
-	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
-
-	keyJson = `{
-		"attestation_type": [
-		  "TDX"
-		],
-		"tdx": {
-			  "attributes": {
-					"mrsignerseam": ["0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"],
-					"mrseam": ["` + cns.ValidMrSeam + `"],
-					"seamsvn": 0,
-					"mrtd": ["` + cns.ValidMRTD + `"],
-					"rtmr0": "` + cns.ValidRTMR0 + `",
-					"rtmr1": "` + cns.ValidRTMR1 + `",
-					"rtmr2": "` + cns.ValidRTMR2 + `",
-					"rtmr3": "` + cns.ValidRTMR3 + `",
-					"enforce_tcb_upto_date": false
-				}
-		}
-	}`
-
-	req, _ = http.NewRequest(http.MethodPost, "/kbs/v1/key-transfer-policies", bytes.NewReader([]byte(keyJson)))
-	req.Header.Set("Accept", HTTPMediaTypeJson)
-	req.Header.Set("Content-type", HTTPMediaTypeJson)
-	req.Header.Set("Authorization", "Bearer "+authToken)
-
-	recorder = httptest.NewRecorder()
-	handler.ServeHTTP(recorder, req)
-
-	res = recorder.Result()
-	defer res.Body.Close()
-
-	data, err = io.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("expected error to be nil got %v", err)
-	}
-
-	t.Log("Response: ", string(data))
-	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
-
-	keyJson = `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type":"TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -697,9 +646,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -735,9 +682,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -773,9 +718,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 						"mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -811,9 +754,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],
@@ -849,9 +790,7 @@ func TestCreateKeyTransferPolicyInvalidTDXData(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 
 	keyJson = `{
-			"attestation_type": [
-			  "TDX"
-			],
+			"attestation_type": "TDX",
 			"tdx": {
 				  "attributes": {
 					    "mrsignerseam": ["` + cns.ValidMrSignerSeam + `"],

@@ -16,14 +16,13 @@ import (
 
 func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, transferPolicy *model.KeyTransferPolicy) error {
 
-	switch transferPolicy.AttestationType[0] {
+	switch transferPolicy.AttestationType {
 	case model.SGX:
 		if tokenClaims.PolicyIdsMatched != nil && transferPolicy.SGX.PolicyIds != nil {
 			if isPolicyIdMatched(tokenClaims.PolicyIdsMatched, transferPolicy.SGX.PolicyIds) {
 				return nil
-			}
-			if transferPolicy.SGX.Attributes == nil {
-				return errors.New("None of the policy-id in token matched with policy-id in key-transfer policy")
+			} else {
+				return errors.New("None of the policy-id in token claim policy_ids_matched matched with policy_ids attribute in key-transfer policy")
 			}
 		}
 		return validateSGXTokenClaims(tokenClaims, transferPolicy.SGX.Attributes)
@@ -32,9 +31,8 @@ func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, tr
 		if tokenClaims.PolicyIdsMatched != nil && transferPolicy.TDX.PolicyIds != nil {
 			if isPolicyIdMatched(tokenClaims.PolicyIdsMatched, transferPolicy.TDX.PolicyIds) {
 				return nil
-			}
-			if transferPolicy.TDX.Attributes == nil {
-				return errors.New("None of the policy-id in token matched with policy-id in key-transfer policy")
+			} else {
+				return errors.New("None of the policy-id in token claim policy_ids_matched matched with policy_ids_matched attribute in key-transfer policy")
 			}
 		}
 		return validateTDXTokenClaims(tokenClaims, transferPolicy.TDX.Attributes)
@@ -58,8 +56,8 @@ func validateSGXTokenClaims(tokenClaims *model.AttestationTokenClaim, sgxAttribu
 	if validateMrSigner(tokenClaims.SgxMrSigner, sgxAttributes.MrSigner) &&
 		validateIsvProdId(tokenClaims.SgxIsvProdId, sgxAttributes.IsvProductId) &&
 		validateMrEnclave(tokenClaims.SgxMrEnclave, sgxAttributes.MrEnclave) &&
-		validateIsvSvn(tokenClaims.SgxIsvSvn, *sgxAttributes.IsvSvn) &&
-		validateTcbStatus(tokenClaims.AttesterTcbStatus, *sgxAttributes.EnforceTCBUptoDate) {
+		validateIsvSvn(tokenClaims.SgxIsvSvn, sgxAttributes.IsvSvn) &&
+		validateTcbStatus(tokenClaims.AttesterTcbStatus, sgxAttributes.EnforceTCBUptoDate) {
 		log.Debug("All sgx attributes in attestation token matches with attributes in key transfer policy")
 		return nil
 	}
@@ -69,9 +67,10 @@ func validateSGXTokenClaims(tokenClaims *model.AttestationTokenClaim, sgxAttribu
 // validateMrSigner - Function to Validate SignerMeasurement
 func validateMrSigner(tokenMrSigner string, policyMrSigner []string) bool {
 
-	if tokenMrSigner == "" {
-		log.Error("MrSigner is missing from attestation token")
-		return false
+	// if MrSigner is not provided in policy, it should not be evaluated
+	if policyMrSigner == nil || len(policyMrSigner) == 0 {
+		log.Debug("MrSigner is not provided in key transfer policy, skipping MrSigner match against the token")
+		return true
 	}
 
 	if contains(policyMrSigner, tokenMrSigner) {
@@ -86,6 +85,12 @@ func validateMrSigner(tokenMrSigner string, policyMrSigner []string) bool {
 // validateIsvProdId - Function to Validate IsvProdId
 func validateIsvProdId(tokenIsvProdId uint16, policyIsvProdIds []uint16) bool {
 
+	// if IsvProdId is not provided in policy, it should not be evaluated
+	if policyIsvProdIds == nil || len(policyIsvProdIds) == 0 {
+		log.Debug("IsvProdIds is not provided in key transfer policy, skipping IsvProdId match against the token")
+		return true
+	}
+
 	if contains(policyIsvProdIds, tokenIsvProdId) {
 		log.Debug("Isv Product Id in attestation token matches with the key transfer policy")
 		return true
@@ -98,7 +103,9 @@ func validateIsvProdId(tokenIsvProdId uint16, policyIsvProdIds []uint16) bool {
 // validateMrEnclave - Function to Validate EnclaveMeasurement
 func validateMrEnclave(tokenMrEnclave string, policyMrEnclave []string) bool {
 
-	if len(policyMrEnclave) == 0 {
+	// if MrEnclave is not provided in policy, it should not be evaluated
+	if policyMrEnclave == nil || len(policyMrEnclave) == 0 {
+		log.Debug("MrEnclave is not provided in key transfer policy, skipping MrEnclave match against the token")
 		return true
 	}
 
@@ -112,9 +119,15 @@ func validateMrEnclave(tokenMrEnclave string, policyMrEnclave []string) bool {
 }
 
 // validateIsvSvn- Function to Validate isvSvn
-func validateIsvSvn(tokenIsvSvn uint16, policyIsvSvn uint16) bool {
+func validateIsvSvn(tokenIsvSvn uint16, policyIsvSvn *uint16) bool {
 
-	if tokenIsvSvn == policyIsvSvn {
+	// if IsvSvn is not provided in policy, it should not be evaluated
+	if policyIsvSvn == nil {
+		log.Debug("IsvSvn is not provided in key transfer policy, skipping IsvSvn match against the token")
+		return true
+	}
+
+	if tokenIsvSvn == *policyIsvSvn {
 		log.Debug("IsvSvn in attestation token matches with the key transfer policy")
 		return true
 	}
@@ -123,9 +136,14 @@ func validateIsvSvn(tokenIsvSvn uint16, policyIsvSvn uint16) bool {
 }
 
 // validateTcbStatus- Function to Validate tcbStatus
-func validateTcbStatus(tcbStatus string, enforceTcbUptoDate bool) bool {
+func validateTcbStatus(tcbStatus string, enforceTcbUptoDate *bool) bool {
 
-	if enforceTcbUptoDate && tcbStatus != constant.TCBStatusUpToDate {
+	if enforceTcbUptoDate == nil {
+		log.Debug("enforceTcbUptoDate is not provided in key transfer policy, skipping enforceTcbUptoDate match against the token")
+		return true
+	}
+
+	if *enforceTcbUptoDate && tcbStatus != constant.TCBStatusUpToDate {
 		log.Error("TCB is not Up-to-Date")
 		return false
 	}
@@ -136,13 +154,13 @@ func validateTDXTokenClaims(tokenClaims *model.AttestationTokenClaim, tdxAttribu
 
 	if validateMrSignerSeam(tokenClaims.TdxMrSignerSeam, tdxAttributes.MrSignerSeam) &&
 		validateMrSeam(tokenClaims.TdxMrSeam, tdxAttributes.MrSeam) &&
-		validateSeamSvn(tokenClaims.TdxSeamSvn, *tdxAttributes.SeamSvn) &&
+		validateSeamSvn(tokenClaims.TdxSeamSvn, tdxAttributes.SeamSvn) &&
 		validateMrTD(tokenClaims.TdxMRTD, tdxAttributes.MRTD) &&
 		validateRTMR(tokenClaims.TdxRTMR0, tdxAttributes.RTMR0) &&
 		validateRTMR(tokenClaims.TdxRTMR1, tdxAttributes.RTMR1) &&
 		validateRTMR(tokenClaims.TdxRTMR2, tdxAttributes.RTMR2) &&
 		validateRTMR(tokenClaims.TdxRTMR3, tdxAttributes.RTMR3) &&
-		validateTcbStatus(tokenClaims.AttesterTcbStatus, *tdxAttributes.EnforceTCBUptoDate) {
+		validateTcbStatus(tokenClaims.AttesterTcbStatus, tdxAttributes.EnforceTCBUptoDate) {
 		log.Debug("All tdx attributes in attestation token matches with attributes in key transfer policy")
 		return nil
 	}
@@ -152,9 +170,10 @@ func validateTDXTokenClaims(tokenClaims *model.AttestationTokenClaim, tdxAttribu
 // validateMrSignerSeam - Function to Validate MrSignerSeam
 func validateMrSignerSeam(tokenMrSignerSeam string, policyMrSignerSeam []string) bool {
 
-	if tokenMrSignerSeam == "" {
-		log.Error("MrSignerSeam is missing from attestation token")
-		return false
+	// if MrSignerSeam is not provided in policy, it should not be evaluated
+	if policyMrSignerSeam == nil || len(policyMrSignerSeam) == 0 {
+		log.Debug("MrSignerSeam is not provided in key transfer policy, skipping MrSignerSeam match against the token")
+		return true
 	}
 
 	if contains(policyMrSignerSeam, tokenMrSignerSeam) {
@@ -169,9 +188,10 @@ func validateMrSignerSeam(tokenMrSignerSeam string, policyMrSignerSeam []string)
 // validateMrSeam - Function to Validate SeamMeasurement
 func validateMrSeam(tokenMrSeam string, policyMrSeam []string) bool {
 
-	if tokenMrSeam == "" {
-		log.Error("Seam Measurement is missing from attestation token")
-		return false
+	// if MrSeam is not provided in policy, it should not be evaluated
+	if policyMrSeam == nil || len(policyMrSeam) == 0 {
+		log.Debug("MrSeam is not provided in key transfer policy, skipping MrSeam match against the token")
+		return true
 	}
 
 	if contains(policyMrSeam, tokenMrSeam) {
@@ -184,9 +204,15 @@ func validateMrSeam(tokenMrSeam string, policyMrSeam []string) bool {
 }
 
 // validateSeamSvn- Function to Validate seamSvn
-func validateSeamSvn(tokenSeamSvn uint8, policySeamSvn uint8) bool {
+func validateSeamSvn(tokenSeamSvn uint8, policySeamSvn *uint8) bool {
 
-	if tokenSeamSvn == policySeamSvn {
+	// if SeamSvn is not provided in policy, it should not be evaluated
+	if policySeamSvn == nil {
+		log.Debug("SeamSvn is not provided in key transfer policy, skipping SeamSvn match against the token")
+		return true
+	}
+
+	if tokenSeamSvn == *policySeamSvn {
 		log.Debug("Seam Svn in attestation token matches with the key transfer policy")
 		return true
 	}
@@ -197,7 +223,9 @@ func validateSeamSvn(tokenSeamSvn uint8, policySeamSvn uint8) bool {
 // validateMrTD - Function to Validate TDMeasurement
 func validateMrTD(tokenMrTD string, policyMrTD []string) bool {
 
-	if len(policyMrTD) == 0 {
+	// if MrTD is not provided in policy, it should not be evaluated
+	if policyMrTD == nil || len(policyMrTD) == 0 {
+		log.Debug("MrTD is not provided in key transfer policy, skipping MrTD match against the token")
 		return true
 	}
 
@@ -213,6 +241,7 @@ func validateMrTD(tokenMrTD string, policyMrTD []string) bool {
 // validateRTMR - Function to Validate RTMR
 func validateRTMR(tokenRTMR string, policyRTMR string) bool {
 
+	// if RTMR is not provided in policy, it should not be evaluated
 	if policyRTMR == "" {
 		return true
 	}

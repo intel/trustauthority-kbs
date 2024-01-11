@@ -19,7 +19,7 @@ type KeyTransferPolicy struct {
 	// Defines if SGX\TDX Attributes need to be part of key Transfer Policy
 	// required: true
 	// example: [ { "SGX" } ]
-	AttestationType []AttesterType `json:"attestation_type"`
+	AttestationType AttesterType `json:"attestation_type"`
 	// List of SGX Enclave Attributes that are part of Enclave
 	SGX *SgxPolicy `json:"sgx,omitempty"`
 	// List of TDX TD Attributes that are part of TDX Policy
@@ -29,7 +29,7 @@ type KeyTransferPolicy struct {
 type SgxPolicy struct {
 	// Attributes that define SGX Enclave information
 	Attributes *SgxAttributes `json:"attributes,omitempty"`
-	// List of Policy IDs which are evaluated before key is distributed
+	// List of Policy IDs which are matched in ITA
 	// example: [ 4517534b-a758-4447-7d2f-3e5606152ed6, 34568456-2398-3875-7453-395766152ed6 ]
 	PolicyIds []uuid.UUID `json:"policy_ids,omitempty"`
 }
@@ -47,9 +47,6 @@ type SgxAttributes struct {
 	// The Security Version Number of the Enclave
 	// example: 00
 	IsvSvn *uint16 `json:"isvsvn,omitempty"`
-	// List of permission set required by the workload
-	// example: [ "nginx" , "US" ]
-	ClientPermissions []string `json:"client_permissions,omitempty"`
 	// Should policy engine enforce TCB upto-date status as part of SGX Attestation
 	// example: true
 	EnforceTCBUptoDate *bool `json:"enforce_tcb_upto_date,omitempty"`
@@ -58,7 +55,7 @@ type SgxAttributes struct {
 type TdxPolicy struct {
 	// Attributes that define TDX Trusted Domain
 	Attributes *TdxAttributes `json:"attributes,omitempty"`
-	// List of Policy IDs which are evaluated before key is distributed
+	// List of Policy IDs which are matched in ITA
 	// example: [ 4517534b-a758-4447-7d2f-3e5606152ed6, 34568456-2398-3875-7453-395766152ed6 ]
 	PolicyIds []uuid.UUID `json:"policy_ids,omitempty"`
 }
