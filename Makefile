@@ -22,21 +22,13 @@ makefile_dir := $(dir $(makefile_path))
 OUTDIR := $(addprefix $(makefile_dir),out)
 TMPDIR := $(addprefix $(makefile_dir),tmp)
 
-.PHONY: all installer docker test clean help
+.PHONY: all docker test clean help
 
 all: docker
 
 kbs:
 	cd cmd && go mod tidy && \
                 go build -ldflags "-X intel/kbs/v1/version.BuildDate=$(BUILDDATE) -X intel/kbs/v1/version.Version=$(VERSION) -X intel/kbs/v1/version.GitHash=$(GITCOMMIT)" -o kbs
-
-installer: kbs
-	mkdir -p installer
-	cp build/linux/* installer/
-	chmod +x installer/install.sh
-	cp cmd/kbs installer/kbs
-	makeself installer kbs-$(VERSION).bin "kbs $(VERSION)" ./install.sh
-	rm -rf installer
 
 docker: docker.timestamp
 
