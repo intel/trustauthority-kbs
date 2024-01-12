@@ -39,6 +39,7 @@ const (
 	VaultServerIP                = "vault.server-ip"
 	VaultServerPort              = "vault.server-port"
 	BearerTokenValidityInMinutes = "bearer-token-validity-in-minutes"
+	HttpReadHeaderTimeout        = "http-read-header-timeout"
 )
 
 var (
@@ -60,6 +61,7 @@ type Configuration struct {
 	Kmip                         KmipConfig  `yaml:"kmip"`
 	Vault                        VaultConfig `yaml:"vault"`
 	BearerTokenValidityInMinutes int         `yaml:"bearer-token-validity-in-minutes" mapstructure:"bearer-token-validity-in-minutes"`
+	HttpReadHeaderTimeout        int         `yaml:"http-read-header-timeout" mapstructure:"http-read-header-timeout"`
 }
 
 type KmipConfig struct {

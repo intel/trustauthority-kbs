@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"os"
+	"path/filepath"
 
 	"intel/kbs/v1/constant"
 
@@ -99,7 +100,7 @@ func (kc *kmipClient) InitializeClient(version, serverIP, serverPort, hostname, 
 		log.Info("kmipclient/kmipclient:InitializeClient() KMIP authentication with credential type UsernameAndPassword is added")
 	}
 
-	caCertificate, err := os.ReadFile(rootCertificateFilePath)
+	caCertificate, err := os.ReadFile(filepath.Clean(rootCertificateFilePath))
 	if err != nil {
 		return errors.Wrap(err, "kmipclient/kmipclient:InitializeClient() Unable to read root certificate")
 	}

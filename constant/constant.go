@@ -71,8 +71,9 @@ const (
 	HTTPHeaderKeyAccept                = "Accept"
 	HTTPHeaderKeyAttestationType       = "Attestation-Type"
 
-	UserCredsMaxLen           = 256
-	PasswordMinLen            = 8
-	MaxTokenValidityInMinutes = 30
-	MinTokenValidityInMinutes = 1
+	UserCredsMaxLen              = 256
+	PasswordMinLen               = 8
+	MaxTokenValidityInMinutes    = 30
+	MinTokenValidityInMinutes    = 1
+	DefaultHttpReadHeaderTimeOut = 10
 )

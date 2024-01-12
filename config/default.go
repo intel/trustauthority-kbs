@@ -17,6 +17,7 @@ func init() {
 	viper.SetDefault(SanList, constant.DefaultTlsSan)
 	viper.SetDefault(BearerTokenValidityInMinutes, constant.DefaultTokenExpiration)
 	viper.SetDefault(KeyManager, constant.DefaultKeyManager)
+	viper.SetDefault(HttpReadHeaderTimeout, constant.DefaultHttpReadHeaderTimeOut)
 
 	// Set default value for vault config
 	viper.SetDefault(VaultServerPort, constant.DefaultVaultPort)
@@ -37,6 +38,7 @@ func DefaultConfig() *Configuration {
 		AdminUsername:                viper.GetString(AdminUsername),
 		SanList:                      viper.GetString(SanList),
 		BearerTokenValidityInMinutes: viper.GetInt(BearerTokenValidityInMinutes),
+		HttpReadHeaderTimeout:        viper.GetInt(HttpReadHeaderTimeout),
 	}
 
 	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {
