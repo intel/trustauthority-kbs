@@ -37,7 +37,7 @@ func (ktps *keyTransferPolicyStore) Create(policy *model.KeyTransferPolicy) (*mo
 		return nil, errors.Wrap(err, "directory/key_transfer_policy_store:Create() Failed to marshal key transfer policy")
 	}
 
-	err = os.WriteFile(filepath.Join(ktps.dir, policy.ID.String()), bytes, 0600)
+	err = os.WriteFile(filepath.Clean(filepath.Join(ktps.dir, policy.ID.String())), bytes, 0600)
 	if err != nil {
 		return nil, errors.Wrap(err, "directory/key_transfer_policy_store:Create() Error in saving key transfer policy")
 	}
@@ -47,7 +47,7 @@ func (ktps *keyTransferPolicyStore) Create(policy *model.KeyTransferPolicy) (*mo
 
 func (ktps *keyTransferPolicyStore) Retrieve(id uuid.UUID) (*model.KeyTransferPolicy, error) {
 
-	bytes, err := os.ReadFile(filepath.Join(ktps.dir, id.String()))
+	bytes, err := os.ReadFile(filepath.Clean(filepath.Join(ktps.dir, id.String())))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.New(RecordNotFound)

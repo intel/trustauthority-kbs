@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -45,6 +46,17 @@ func (app *App) startServer() error {
 	if err := app.configureLogs(); err != nil {
 		return err
 	}
+
+	log.WithFields(log.Fields{
+		"ServicePort":                  configuration.ServicePort,
+		"LogLevel":                     configuration.LogLevel,
+		"LogCaller":                    configuration.LogCaller,
+		"TrustAuthorityBaseUrl":        configuration.TrustAuthorityBaseUrl,
+		"TrustAuthorityApiUrl":         configuration.TrustAuthorityApiUrl,
+		"KeyManager":                   configuration.KeyManager,
+		"BearerTokenValidityInMinutes": configuration.BearerTokenValidityInMinutes,
+		"HttpReadHeaderTimeout":        configuration.HttpReadHeaderTimeout,
+	}).Info("Parse configs from environment")
 
 	// Initialize KeyManager
 	keyManager, err := keymanager.NewKeyManager(configuration)
@@ -98,8 +110,7 @@ func (app *App) startServer() error {
 		}
 	}
 
-	// initialize JWT authentication library
-	bytes, err := os.ReadFile(constant.DefaultJWTSigningKeyPath)
+	bytes, err := os.ReadFile(filepath.Clean(constant.DefaultJWTSigningKeyPath))
 	if err != nil {
 		log.WithError(err).Error("Error while reading JWT signing key")
 		return err
@@ -129,8 +140,9 @@ func (app *App) startServer() error {
 	stop := make(chan os.Signal)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf(":%d", configuration.ServicePort),
-		Handler: httpHandlers,
+		Addr:              fmt.Sprintf(":%d", configuration.ServicePort),
+		Handler:           httpHandlers,
+		ReadHeaderTimeout: time.Duration(configuration.HttpReadHeaderTimeout) * time.Second,
 	}
 
 	// TLS support is enabled

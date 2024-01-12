@@ -17,8 +17,7 @@ RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
 
 FROM ubuntu:20.04 AS final
 # Install ca-certificates package to get the system certificates
-RUN apt-get update && \
-    apt-get install -y ca-certificates && \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 ARG USERNAME=kbs
 ARG USER_UID=1000

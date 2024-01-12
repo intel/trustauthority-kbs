@@ -35,7 +35,7 @@ func (u *userStore) Create(user *model.UserInfo) (*model.UserInfo, error) {
 		return nil, errors.Wrap(err, "directory/user_store:Create() Failed to marshal user attributes")
 	}
 
-	err = os.WriteFile(filepath.Join(u.dir, user.ID.String()), bytes, 0600)
+	err = os.WriteFile(filepath.Clean(filepath.Join(u.dir, user.ID.String())), bytes, 0600)
 	if err != nil {
 		return nil, errors.Wrap(err, "directory/user_store:Create() Failed to store user attributes in file")
 	}
@@ -45,7 +45,7 @@ func (u *userStore) Create(user *model.UserInfo) (*model.UserInfo, error) {
 
 func (u *userStore) Retrieve(userID uuid.UUID) (*model.UserInfo, error) {
 
-	bytes, err := os.ReadFile(filepath.Join(u.dir, userID.String()))
+	bytes, err := os.ReadFile(filepath.Clean(filepath.Join(u.dir, userID.String())))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.New(RecordNotFound)

@@ -34,7 +34,7 @@ func (ks *keyStore) Create(key *model.KeyAttributes) (*model.KeyAttributes, erro
 		return nil, errors.Wrap(err, "directory/key_store:Create() Failed to marshal key attributes")
 	}
 
-	err = os.WriteFile(filepath.Join(ks.dir, key.ID.String()), bytes, 0600)
+	err = os.WriteFile(filepath.Clean(filepath.Join(ks.dir, key.ID.String())), bytes, 0600)
 	if err != nil {
 		return nil, errors.Wrap(err, "directory/key_store:Create() Failed to store key attributes in file")
 	}
@@ -44,7 +44,7 @@ func (ks *keyStore) Create(key *model.KeyAttributes) (*model.KeyAttributes, erro
 
 func (ks *keyStore) Retrieve(id uuid.UUID) (*model.KeyAttributes, error) {
 
-	bytes, err := os.ReadFile(filepath.Join(ks.dir, id.String()))
+	bytes, err := os.ReadFile(filepath.Clean(filepath.Join(ks.dir, id.String())))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.New(RecordNotFound)

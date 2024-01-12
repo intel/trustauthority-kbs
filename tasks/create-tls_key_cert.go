@@ -77,12 +77,13 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 		return errors.Wrap(err, "Failed to marshal private key")
 	}
 
-	keyOut, err := os.OpenFile(filepath.Clean(tkc.TLSKeyPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0) // open file with restricted permissions
+	tlsKeyPath := filepath.Clean(tkc.TLSKeyPath)
+	keyOut, err := os.OpenFile(tkc.TLSKeyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0) // open file with restricted permissions
 	if err != nil {
 		return fmt.Errorf("could not open private key file for writing: %v", err)
 	}
 	// private key should not be world readable
-	err = os.Chmod(tkc.TLSKeyPath, 0600)
+	err = os.Chmod(tlsKeyPath, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "Error while changing file permission for file : %s", tkc.TLSKeyPath)
 	}
@@ -97,7 +98,8 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 		return fmt.Errorf("could not pem encode the private key: %v", err)
 	}
 
-	certOut, err := os.OpenFile(filepath.Clean(tkc.TLSCertPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0)
+	tlsCertPath := filepath.Clean(tkc.TLSCertPath)
+	certOut, err := os.OpenFile(tlsCertPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0)
 	if err != nil {
 		return fmt.Errorf("could not open file for writing: %v", err)
 	}
@@ -107,9 +109,9 @@ func (tkc *TLSKeyAndCert) GenerateTLSKeyandCert() error {
 			log.WithError(derr).Error("Error closing Cert file")
 		}
 	}()
-	err = os.Chmod(tkc.TLSCertPath, 0600)
+	err = os.Chmod(tlsCertPath, 0600)
 	if err != nil {
-		return fmt.Errorf("could not change file permissions: %s", tkc.TLSCertPath)
+		return fmt.Errorf("could not change file permissions: %s", tlsCertPath)
 	}
 
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: selfSignCert}); err != nil {
