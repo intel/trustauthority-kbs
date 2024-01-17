@@ -6,11 +6,13 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"github.com/shaj13/go-guardian/v2/auth"
 	"github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"intel/kbs/v1/model"
+	"math/big"
 	"net/http"
 	"time"
 )
@@ -39,13 +41,15 @@ func (svc service) CreateAuthToken(ctx context.Context, request model.AuthTokenR
 	users, err := svc.repository.UserStore.Search(&model.UserFilterCriteria{Username: request.Username})
 	if len(users) == 0 || err != nil {
 		log.WithError(err).Error("Error search for a user with given filter criteria")
-		return "", &HandledError{Code: http.StatusBadRequest, Message: "User with given name does not exist"}
+		// introducing random delay to prevent authentication timing vulnerability in case of invalid user.
+		secureRandomDelay()
+		return "", &HandledError{Code: http.StatusBadRequest, Message: "Invalid username or password"}
 	}
 	// match the password against the store passwordHash
 	err = bcrypt.CompareHashAndPassword(users[0].PasswordHash, []byte(request.Password))
 	if err != nil {
 		log.WithError(err).Error("Password does not match for the given user")
-		return "", &HandledError{Code: http.StatusBadRequest, Message: "Password does not match for the given user"}
+		return "", &HandledError{Code: http.StatusBadRequest, Message: "Invalid username or password"}
 	}
 	// generate token
 	u := auth.NewUserInfo(request.Username, users[0].ID.String(), nil, nil)
@@ -58,4 +62,21 @@ func (svc service) CreateAuthToken(ctx context.Context, request model.AuthTokenR
 		return "", &HandledError{Code: http.StatusInternalServerError, Message: "Error while generating a token"}
 	}
 	return token, err
+}
+
+// secureRandomDelay introduces a cryptographically secure random delay between min and max durations.
+// this change was introduced to fix authentication timing vulnerability.
+func secureRandomDelay() {
+	// the minTim and maxTime is calculated based on the average difference between a valid request and invalid request
+	minTime := 170 * time.Millisecond
+	maxTime := 210 * time.Millisecond
+	// Generate a random number in the range [0, max-min)
+	randomDelay, err := rand.Int(rand.Reader, big.NewInt(int64(maxTime-minTime)))
+	if err != nil {
+		// fall back to default delay
+		time.Sleep(time.Duration(170 * time.Millisecond))
+	}
+	// adding minTime to the random delay to ensure that the final delay is between range[min,max]
+	delay := time.Duration(randomDelay.Int64()) + minTime
+	time.Sleep(delay)
 }

@@ -5,6 +5,7 @@
 package directory
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -101,7 +102,8 @@ func (u *userStore) Search(criteria *model.UserFilterCriteria) ([]model.UserInfo
 
 	if criteria.Username != "" {
 		for _, user := range users {
-			if user.Username == criteria.Username {
+			unameMatched := subtle.ConstantTimeCompare([]byte(user.Username), []byte(criteria.Username))
+			if unameMatched == 1 {
 				return []model.UserInfo{user}, nil
 			}
 		}
