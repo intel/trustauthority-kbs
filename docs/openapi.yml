@@ -1,6 +1,6 @@
 basePath: /kbs/v1
 definitions:
-    AttestationType:
+    AttesterType:
         type: string
         x-go-package: intel/kbs/v1/model
     AuthTokenRequest:
@@ -106,12 +106,7 @@ definitions:
     KeyTransferPolicy:
         properties:
             attestation_type:
-                description: Defines if SGX\TDX Attributes need to be part of key Transfer Policy
-                example: '[ { "SGX" } ]'
-                items:
-                    $ref: '#/definitions/AttestationType'
-                type: array
-                x-go-name: AttestationType
+                $ref: '#/definitions/AttesterType'
             created_at:
                 description: Asset creation time
                 example: "0001-01-01T00:00:00Z"
@@ -133,6 +128,41 @@ definitions:
             - attestation_type
         type: object
         x-go-package: intel/kbs/v1/model
+    KeyTransferRequest:
+        properties:
+            attestation_token:
+                description: Describes the Signed JWT Token received from the workload
+                example: eyJhbGciOiJQUzM4NCIsImprdSI6Imh0dHBzOi8vd3d3LmludGVsLmNvbS9hbWJlci9jZXJ0cyIsImtpZCI6IjNjMjQxOGI1ZTY5ZTI2NDRiOTE2NzJmZjYwNTY2NjRkOTI0MjM0ZjAiLCJ0eXAiOiJKV1QifQ.eyJhbWJlcl90cnVzdF9zY29yZSI6MTAsImFtYmVyX3JlcG9ydF9kYXRhIjoiZWZmNWEyYTExNDg2N2FhOTQ0NjIwYzQ4Y2Q4NjcwNDZkYmY2ZjdmY2JmODQ5YTliNjZhNzg3MjJmNGRjZDdjOTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJhbWJlcl90ZWVfaGVsZF9kYXRhIjoiQVFBQkFLMkxyUDhSZ1ROMW5naFJZWTBKQnZZQ1M3K2JCcVhoRjIzY2JkVFVRR3F3MEl2Wm9NYkpySUNmQXJ1MjVWWWpKbkZaS0Vvb1hRWmhPZUlBeTZNV0RpWEpmdDc0VnVUR25YZnNLUDk4bWNvZXBiQ2M4U1BJRFBsdkhTQy9QQWtlRzJUdlZ3QkhBbjcvcURVNXJwUENIS05xWDYweUd2SW95QjhrLzBJTzR5M2V0ekdvQjF5YVRPQ3Iyd1NCYmdUUkV1M3ppY3JJODFPL1RsK0FaWitVekFCdUxSUEgxdlBrelBQYVhCT21IN2Q4SnZXZ0RwSjhFenBNRitzakt4dXI1dkEraDNjamxDUG4yZjFjODhqZGIyNDgyUUJ2STZoanB4R2k0dWRUVVdJekdKdElKeElUbnNscThwTFpUekhnR3V2UEdYK2xkYWFKdUVPSGJBeFhDRW4zTnNGNHZvVjFSQ2I1OXBBMEI2NnZBd1RHZmFONE9pR205aGhiTk1NTnZNeGlhZmdGanJWWHpjc1BvUE5vN2hPd0dMcVJFdGUrMWkzZzlGNDBCK2hEZVV6elZhTU8zVkxHTUtEcDlUSDJqMytYSnRnU3p4dThOWlg1WEZVeGpSMlJINzV5d25vbnRNQStnaDZid1d1UUlWWWI2K0k3eHEzdWxOaUZldzZ4eWc9PSIsImFtYmVyX3NneF9tcmVuY2xhdmUiOiI4M2Y0ZTgxOTg2MWFkZWY2ZmZiMmE0ODY1ZWZlYTkzMzdiOTFlZDMwZmEzMzQ5MWIxN2YwZDVkOWU4MjA0NDEwIiwiYW1iZXJfc2d4X2lzX2RlYnVnZ2FibGUiOmZhbHNlLCJhbWJlcl9zZ3hfbXJzaWduZXIiOiI4M2Q3MTllNzdkZWFjYTE0NzBmNmJhZjYyYTRkNzc0MzAzYzg5OWRiNjkwMjBmOWM3MGVlMWRmYzA4YzdjZTllIiwiYW1iZXJfc2d4X2lzdnByb2RpZCI6MCwiYW1iZXJfc2d4X2lzdnN2biI6MCwiYW1iZXJfbWF0Y2hlZF9wb2xpY3lfaWRzIjpbImY0MzZjMzBhLTY0NGUtNGJiMi1iMzJjLTFmNWJmZjc3NTJmMiJdLCJhbWJlci1mYWl0aGZ1bC1zZXJ2aWNlLWlkcyI6WyI2YmFhNjMwMS0zMWVlLTQ1NmMtOWEzOC1lMjc5YWM3ZjZkNmEiLCJkZTU3NDU5ZC1mYjU2LTRhODgtYmU1ZC02ZjJhMzcwMzkzOWMiXSwiYW1iZXJfdGNiX3N0YXR1cyI6Ik9LIiwiYW1iZXJfZXZpZGVuY2VfdHlwZSI6IlNHWCIsImFtYmVyX3NpZ25lZF9ub25jZSI6dHJ1ZSwiYW1iZXJfY3VzdG9tX3BvbGljeSI6e30sInZlciI6IjEuMCIsImV4cCI6MTY2NDQ0NzA5MywianRpIjoiMzc5ZjBiMDctNTUzNy00YzdhLWFlNTAtODk2YTU1ZjIzNzY2IiwiaWF0IjoxNjY0NDQ2NzYzLCJpc3MiOiJBUyBBdHRlc3RhdGlvbiBUb2tlbiBJc3N1ZXIifQ.X2UDvraRVzAJpC1G1WAK2Qbx64d9WI5T_AKAq1lK5VAjEf409y5fZPxkBdZ-fGYt653nQ5Ah0-jkFRt0Yo7B2cxNmDWn61mMW9yYtt_55qHcbuDX5x4a-7MVawWjS1gLzY7qddmpzoIhwrx575c5JoQjG4qybDejRufUxhvu_XOOxSfhyh4JGRxBYNX19ZGeIbHtE3mfAXqg6qphZFfClIQLdlU-wGbefyN5mwpTK0T3eQ9Tlt0zZFrcv7lNIAPHHB52Ke9R7qdFEoVNNX-8YFMzk4gQyZdzYJS7Q3ElhQYXhBWnY5iwquftQztQcfydJL8o1OC-Ru0s-keF7OBaxABHcv5OhUKlVc44zaBnekP9lTzRCINYnVK67KxyAHsgXkK19UiX6v1FYxdcmdwZgNn5OkCwxiAMLgB8_CQku6q4aeyhCMo4acD1xKd6kkfgYQDxehLbGV6weT4E60omx6UFE13L9yANNNoWtzy0A4PJsiw0tbRPYYO8ehZ8Vgrb9sc00cdqG7_7ok-iivuxklaaSuzrY8VtkGw9T8g0w__fJ0X2KCMPcl3XfNidhOGxJ9402ff93X-QY3dHyaLOqmtJK0vlQ0vuoThseBSOezETalhFCuh-JUYZskokQ21fDPs2xDiytKubxqzrJVF1G1n1AVNWlIZXPXLyoXANS4s
+                type: string
+                x-go-name: AttestationToken
+            event_log:
+                description: Log of all events that get extended to RTMRs (runtime-extendable measurement registers) . RTMR event log is available through ACPI.
+                example: '[ { "rtmr": {  "index":1....'
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: EventLog
+            nonce:
+                $ref: '#/definitions/VerifierNonce'
+            quote:
+                description: SGX\TDX Quote to be attested
+                example: AwACAAAAAAAHAAwAk5pyM/ecTKmUCg2zlX8GBxdZqc7ZHvph1dB/Gx0CGGUAAAAABQUMDP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAAAAADnAAAAAAAAADi4Dt0xe3/egf97SCWPr8ncgUiYi9E4SNLWlL0C5rHTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADUEqTwfvg4kqWRX7KrWEvjHhhuWk+Vq19pUP1OuGlNewAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACK0eSGrg5DJjzLRoYjBDpov80TukNTvbsNjnfQy6Ui/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxBAAAA6Yv94bEfYZ0eRjJtx6A5uPehGmdrMCDRHqKDzeKEePZbfVaLvmUS7rCn8SB5trPOA1R8df9nXk2jQ8aRQc6hnmiYobB5ujL44dQWqgg67mqFjIPmJsV0D+nlJMLGwBYnZZklCfDQ+82rFoExN3805BSWUvhkqaAChIJqkvIQfzBQUMDP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQAAAAAAAADnAAAAAAAAAK4SPL+pbCaFYN/V3/5IVM5EPeTg+lHSgRhMlCjXo0D7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMT1d115ZQPpYTf3fGioKaAFasje1wFAsIGwlEkMV7/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEABwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACjlJOfr4vl+VcNZYWRGfPkCTKi8Upz0gXEsoFD19ltXQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+1txjKVJ2JdwfOtnwK2QGXS/dL3xLnR0/UPemPHtPUYTxNIQi/CLW5lIANsuPt9K0gr2RsuHnO7TUUjSOVCHGiAAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8FAFwOAAAtLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRTh6Q0NCSm1nQXdJQkFnSVZBTGNPM1VWbHRVNnZOL1RTc2liUmcxM0U2c2NkTUFvR0NDcUdTTTQ5QkFNQ01IQXhJakFnQmdOVgpCQU1NR1VsdWRHVnNJRk5IV0NCUVEwc2dVR3hoZEdadmNtMGdRMEV4R2pBWUJnTlZCQW9NRVVsdWRHVnNJRU52Y25CdmNtRjBhVzl1Ck1SUXdFZ1lEVlFRSERBdFRZVzUwWVNCRGJHRnlZVEVMTUFrR0ExVUVDQXdDUTBFeEN6QUpCZ05WQkFZVEFsVlRNQjRYRFRJeU1ETXkKTlRFMU5UVTBObG9YRFRJNU1ETXlOVEUxTlRVME5sb3djREVpTUNBR0ExVUVBd3daU1c1MFpXd2dVMGRZSUZCRFN5QkRaWEowYVdacApZMkYwWlRFYU1CZ0dBMVVFQ2d3UlNXNTBaV3dnUTI5eWNHOXlZWFJwYjI0eEZEQVNCZ05WQkFjTUMxTmhiblJoSUVOc1lYSmhNUXN3CkNRWURWUVFJREFKRFFURUxNQWtHQTFVRUJoTUNWVk13V1RBVEJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVNBbWg4Uy93cU4Kd2wybUt1UzVmaXM1eVlvdWNwZXZTUEVhTHdYem9hdUhnWDgwTDZpYVhpbW9WYXFRZURoQ2o0dThqQTV5OEFOenJOQ0UwTUhybDgzSgpvNElERGpDQ0F3b3dId1lEVlIwakJCZ3dGb0FVbFc5ZHpiMGI0ZWxBU2NuVTlEUE9BVmNMM2xRd2F3WURWUjBmQkdRd1lqQmdvRjZnClhJWmFhSFIwY0hNNkx5OWhjR2t1ZEhKMWMzUmxaSE5sY25acFkyVnpMbWx1ZEdWc0xtTnZiUzl6WjNndlkyVnlkR2xtYVdOaGRHbHYKYmk5Mk15OXdZMnRqY213L1kyRTljR3hoZEdadmNtMG1aVzVqYjJScGJtYzlaR1Z5TUIwR0ExVWREZ1FXQkJTR1U3WkRXbnpOQmhtMwpPV0RqYnZQMXIyUDhIakFPQmdOVkhROEJBZjhFQkFNQ0JzQXdEQVlEVlIwVEFRSC9CQUl3QURDQ0Fqc0dDU3FHU0liNFRRRU5BUVNDCkFpd3dnZ0lvTUI0R0NpcUdTSWI0VFFFTkFRRUVFUEVPeFZJYkNvSFV6ZTV4QVU2MUdSSXdnZ0ZsQmdvcWhraUcrRTBCRFFFQ01JSUIKVlRBUUJnc3Foa2lHK0UwQkRRRUNBUUlCQkRBUUJnc3Foa2lHK0UwQkRRRUNBZ0lCQkRBUUJnc3Foa2lHK0UwQkRRRUNBd0lCQXpBUQpCZ3NxaGtpRytFMEJEUUVDQkFJQkF6QVJCZ3NxaGtpRytFMEJEUUVDQlFJQ0FQOHdFUVlMS29aSWh2aE5BUTBCQWdZQ0FnRC9NQkFHCkN5cUdTSWI0VFFFTkFRSUhBZ0VBTUJBR0N5cUdTSWI0VFFFTkFRSUlBZ0VBTUJBR0N5cUdTSWI0VFFFTkFRSUpBZ0VBTUJBR0N5cUcKU0liNFRRRU5BUUlLQWdFQU1CQUdDeXFHU0liNFRRRU5BUUlMQWdFQU1CQUdDeXFHU0liNFRRRU5BUUlNQWdFQU1CQUdDeXFHU0liNApUUUVOQVFJTkFnRUFNQkFHQ3lxR1NJYjRUUUVOQVFJT0FnRUFNQkFHQ3lxR1NJYjRUUUVOQVFJUEFnRUFNQkFHQ3lxR1NJYjRUUUVOCkFRSVFBZ0VBTUJBR0N5cUdTSWI0VFFFTkFRSVJBZ0VMTUI4R0N5cUdTSWI0VFFFTkFRSVNCQkFFQkFNRC8vOEFBQUFBQUFBQUFBQUEKTUJBR0NpcUdTSWI0VFFFTkFRTUVBZ0FBTUJRR0NpcUdTSWI0VFFFTkFRUUVCakJnYWdBQUFEQVBCZ29xaGtpRytFMEJEUUVGQ2dFQgpNQjRHQ2lxR1NJYjRUUUVOQVFZRUVHV08wU2lPdHBGbDI0ZEZtT3lPVUs0d1JBWUtLb1pJaHZoTkFRMEJCekEyTUJBR0N5cUdTSWI0ClRRRU5BUWNCQVFIL01CQUdDeXFHU0liNFRRRU5BUWNDQVFFQU1CQUdDeXFHU0liNFRRRU5BUWNEQVFIL01Bb0dDQ3FHU000OUJBTUMKQTBnQU1FVUNJRGxqWDRBeDdTNDE1TEdjZG04czRucG14NU9zak4yMkFNMC9XV2hBY2MrdEFpRUE2M3N6ckJaWjZDUUI5ckFwZ3NHSgpMazVNQUVWZ1lwZ3J0blFoYmFxZytQTT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLS0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlDbGpDQ0FqMmdBd0lCQWdJVkFKVnZYYzI5RytIcFFFbkoxUFF6emdGWEM5NVVNQW9HQ0NxR1NNNDlCQU1DCk1HZ3hHakFZQmdOVkJBTU1FVWx1ZEdWc0lGTkhXQ0JTYjI5MElFTkJNUm93R0FZRFZRUUtEQkZKYm5SbGJDQkQKYjNKd2IzSmhkR2x2YmpFVU1CSUdBMVVFQnd3TFUyRnVkR0VnUTJ4aGNtRXhDekFKQmdOVkJBZ01Ba05CTVFzdwpDUVlEVlFRR0V3SlZVekFlRncweE9EQTFNakV4TURVd01UQmFGdzB6TXpBMU1qRXhNRFV3TVRCYU1IQXhJakFnCkJnTlZCQU1NR1VsdWRHVnNJRk5IV0NCUVEwc2dVR3hoZEdadmNtMGdRMEV4R2pBWUJnTlZCQW9NRVVsdWRHVnMKSUVOdmNuQnZjbUYwYVc5dU1SUXdFZ1lEVlFRSERBdFRZVzUwWVNCRGJHRnlZVEVMTUFrR0ExVUVDQXdDUTBFeApDekFKQmdOVkJBWVRBbFZUTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFTlNCLzd0MjFsWFNPCjJDdXpweHc3NGVKQjcyRXlER2dXNXJYQ3R4MnRWVExxNmhLazZ6K1VpUlpDbnFSN3BzT3ZncUZlU3hsbVRsSmwKZVRtaTJXWXozcU9CdXpDQnVEQWZCZ05WSFNNRUdEQVdnQlFpWlF6V1dwMDBpZk9EdEpWU3YxQWJPU2NHckRCUwpCZ05WSFI4RVN6QkpNRWVnUmFCRGhrRm9kSFJ3Y3pvdkwyTmxjblJwWm1sallYUmxjeTUwY25WemRHVmtjMlZ5CmRtbGpaWE11YVc1MFpXd3VZMjl0TDBsdWRHVnNVMGRZVW05dmRFTkJMbVJsY2pBZEJnTlZIUTRFRmdRVWxXOWQKemIwYjRlbEFTY25VOURQT0FWY0wzbFF3RGdZRFZSMFBBUUgvQkFRREFnRUdNQklHQTFVZEV3RUIvd1FJTUFZQgpBZjhDQVFBd0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ1hzVmtpMHcraTZWWUdXM1VGLzIydWFYZTBZSkRqMVVlCm5BK1RqRDFhaTVjQ0lDWWIxU0FtRDV4a2ZUVnB2bzRVb3lpU1l4ckRXTG1VUjRDSTlOS3lmUE4rCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0KLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNqekNDQWpTZ0F3SUJBZ0lVSW1VTTFscWROSW56ZzdTVlVyOVFHemtuQnF3d0NnWUlLb1pJemowRUF3SXcKYURFYU1CZ0dBMVVFQXd3UlNXNTBaV3dnVTBkWUlGSnZiM1FnUTBFeEdqQVlCZ05WQkFvTUVVbHVkR1ZzSUVOdgpjbkJ2Y21GMGFXOXVNUlF3RWdZRFZRUUhEQXRUWVc1MFlTQkRiR0Z5WVRFTE1Ba0dBMVVFQ0F3Q1EwRXhDekFKCkJnTlZCQVlUQWxWVE1CNFhEVEU0TURVeU1URXdORFV4TUZvWERUUTVNVEl6TVRJek5UazFPVm93YURFYU1CZ0cKQTFVRUF3d1JTVzUwWld3Z1UwZFlJRkp2YjNRZ1EwRXhHakFZQmdOVkJBb01FVWx1ZEdWc0lFTnZjbkJ2Y21GMAphVzl1TVJRd0VnWURWUVFIREF0VFlXNTBZU0JEYkdGeVlURUxNQWtHQTFVRUNBd0NRMEV4Q3pBSkJnTlZCQVlUCkFsVlRNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVDNm5Fd01ESVlaT2ovaVBXc0N6YUVLaTcKMU9pT1NMUkZoV0dqYm5CVkpmVm5rWTR1M0lqa0RZWUwwTXhPNG1xc3lZamxCYWxUVll4RlAyc0pCSzV6bEtPQgp1ekNCdURBZkJnTlZIU01FR0RBV2dCUWlaUXpXV3AwMGlmT0R0SlZTdjFBYk9TY0dyREJTQmdOVkhSOEVTekJKCk1FZWdSYUJEaGtGb2RIUndjem92TDJObGNuUnBabWxqWVhSbGN5NTBjblZ6ZEdWa2MyVnlkbWxqWlhNdWFXNTAKWld3dVkyOXRMMGx1ZEdWc1UwZFlVbTl2ZEVOQkxtUmxjakFkQmdOVkhRNEVGZ1FVSW1VTTFscWROSW56ZzdTVgpVcjlRR3prbkJxd3dEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkRXdFQi93UUlNQVlCQWY4Q0FRRXdDZ1lJCktvWkl6ajBFQXdJRFNRQXdSZ0loQU9XLzVRa1IrUzlDaVNEY05vb3dMdVBSTHNXR2YvWWk3R1NYOTRCZ3dUd2cKQWlFQTRKMGxySG9NcytYbzVvL3NYNk85UVd4SFJBdlpVR09kUlE3Y3ZxUlhhcUk9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: Quote
+            user_data:
+                description: User data - enclave held data
+                example: uJzueTbG8uTrkoBcSG7Duu2izGJ2lAZveRqx0E/exGnX81/4kJdU1Wh1FDkn0K8+
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: RuntimeData
+        type: object
+        x-go-package: intel/kbs/v1/model
     KeyTransferResponse:
         properties:
             wrapped_key:
@@ -149,17 +179,29 @@ definitions:
                 x-go-name: WrappedSWK
         type: object
         x-go-package: intel/kbs/v1/model
+    KeyUpdateRequest:
+        properties:
+            KeyId:
+                format: uuid
+                type: string
+            transfer_policy_id:
+                format: uuid
+                type: string
+                x-go-name: TransferPolicyID
+        type: object
+        x-go-package: intel/kbs/v1/model
+    PublicKey:
+        properties:
+            E:
+                format: int64
+                type: integer
+            "N":
+                type: string
+        title: A PublicKey represents the public part of an RSA key.
+        type: object
+        x-go-package: crypto/rsa
     SgxAttributes:
         properties:
-            client_permissions:
-                description: List of permission set required by the workload
-                example:
-                    - nginx
-                    - US
-                items:
-                    type: string
-                type: array
-                x-go-name: ClientPermissions
             enforce_tcb_upto_date:
                 description: Should policy engine enforce TCB upto-date status as part of SGX Attestation
                 example: true
@@ -200,7 +242,7 @@ definitions:
             attributes:
                 $ref: '#/definitions/SgxAttributes'
             policy_ids:
-                description: List of Policy IDs which are evaluated before key is distributed
+                description: List of Policy IDs which are matched in ITA
                 example: '[ 4517534b-a758-4447-7d2f-3e5606152ed6, 34568456-2398-3875-7453-395766152ed6 ]'
                 items:
                     format: uuid
@@ -270,7 +312,7 @@ definitions:
             attributes:
                 $ref: '#/definitions/TdxAttributes'
             policy_ids:
-                description: List of Policy IDs which are evaluated before key is distributed
+                description: List of Policy IDs which are matched in ITA
                 example: '[ 4517534b-a758-4447-7d2f-3e5606152ed6, 34568456-2398-3875-7453-395766152ed6 ]'
                 items:
                     format: uuid
@@ -279,6 +321,29 @@ definitions:
                 x-go-name: PolicyIds
         type: object
         x-go-package: intel/kbs/v1/model
+    TransferKeyRequest:
+        properties:
+            AttestationType:
+                type: string
+            KeyId:
+                format: uuid
+                type: string
+            KeyTransferRequest:
+                $ref: '#/definitions/KeyTransferRequest'
+            PublicKey:
+                $ref: '#/definitions/PublicKey'
+        type: object
+        x-go-package: intel/kbs/v1/service
+    TransferKeyResponse:
+        properties:
+            AttestationType:
+                type: string
+            KeyTransferResponse:
+                $ref: '#/definitions/KeyTransferResponse'
+            Nonce:
+                $ref: '#/definitions/VerifierNonce'
+        type: object
+        x-go-package: intel/kbs/v1/service
     User:
         properties:
             password:
@@ -340,12 +405,35 @@ definitions:
                 x-go-name: Username
         type: object
         x-go-package: intel/kbs/v1/model
+    VerifierNonce:
+        description: VerifierNonce holds the signed nonce issued from Intel Trust Authority
+        properties:
+            iat:
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: Iat
+            signature:
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: Signature
+            val:
+                items:
+                    format: uint8
+                    type: integer
+                type: array
+                x-go-name: Val
+        type: object
+        x-go-package: github.com/intel/trustauthority-client/go-connector
 host: kbs.com:9443
 info:
     description: |-
-        The Key Broker Service enables key distribution using platform trust to authorize key transfers. By retaining image decryption keys,
-        unauthorized access can be prevented, even from within the Cloud Service Provider. It interfaces with a backend key management system(KMIP)
-        to create, delete and retrieve keys, while providing a user defined policy for key retrieval based on Intel® hardware root of trust.
+        The Key Broker Service (KBS) acts as a bridge between an existing ecosystem of key management service (KMS) and a client requesting keys, by evaluating additional “key transfer policy”. This key transfer policy can enforce a client to go through attestation demonstrating it is running in a trusted execution environment (TEE) such as Intel SGX or TDX or on a trusted platform. Attestation can be provided by Intel Trust Authority (ITA). Key broker service is a relying parity (RP) as defined in IETF RATs specification.
+
+        The key Broker Service (KBS) provides and retains encryption/decryption keys for various purposes. When a TEE workload requests for the decryption key to operate on a resource, the KBS requests the workloads attestation from Intel Trust Authority (ITA), verifies all digital signatures and retains the final control over whether the decryption key is issued. If the workload's attestation meets the policy requirements, the KBS issues a decryption key itself, wrapped using the public key form the workload that was attested, cryptographically ensuring that only the attested workload can decrypt the requested key.
     license:
         name: Copyright(C) 2022 Intel Corporation. All Rights Reserved.
     title: Key Broker Service
@@ -381,7 +469,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - KeyTransferPolicies
             x-permissions: key-transfer-policies:search
@@ -391,9 +479,7 @@ paths:
                   {
                     "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
                     "created_at": "2021-08-20T06:30:35.085644391Z",
-                    "attestation_type": [
-                        "SGX"
-                    ],
+                    "attestation_type": "SGX",
                     "sgx": {
                       "attributes": {
                           "mrsigner": [
@@ -406,10 +492,6 @@ paths:
                               "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
                           ],
                           "isvsvn": 1,
-                          "client_permissions": [
-                              "nginx",
-                              "USA"
-                          ],
                           "enforce_tcb_upto_date": false
                       },
                       "policy_ids": [
@@ -421,9 +503,7 @@ paths:
                   {
                     "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
                     "created_at": "2021-08-20T05:51:39.588320016Z",
-                    "attestation_type": [
-                        "TDX"
-                    ],
+                    "attestation_type": "TDX",
                     "tdx": {
                       "attributes": {
                           "mrsignerseam": [
@@ -513,14 +593,14 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - KeyTransferPolicies
             x-permissions: key-transfer-policies:create
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
             x-sgx-sample-call-input: |
                 {
-                  "attestation_type": ["SGX"],
+                  "attestation_type": "SGX",
                   "sgx": {
                       "attributes": {
 
@@ -528,7 +608,6 @@ paths:
                           "isvprodid": [12],
                           "mrenclave": ["01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"],
                           "isvsvn": 1,
-                          "client_permissions":["nginx","USA"],
                           "enforce_tcb_upto_date": false
                       },
                       "policy_ids": ["37965f5f-ccaf-4cdc-a356-a8ed5268a5bf", "9846bf40-e380-4842-ae15-1b60996d1190"]
@@ -538,9 +617,7 @@ paths:
                 {
                   "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
                   "created_at": "2021-08-20T06:30:35.085644391Z",
-                  "attestation_type": [
-                      "SGX"
-                  ],
+                  "attestation_type": "SGX",
                   "sgx": {
                     "attributes": {
                         "mrsigner": [
@@ -553,10 +630,6 @@ paths:
                             "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
                         ],
                         "isvsvn": 1,
-                        "client_permissions": [
-                            "nginx",
-                            "USA"
-                        ],
                         "enforce_tcb_upto_date": false
                     },
                     "policy_ids": [
@@ -567,9 +640,7 @@ paths:
                 }
             x-tdx-sample-call-input: |
                 {
-                  "attestation_type": [
-                      "TDX"
-                  ],
+                  "attestation_type": "TDX",
                   "tdx": {
                     "attributes": {
                         "mrsignerseam": [
@@ -597,9 +668,7 @@ paths:
                 {
                   "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
                   "created_at": "2021-08-20T05:51:39.588320016Z",
-                  "attestation_type": [
-                      "TDX"
-                  ],
+                  "attestation_type": "TDX",
                   "tdx": {
                     "attributes": {
                         "mrsignerseam": [
@@ -646,7 +715,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - KeyTransferPolicies
             x-permissions: key-transfer-policies:delete
@@ -686,7 +755,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - KeyTransferPolicies
             x-permissions: key-transfer-policies:search
@@ -695,9 +764,7 @@ paths:
                 {
                   "id": "75d34bf4-80fb-4ca5-8602-a8d82e56b30d",
                   "created_at": "2021-08-20T05:51:39.588320016Z",
-                  "attestation_type": [
-                      "TDX"
-                  ],
+                  "attestation_type": "TDX",
                   "tdx": {
                     "attributes": {
                         "mrsignerseam": [
@@ -726,6 +793,7 @@ paths:
         get:
             description: |
                 Searches for keys.
+
                 Returns - The collection of serialized KeyResponse Go struct objects.
             operationId: SearchKey
             parameters:
@@ -789,7 +857,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - Keys
             x-permissions: keys:search
@@ -819,17 +887,15 @@ paths:
                  |--------------------|-------------|
                  | key_information    | A json object having all the required information about a key. |
                  | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
-                 | label              | String to attach optionally a text description to the key, e.g. "US Nginx key". |
-                 | usage              | String to attach optionally a usage criteria for the key, e.g. "Country:US,State:CA". |
 
                 The serialized KeyInformation Go struct object represents the content of the key_information field.
 
                  | Attribute   | Description |
                  |-------------|-------------|
                  | algorithm   | Encryption algorithm used to create or register key. Supported algorithms are AES, RSA and EC. |
-                 | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. |
-                 | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1 and secp521r1. |
-                 | key_string  | Base64 encoded private key to be registered. Supported only if key is created locally. |
+                 | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for AES and RSA algorithm. |
+                 | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for EC algorithm. |
+                 | key_data    | Base64 encoded private key to be registered. Supported only if key is created locally. |
                  | kmip_key_id | Unique KMIP identifier of key to be registered. Supported only if key is created on KMIP server. |
             operationId: CreateKey
             parameters:
@@ -868,7 +934,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - Keys
             x-permissions: keys:create
@@ -888,6 +954,74 @@ paths:
                         "key_length": 256
                     },
                     "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
+                    "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
+                    "created_at": "2020-09-23T11:16:26.738467277Z"
+                }
+        put:
+            consumes:
+                - application/json
+            description: |
+                Updates a key with the key transfer policy.
+
+                The serialized KeyRequest Go struct object represents the content of the request body.
+
+                 | Attribute          | Description |
+                 |--------------------|-------------|
+                 | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+            operationId: UpdateKey
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/KeyUpdateRequest'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: Successfully updated the key.
+                    schema:
+                        $ref: '#/definitions/KeyResponse'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerToken: []
+            tags:
+                - Keys
+            x-permissions: keys:update
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+            x-sample-call-input: |
+                {
+                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
+                }
+            x-sample-call-output: |-
+                {
+                    "key_information": {
+                        "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
+                        "algorithm": "AES",
+                        "key_length": 256
+                    },
+                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
                     "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
                     "created_at": "2020-09-23T11:16:26.738467277Z"
                 }
@@ -913,7 +1047,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - Keys
             x-permissions: keys:delete
@@ -953,7 +1087,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - Keys
             x-permissions: keys:search
@@ -969,12 +1103,22 @@ paths:
                     "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
                     "created_at": "2020-09-23T11:16:26.738467277Z"
                 }
+    /keys/{id}/transfer:
         post:
             consumes:
-                - application/x-pem-file
+                - application/json
             description: |
-                Transfers a key.
-                Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
+                Transfers a wrapped secret and wrapped swk.
+
+                The serialized KeyRequest Go struct object represents the content of the request body.
+
+                 | Attribute          | Description |
+                 |--------------------|-------------|
+                 | attestation_token  | Attestation token received from ITA. This is the only attribute required to retrieve the key in passport mode   |
+                 | quote              | TEE quote from workload. This attribute is required to retrieve the key in background mode. |
+                 | nonce              | Verifier nonce from ITA. This is a serialized Go struct "VerifierNonce" in ITA connector. |
+                 | user_data          | TEE held data in attestation token. It is the public key created in the workload that is used to wrap the swk key. |
+                 | nonce              | Verifier nonce from ITA. This is a serialized Go struct "VerifierNonce" in ITA connector. |
             operationId: TransferKey
             parameters:
                 - description: Unique ID of the key.
@@ -983,9 +1127,14 @@ paths:
                   name: id
                   required: true
                   type: string
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/TransferKeyRequest'
                 - description: Content-Type header
                   enum:
-                    - application/x-pem-file
+                    - application/json
                   in: header
                   name: Content-Type
                   required: true
@@ -1003,32 +1152,28 @@ paths:
                 "200":
                     description: Successfully transferred the key.
                     schema:
-                        $ref: '#/definitions/KeyTransferResponse'
+                        $ref: '#/definitions/TransferKeyResponse'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Failed to authenticate attestation-token
                 "404":
                     description: Key record not found
                 "415":
-                    description: Invalid Content-Type/Accept Header in Request
+                    description: Invalid Accept Header in Request
                 "500":
                     description: Internal server error
-            security:
-                - bearerAuth: []
             tags:
-                - Keys
-            x-permissions: keys:transfer
-            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+                - TransferKey
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
             x-sample-call-input: |
-                -----BEGIN PUBLIC KEY-----
-                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjtGIk8SxD+OEiBpP2/T
-                JUAF0upwuKGMk6wH8Rwov88VvzJrVm2NCticTk5FUg+UG5r8JArrV4tJPRHQyvqK
-                wF4NiksuvOjv3HyIf4oaOhZjT8hDne1Bfv+cFqZJ61Gk0MjANh/T5q9vxER/7TdU
-                NHKpoRV+NVlKN5bEU/NQ5FQjVXicfswxh6Y6fl2PIFqT2CfjD+FkBPU1iT9qyJYH
-                A38IRvwNtcitFgCeZwdGPoxiPPh1WHY8VxpUVBv/2JsUtrB/rAIbGqZoxAIWvijJ
-                Pe9o1TY3VlOzk9ASZ1AeatvOir+iDVJ5OpKmLnzc46QgGPUsjIyo6Sje9dxpGtoG
-                QQIDAQAB
-                -----END PUBLIC KEY-----
-            x-sample-call-output: |
                 {
-                   "wrapped_key": "sKCE8YFz9DON8FghjavoHJCMec0+cPwj5pGxK35FXuMAQaxxECQH/vWTuUdK4eHBgk1/FMcfbSnjPRvIqANYQBWwNWfNrQVQ+NBa+PCP5FstjCjFUUIPYC2ei/taZtnp4RXx25eiljprmGcuboEAP359+J4tjkKJeuppxRnxA7u5ewjB+C4vhOpyWkOyP5Iio6RqXzWVVz6Usn2QIjVArpjLR0vk/HuB2TUCMoohxu3UloXUUeDAeWWGToQ9E9Pqc8jLNKvHlksZzZHuzSAaDz7q601LxD+BFKF2EvuWCVLS/hrScBL68SkB/nvsZIiGYxHbk3mzhFGEGFEVfkAx+g=="
+                  "attestation_token": "eyJhbGciOiJQUzM4NCIsImprdSI6Imh0dHBzOi8vYW1iZXItcG9jLXVzZXIxLnByb2plY3QtYW1iZXItc21hcy5jb20vY2VydHMiLCJraWQiOiJkN2VjN2RlZjY3NzVhMjdiZTRkNGUzODY1NGZhMWNlOGM1ZTI5MjI2YzgzZTIwNTQwMGU0NDExNzI4YjA2YTQ2ZDY5MDU5ZWU2NGM5NmY0MjE0NTU2YWNmYmQzYjcwNDYiLCJ0eXAiOiJKV1QifQ.eyJzZ3hfbXJlbmNsYXZlIjoiODNmNGU4MTk4NjFhZGVmNmZmYjJhNDg2NWVmZWE5MzM3YjkxZWQzMGZhMzM0OTFiMTdmMGQ1ZDllODIwNDQxMCIsInNneF9tcnNpZ25lciI6IjgzZDcxOWU3N2RlYWNhMTQ3MGY2YmFmNjJhNGQ3NzQzMDNjODk5ZGI2OTAyMGY5YzcwZWUxZGZjMDhjN2NlOWUiLCJzZ3hfaXN2cHJvZGlkIjowLCJzZ3hfaXN2c3ZuIjowLCJzZ3hfcmVwb3J0X2RhdGEiOiJkODNlZWE5MTI2ZTQ2YTA1OTA1ZDY2YTA4ZTEzZjg0ODdkMWRlNDhhNzQ2NzllOTJhMmIwZWU3MjViNTVkMWY1MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInNneF9pc19kZWJ1Z2dhYmxlIjpmYWxzZSwic2d4X2NvbGxhdGVyYWwiOnsicWVpZGNlcnRoYXNoIjoiYjJjYTcxYjhlODQ5ZDVlNzk5NDUxYjRiZmU0MzE1OWEwZWU1NDgwMzJjZWNiMmMwZTQ3OWJmNmVlM2YzOWZkMSIsInFlaWRjcmxoYXNoIjoiZjQ1NGRjMWI5YmQ0Y2UzNmMwNDI0MWUyYzhjMzdhMmFlMjZiMDc3ZjJjNjZiOTE5ODQzMzY1MzE4YTU5MzMyYyIsInFlaWRoYXNoIjoiNGRjZDUwMWVjZTdhNzY3NWJmMDFjZDEyM2RmYmZiZDEwYzEyOTk4ZWRkNGYyMDE5ZjMxNGUxZTM1OTE4NmI5ZSIsInF1b3RlaGFzaCI6IjFhMjExYzNjZjdlYmI3ZDRjZjBmYTM1OGM4YjQzZWYxOGFkYjk3MDgzNGMxMjcxYjUyMjg5OWNmNzA3MThjY2QiLCJ0Y2JpbmZvY2VydGhhc2giOiJiMmNhNzFiOGU4NDlkNWU3OTk0NTFiNGJmZTQzMTU5YTBlZTU0ODAzMmNlY2IyYzBlNDc5YmY2ZWUzZjM5ZmQxIiwidGNiaW5mb2NybGhhc2giOiJmNDU0ZGMxYjliZDRjZTM2YzA0MjQxZTJjOGMzN2EyYWUyNmIwNzdmMmM2NmI5MTk4NDMzNjUzMThhNTkzMzJjIiwidGNiaW5mb2hhc2giOiJlYzFjZWYzNzNiNWIyOThkN2JkZTM4NTI5NTE0NWQ5MmU0ZGU0MTZkMGQ1OTRlYzQ1NWVmNGU3YTMyMzUwMGY0In0sImF0dGVzdGVyX2hlbGRfZGF0YSI6IkFRQUJBRVdweWYxOWUyZUFSQ1BxL2wwN0N2a1BHSW9KSys0OHREdHY1c0I1V3N3QjJPWTYzcVN4YitEeE9yWi9iNTRCTkY2eGVTLytzN1c4MXorNVJLUXdtZXdJYWdlWlpCeVdIcDB4czZlT25ob0dNcGRERUhGaElmcDlhbjVlNHdQOHRub2FZeXplRDY2SjVXZ2QzZ1grc0J2NkdMMUJCUnE0TTFiTlZzbFhjejR3M3M0eFdXTzJDTGZnU3BJMWpBVG9FaHhMeHRhK2U1SXN0bjR2MmhYc3VFbWtlU0w1TkhyY2Z5N0FtUGhGSVNVb3l5Slo5MTIxakVrVy95bC9vR2JKZWdmZVd3RDMxNkFmNjlnYXdGQ08yOXhqdXBuZlFhN1hDUitZckIyWFRJcURxSEFibzFmUWFicmRHM0hseUlpdnlheUZZejZtb3p0djBWTW5vQWZVRnpaNzBadmNlZmNJMkhBQ28ycUlKbWF0aHlvaXN1d0gzYVowT2pjZzUzclNCc1RLOVFONGp6eVlrSWcwRGwwcHJqenJJSXlUeGVyRGYrL1IvWURUTnk5S0M2T0NsdVplMHhMbVl3RmZPY1BNcjZ0YVdWRVBETTdLOFJtdWI1SHcwMm1DUFhOaE5qT1RyUHhNNXdxckxiWDV4SjVmSnMzM3dsdjVlK1hWaTJhZ2pRPT0iLCJ2ZXJpZmllcl9ub25jZSI6eyJ2YWwiOiJlSE5wV0hoUFJHcEdVa2hDUzBwclMyTTBUMFpOYVRGMVRsb3paWFpIYlVsNVVuRm5PVFJ6Y1RkTGJISlhlbGd2YWtKNVNqTXlNelkxWldKR1NFNXZlbU51VUVNclRWSlJiVE5UVUVwMWExbHZhVFUyTkZFOVBRPT0iLCJpYXQiOiJNakF5TkMwd01TMHhNQ0F5TWpvME1EbzFOQ0FyTURBd01DQlZWRU09Iiwic2lnbmF0dXJlIjoiZHo5UUUram9JNTJwUFI0aTdaSlpFSHNYblNJbUtWUlMrWEJxWmcyS0M2WWxJZ3lGckp6UnNnK3FFaWZWSWJid3IwZmk3U01od1hObWc0VUdrYXVTc3JveThVbVdYeitQRStEbmJPN3VHSWdFSjVkdTAxMUdDQTNzbWlOWlZnd1FMV0lWamFaRmoyZkxqcVE0YTI4c2R5TU9tUUZjaFU0ODVjcGt1anZ1cUdPYzFlOXdyNVM0UEM1czBCSzJGZFlMNXk1MU1sNXhncWJTTVlXRC9majErM0xJOTExY2xjWDhmeVMyYWRxZkdaZ01LSE9LOTdacXppOWgvUkJvOGZIVDkrc1dBc0JwUXE0N1MzczlPTGhPOUpRUGR6K1hjKzczSEYxY0Nwa2dTczc2VndJdUhoaVhDOUhDR25VRHNZVjllK290S2RGSlpTRnB0ZWNUM2VkQzB5N0dGai9oeG9INzR1NC9yOTBMR0tQbk1KQkV1WklibzZWdDVwQnNzT05YdVUrUGZ4eTVUZkZFQWt1dUlzTm0xdlF3SmlhOW01UEZaQUd4RjFIWFNCWER1ZXJwUW9kbnd0dEltSTU1djNMMHJ6cXBjUjBJM0E4bk9ORHRvZEc4ZWhEbXpza0RhL3JxUnovOFNrU1QwaXY1VzRCSHp5dUFtS1pxRWxTRXY3bWoifSwiYXR0ZXN0ZXJfdGNiX3N0YXR1cyI6Ik91dE9mRGF0ZSIsImF0dGVzdGVyX3RjYl9kYXRlIjoiMjAyMS0xMS0xMFQwMDowMDowMFoiLCJhdHRlc3Rlcl9hZHZpc29yeV9pZHMiOlsiSU5URUwtU0EtMDA1ODYiLCJJTlRFTC1TQS0wMDYxNCIsIklOVEVMLVNBLTAwNjE1IiwiSU5URUwtU0EtMDA2NTciLCJJTlRFTC1TQS0wMDczMCIsIklOVEVMLVNBLTAwNzM4IiwiSU5URUwtU0EtMDA3NjciLCJJTlRFTC1TQS0wMDgyOCIsIklOVEVMLVNBLTAwODM3Il0sImF0dGVzdGVyX3R5cGUiOiJTR1giLCJ2ZXJpZmllcl9pbnN0YW5jZV9pZHMiOlsiYTI2YzIxOWItNTZkNi00NmNiLWI1OTItMjkxYjYxYjQzMTdkIiwiM2YwMzMyZTItZjJjNi00ZDlmLWI0NzMtZjA1ZDAyYzk4OWYwIiwiNDJjNTJjMWItMTcwOS00MDE2LTkwMmMtOGY3MzY3NzJkMzUxIl0sImRiZ3N0YXQiOiJkaXNhYmxlZCIsImVhdF9wcm9maWxlIjoiaHR0cHM6Ly9hbWJlci1wb2MtdXNlcjEucHJvamVjdC1hbWJlci1zbWFzLmNvbS9lYXRfcHJvZmlsZS5odG1sIiwiaW50dXNlIjoiZ2VuZXJpYyIsInZlciI6IjEuMC4wIiwiZXhwIjoxNzA0OTI2NzU0LCJqdGkiOiI3ZWQwOWIwOC1iNDEwLTRiNjAtOTNkMy1iMzA4MjRiNWU3ODAiLCJpYXQiOjE3MDQ5MjY0NTQsImlzcyI6IkludGVsIFRydXN0IEF1dGhvcml0eSIsIm5iZiI6MTcwNDkyNjQ1NH0.c9_6Mt8d9wbzs-46UVSJgIvmO_1rzYYBIYGFsGQSFphd6NjU0OTdgmsJEJ24ZG8-elOKiNH3QMn2wztHgtjpHfAWr7QNB5cV8d5eHDj9_gk68NyIFIycI9AogAeHmWOTGNTlSfuPRzuGwplnXRBQICr1kB2i-DLc01xNWJ4YhwpjuhAOT1eWXpx0nocEA3zzHD__QqKuw395Cry04ZhoCNlQDr6S7U2b4iWzvo0Vpeih64CHyFyHDo0olFZYmBjNSdObRhPtCa0vQ8T7TJbUYLUHQz8_XHFUAuHrr6alEjjb-jZFhCdjuW7ZnmdlyFkAK9MHaGal5SsRrj-VBMfsFPEqVQthieJh2IhhNB284DQ9VJsy7C7s5U1r0q0PRA-P2sB44KQ6G1YPTq7_fo7SGVQq7GSKYFZbil_Jx-YTFDPIZNHd75eVpdDyj3J84X9L6cN9EBhTJwWwZRZHh0I2x5bdABCr8Ev815o21F9ttFHKH8BtAqNm0174m2m4_AXo"
+                }
+            x-sample-call-output: |-
+                {
+                  "wrapped_key": "DAAAABAAAAAwAAAAyKHZsencLdTeTMV1plalHIcKBDleJqk5L6mQUOpq/Xws1nes5N02g+Mt4qmq7dbDbhTYN4xZjMxuCVM3",
+                  "wrapped_swk": "h9wwWK4WV/STdq4vSzrVBgATkp+MOo8NMTL+W15S+M5EcyKI8geAyUkE0Cr4ss7U22Uc7I2ETjlajNZzMjcbcEFf5h7p9i22KY5HK12ww3FC6CMTMAK2FCsy4MPyzD1luiH8W/ezssd7sDbg2VlNQlYOZ4UG/vFBJ7/c74suwa31vyj3hPelQFhkN6yFKcvoYalb1VejdCWeJ0r6/8zOJjDZrEE9XqExQtaxLFmdmYvYy3Q02vVyz0nSeP38dlx+W7ifiLR2GEPjNYmWq+N+ToDdtvb/lJOiFoRZtATFQmzBptiMsyr8mkLKzEPdB6g6ghDsW7rGSHlj5YgC2d3VbqUcUoh5ZiW65sXhrzIQ9s4ON5MFLU5ECj9/9BqThHnBtqa0tVoLfbdvmNpUB+xO994WiIoZtfAJ3JhtlPPwHShw5lAvpH0X1OSklauH8Kb8UMP3EU0FO0J29aU3glm9/9do//NHYb3mIYpZ7r5VLy31UkB68e+3hnlHDzPCbea8"
                 }
     /token:
         post:
@@ -1088,7 +1233,8 @@ paths:
     /users:
         get:
             description: |
-                Searches for users with a given set of filter criterias.
+                Searches for users.
+
                 Returns - The collection of serialized UserResponse Go struct objects.
             operationId: SearchUser
             parameters:
@@ -1119,7 +1265,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - User
             x-permissions: users:search
@@ -1145,9 +1291,9 @@ paths:
 
                  | Attribute   | Description |
                  |-------------|-------------|
-                 | username    | Name of the user |
-                 | password    | The password of the user |\
-                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
+                 | username    | Name of the user. |
+                 | password    | The password of the user. |
+                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update. |
             operationId: CreateUser
             parameters:
                 - in: body
@@ -1185,7 +1331,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - User
             x-permissions: users:create
@@ -1229,7 +1375,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - User
             x-permissions: users:delete
@@ -1269,7 +1415,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - User
             x-permissions: users:search
@@ -1341,7 +1487,7 @@ paths:
                 "500":
                     description: Internal server error
             security:
-                - bearerAuth: []
+                - bearerToken: []
             tags:
                 - User
             x-permissions: users:update
@@ -1380,9 +1526,10 @@ paths:
             x-sample-call-output: |-
                 {"Service Name": "Key Broker Service",
                  "Version": "v0.0.0-0f0162ea",
-                 "Build Date": "2022-03-08T12:17:18+0000"}
+                 "Build Date": "2022-03-08T12:17:18+0000"
+                }
 securityDefinitions:
-    bearerAuth:
+    bearerToken:
         description: Enter your bearer token in the format <Bearer Token>
         in: header
         name: Authorization

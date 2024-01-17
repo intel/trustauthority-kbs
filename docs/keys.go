@@ -3,7 +3,9 @@
  */
 package kbs
 
-import "intel/kbs/v1/model"
+import (
+	"intel/kbs/v1/model"
+)
 
 type KeyResponses []model.KeyResponse
 
@@ -38,6 +40,14 @@ type KeyTransferResponse struct {
 	Body model.KeyTransferResponse
 }
 
+// Key update payload
+// swagger:parameters KeyUpdateRequest
+type KeyUpdateRequest struct {
+	// in:body
+	// required: true
+	Body model.KeyUpdateRequest
+}
+
 // ---
 // swagger:operation POST /keys Keys CreateKey
 // ---
@@ -51,22 +61,20 @@ type KeyTransferResponse struct {
 //    |--------------------|-------------|
 //    | key_information    | A json object having all the required information about a key. |
 //    | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
-//    | label              | String to attach optionally a text description to the key, e.g. "US Nginx key". |
-//    | usage              | String to attach optionally a usage criteria for the key, e.g. "Country:US,State:CA". |
 //
 //   The serialized KeyInformation Go struct object represents the content of the key_information field.
 //
 //    | Attribute   | Description |
 //    |-------------|-------------|
 //    | algorithm   | Encryption algorithm used to create or register key. Supported algorithms are AES, RSA and EC. |
-//    | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. |
-//    | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1 and secp521r1. |
-//    | key_string  | Base64 encoded private key to be registered. Supported only if key is created locally. |
+//    | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for AES and RSA algorithm. |
+//    | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for EC algorithm. |
+//    | key_data    | Base64 encoded private key to be registered. Supported only if key is created locally. |
 //    | kmip_key_id | Unique KMIP identifier of key to be registered. Supported only if key is created on KMIP server. |
 //
 // x-permissions: keys:create
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // consumes:
@@ -137,7 +145,7 @@ type KeyTransferResponse struct {
 //   Returns - The serialized KeyResponse Go struct object that was retrieved.
 // x-permissions: keys:search
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // parameters:
@@ -185,15 +193,15 @@ type KeyTransferResponse struct {
 
 // ---
 
-// swagger:operation POST /keys/{id} Keys TransferKey
+// swagger:operation POST keys/{id} Keys TransferKey
 // ---
 //
 // description: |
-//   Transfers a key.
+//   Releases a wrapped AES key with the public key provided in the request.
 //   Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
 // x-permissions: keys:transfer
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // consumes:
@@ -257,7 +265,7 @@ type KeyTransferResponse struct {
 //   Deletes a key.
 // x-permissions: keys:delete
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // parameters:
 // - name: id
 //   description: Unique ID of the key.
@@ -283,10 +291,11 @@ type KeyTransferResponse struct {
 //
 // description: |
 //   Searches for keys.
+//
 //   Returns - The collection of serialized KeyResponse Go struct objects.
 // x-permissions: keys:search
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 //  - application/json
 // parameters:
@@ -351,3 +360,78 @@ type KeyTransferResponse struct {
 //            "created_at": "2020-09-23T11:16:26.738467277Z"
 //        }
 //    ]
+
+// ---
+
+// swagger:operation PUT /keys Keys UpdateKey
+// ---
+//
+// description: |
+//   Updates a key with the key transfer policy.
+//
+//   The serialized KeyRequest Go struct object represents the content of the request body.
+//
+//    | Attribute          | Description |
+//    |--------------------|-------------|
+//    | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+//
+//
+// x-permissions: keys:update
+// security:
+// - bearerToken: []
+// produces:
+// - application/json
+// consumes:
+// - application/json
+// parameters:
+// - name: request body
+//   required: true
+//   in: body
+//   schema:
+//    "$ref": "#/definitions/KeyUpdateRequest"
+// - name: Content-Type
+//   description: Content-Type header
+//   in: header
+//   type: string
+//   required: true
+//   enum:
+//     - application/json
+// - name: Accept
+//   description: Accept header
+//   in: header
+//   type: string
+//   required: true
+//   enum:
+//     - application/json
+// responses:
+//   '201':
+//     description: Successfully updated the key.
+//     content:
+//       application/json
+//     schema:
+//       $ref: "#/definitions/KeyResponse"
+//   '401':
+//     description: Request Unauthorized
+//   '400':
+//     description: Invalid request body provided
+//   '415':
+//     description: Invalid Accept Header in Request
+//   '500':
+//     description: Internal server error
+//
+// x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+// x-sample-call-input: |
+//    {
+//        "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
+//    }
+// x-sample-call-output: |
+//    {
+//        "key_information": {
+//            "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
+//            "algorithm": "AES",
+//            "key_length": 256
+//        },
+//        "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
+//        "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
+//        "created_at": "2020-09-23T11:16:26.738467277Z"
+//    }

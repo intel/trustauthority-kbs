@@ -21,4 +21,5 @@ package kbs
 // x-sample-call-output: |
 //   {"Service Name": "Key Broker Service",
 //    "Version": "v0.0.0-0f0162ea",
-//    "Build Date": "2022-03-08T12:17:18+0000"}
+//    "Build Date": "2022-03-08T12:17:18+0000"
+//   }

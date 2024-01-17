@@ -34,13 +34,13 @@ type UserResponse struct {
 //
 //    | Attribute   | Description |
 //    |-------------|-------------|
-//    | username    | Name of the user |
-//    | password    | The password of the user |\
-//    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
+//    | username    | Name of the user. |
+//    | password    | The password of the user. |
+//    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update. |
 //
 // x-permissions: users:create
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // consumes:
@@ -110,7 +110,7 @@ type UserResponse struct {
 //   Returns - The serialized UserResponse Go struct object that was retrieved.
 // x-permissions: users:search
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // parameters:
@@ -165,7 +165,7 @@ type UserResponse struct {
 //   Deletes a user account and associated roles.
 // x-permissions: users:delete
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // parameters:
 // - name: id
 //   description: Unique ID of the user.
@@ -190,11 +190,12 @@ type UserResponse struct {
 // ---
 //
 // description: |
-//   Searches for users with a given set of filter criterias.
+//   Searches for users.
+//
 //   Returns - The collection of serialized UserResponse Go struct objects.
 // x-permissions: users:search
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 //  - application/json
 // parameters:
@@ -257,7 +258,7 @@ type UserResponse struct {
 //
 // x-permissions: users:update
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // consumes:
