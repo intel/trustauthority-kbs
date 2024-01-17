@@ -55,7 +55,7 @@ type KeyTransferPolicyCollection struct {
 //
 // x-permissions: key-transfer-policies:create
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // consumes:
@@ -65,7 +65,7 @@ type KeyTransferPolicyCollection struct {
 //   required: true
 //   in: body
 //   schema:
-//    "$ref": "#/definitions/KeyTransferPolicy"
+//    $ref: "#/definitions/KeyTransferPolicy"
 // - name: Content-Type
 //   description: Content-Type header
 //   in: header
@@ -99,7 +99,7 @@ type KeyTransferPolicyCollection struct {
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
 // x-sgx-sample-call-input: |
 //    {
-//      "attestation_type": ["SGX"],
+//      "attestation_type": "SGX",
 //      "sgx": {
 //          "attributes": {
 //
@@ -107,7 +107,6 @@ type KeyTransferPolicyCollection struct {
 //              "isvprodid": [12],
 //              "mrenclave": ["01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"],
 //              "isvsvn": 1,
-//              "client_permissions":["nginx","USA"],
 //              "enforce_tcb_upto_date": false
 //          },
 //          "policy_ids": ["37965f5f-ccaf-4cdc-a356-a8ed5268a5bf", "9846bf40-e380-4842-ae15-1b60996d1190"]
@@ -117,9 +116,7 @@ type KeyTransferPolicyCollection struct {
 //    {
 //      "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
 //      "created_at": "2021-08-20T06:30:35.085644391Z",
-//      "attestation_type": [
-//          "SGX"
-//      ],
+//      "attestation_type": "SGX",
 //      "sgx": {
 //        "attributes": {
 //            "mrsigner": [
@@ -132,10 +129,6 @@ type KeyTransferPolicyCollection struct {
 //                "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
 //            ],
 //            "isvsvn": 1,
-//            "client_permissions": [
-//                "nginx",
-//                "USA"
-//            ],
 //            "enforce_tcb_upto_date": false
 //        },
 //        "policy_ids": [
@@ -146,9 +139,7 @@ type KeyTransferPolicyCollection struct {
 //    }
 // x-tdx-sample-call-input: |
 //    {
-//      "attestation_type": [
-//          "TDX"
-//      ],
+//      "attestation_type": "TDX",
 //      "tdx": {
 //        "attributes": {
 //            "mrsignerseam": [
@@ -176,9 +167,7 @@ type KeyTransferPolicyCollection struct {
 //    {
 //      "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
 //      "created_at": "2021-08-20T05:51:39.588320016Z",
-//      "attestation_type": [
-//          "TDX"
-//      ],
+//      "attestation_type": "TDX",
 //      "tdx": {
 //        "attributes": {
 //            "mrsignerseam": [
@@ -214,7 +203,7 @@ type KeyTransferPolicyCollection struct {
 //   Returns - The serialized KeyTransferPolicy Go struct object that was retrieved.
 // x-permissions: key-transfer-policies:search
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 // - application/json
 // parameters:
@@ -252,9 +241,7 @@ type KeyTransferPolicyCollection struct {
 //    {
 //      "id": "75d34bf4-80fb-4ca5-8602-a8d82e56b30d",
 //      "created_at": "2021-08-20T05:51:39.588320016Z",
-//      "attestation_type": [
-//          "TDX"
-//      ],
+//      "attestation_type": "TDX",
 //      "tdx": {
 //        "attributes": {
 //            "mrsignerseam": [
@@ -289,7 +276,7 @@ type KeyTransferPolicyCollection struct {
 //   Deletes a key transfer policy.
 // x-permissions: key-transfer-policies:delete
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // parameters:
 // - name: id
 //   description: Unique ID of the key transfer policy.
@@ -318,7 +305,7 @@ type KeyTransferPolicyCollection struct {
 //   Returns - The collection of serialized KeyTransferPolicy Go struct objects.
 // x-permissions: key-transfer-policies:search
 // security:
-// - bearerAuth: []
+// - bearerToken: []
 // produces:
 //  - application/json
 // parameters:
@@ -351,9 +338,7 @@ type KeyTransferPolicyCollection struct {
 //    {
 //      "id": "d0c3f191-80f9-408f-a690-0dde00ba65ac",
 //      "created_at": "2021-08-20T06:30:35.085644391Z",
-//      "attestation_type": [
-//          "SGX"
-//      ],
+//      "attestation_type": "SGX",
 //      "sgx": {
 //        "attributes": {
 //            "mrsigner": [
@@ -366,10 +351,6 @@ type KeyTransferPolicyCollection struct {
 //                "01c60b9617b2f96e53cb75ef01e0dccea3afc7b7992697eabb8f714b2ccd1953"
 //            ],
 //            "isvsvn": 1,
-//            "client_permissions": [
-//                "nginx",
-//                "USA"
-//            ],
 //            "enforce_tcb_upto_date": false
 //        },
 //        "policy_ids": [
@@ -381,9 +362,7 @@ type KeyTransferPolicyCollection struct {
 //    {
 //      "id": "cf9adfcf-4bfa-4653-b9b8-2b94beca768f",
 //      "created_at": "2021-08-20T05:51:39.588320016Z",
-//      "attestation_type": [
-//          "TDX"
-//      ],
+//      "attestation_type": "TDX",
 //      "tdx": {
 //        "attributes": {
 //            "mrsignerseam": [
