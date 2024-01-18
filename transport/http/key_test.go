@@ -291,6 +291,43 @@ func TestKeyCreateHandler(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusCreated))
 }
 
+func TestKeyCreateValidKeyData(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	keyCreateRes := &model.KeyResponse{}
+
+	mockService := &MockService{}
+	mockService.On("CreateKey", mock.Anything, mock.Anything).Return(keyCreateRes, nil)
+	handler := createMockHandler(mockService)
+
+	err := setKeyHandler(mockService, mux.NewRouter(), nil, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	keyJson := `{
+		"key_information":{
+		      "algorithm": "AES",
+		      "key_length": 256,
+		      "key_data": "YG2UtIG6OtaPjIIHQXJGxRmR0ozqiF3iQoVztc74ijo="
+		}
+        }`
+
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v1/keys", bytes.NewReader([]byte(keyJson)))
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Content-type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusCreated))
+}
+
 func TestKeyCreateInvalidKeyData(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	keyCreateRes := &model.KeyResponse{}

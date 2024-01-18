@@ -158,12 +158,12 @@ func ValidateUsername(username string) error {
 	if len(username) < constant.UserCredsMaxLen && userOrEmailReg.MatchString(username) {
 		return nil
 	}
-	return errors.New("Invalid input for ADMIN_USERNAME configuration")
+	return errors.New("Invalid input for username")
 }
 
 func ValidatePassword(password string) error {
-	if len(password) < constant.UserCredsMaxLen && len(password) > constant.PasswordMinLen && passwordReg.MatchString(password) {
+	if len(password) < constant.PasswordMaxLen && len(password) > constant.PasswordMinLen && passwordReg.MatchString(password) {
 		return nil
 	}
-	return errors.New("Invalid input for ADMIN_PASSWORD configuration")
+	return errors.New("Invalid input for password")
 }
