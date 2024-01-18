@@ -6,8 +6,8 @@ package crypt
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/pkg/errors"
 	"strings"
 )
 
@@ -31,12 +31,12 @@ func GetTokenClaims(parsedToken *jwt.Token, tokenString string, customClaims int
 	var err error
 
 	if claimBytes, err = jwt.DecodeSegment(parts[1]); err != nil {
-		return nil, fmt.Errorf("could not decode claims part of the jwt token")
+		return nil, errors.Wrap(err, "could not decode claims part of the jwt token")
 	}
 	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
 	err = dec.Decode(customClaims)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode token claims as json")
+		return nil, errors.Wrap(err, "failed to decode token claims as json")
 	}
 	token.customClaims = customClaims
 

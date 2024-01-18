@@ -34,8 +34,8 @@ type UserResponse struct {
 //
 //    | Attribute   | Description |
 //    |-------------|-------------|
-//    | username    | Name of the user. |
-//    | password    | The password of the user. |
+//    | username    | Name of the user. Should be less than 256 characters. |
+//    | password    | The password of the user. Should be between 8 and 72 characters. |
 //    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update. |
 //
 // x-permissions: users:create

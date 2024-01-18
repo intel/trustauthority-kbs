@@ -114,7 +114,11 @@ func (vm *VaultManager) RegisterKey(request *model.KeyRequest) (*model.KeyAttrib
 
 		var public crypto.PublicKey
 		var private crypto.PrivateKey
-		private, err := crypt.GetPrivateKeyFromPem([]byte(request.KeyInfo.KeyData))
+		decodePrivateKey, err := base64.StdEncoding.DecodeString(request.KeyInfo.KeyData)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to decode keydata")
+		}
+		private, err = crypt.GetPrivateKeyFromPem(decodePrivateKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to decode private key")
 		}

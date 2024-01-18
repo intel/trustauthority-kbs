@@ -71,8 +71,10 @@ const (
 	HTTPHeaderKeyAccept                = "Accept"
 	HTTPHeaderKeyAttestationType       = "Attestation-Type"
 
-	UserCredsMaxLen              = 256
-	PasswordMinLen               = 8
+	UserCredsMaxLen = 256
+	PasswordMinLen  = 8
+	// this limit is enforced by the crypt/bcrypt library
+	PasswordMaxLen               = 72
 	MaxTokenValidityInMinutes    = 30
 	MinTokenValidityInMinutes    = 1
 	DefaultHttpReadHeaderTimeOut = 10

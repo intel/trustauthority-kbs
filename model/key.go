@@ -48,7 +48,9 @@ type KeyInfo struct {
 	// Denotes the curve type used while creating the EC key
 	// example: secp384r1
 	CurveType string `json:"curve_type,omitempty"`
-	KeyData   string `json:"key_data,omitempty"`
+	// Denotes the private key(RSA/EC) or AES key in base64 string
+	// example: YG2UtIG6OtaPjIIHQXJGxRmR0ozqiF3iQoVztc74ijo=
+	KeyData string `json:"key_data,omitempty"`
 	// KMIP Key ID, if the key is already created in KMIP Backend
 	// example: 7110194b-a703-4657-9d7f-3e02b62f2ed8
 	KmipKeyID string `json:"kmip_key_id,omitempty"`

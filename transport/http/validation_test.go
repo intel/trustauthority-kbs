@@ -8,19 +8,6 @@ import (
 	"testing"
 )
 
-func TestValidatePemEncodedKeyFunc(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
-	err := ValidatePemEncodedKey("invalidKey%%%###")
-	g.Expect(err).To(gomega.HaveOccurred())
-
-	err = ValidatePemEncodedKey(" ")
-	g.Expect(err).To(gomega.HaveOccurred())
-
-	in := "AQABALX8TwtlMn052rcxr9BOiyZvuqx1om2ZaP8ZtIv0BDwQ2v8rJ2avAovHO5Ux+Rv5UNsQKtKeUK7GqFiPefzoZofd4/nLstGvLNWei0fa45rkKk+3UwqnXjc8RP4hKbd4QTWiETWqN5BryHHWEKZjsM53SQriB8GyyyNC7M2kppJmOb1O7vNUZC3xjxCt5NEog8PpAD09eMLjJCM9N9+uFqOgg8EBpqdMvUhPyjacTqabZWdxd0GdwDJZdKGbfZy0o8Hi1zcs5u/NwxOIMf5E9CtCWKnhnA55nG5adbzil7DA8sq1OA8Ss3zvGoljip4s7exH+naO9Wxwt8HCDxbLEaU="
-	err = ValidatePemEncodedKey(in)
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-}
-
 func TestValidateSha256HexString(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	err := ValidateSha256HexString("invalidsha")

@@ -11,7 +11,6 @@ import (
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"intel/kbs/v1/config"
 	"intel/kbs/v1/constant"
@@ -243,7 +242,8 @@ func decodeSearchUserHTTPRequest(_ context.Context, r *http.Request) (interface{
 	// username query
 	if param := strings.TrimSpace(queryValues.Get(Username)); param != "" {
 		if err := config.ValidateUsername(param); err != nil {
-			return nil, errors.New("Invalid username")
+			log.WithError(err).Error(ErrInvalidFilterCriteria.Error())
+			return nil, ErrInvalidFilterCriteria
 		}
 		criteria.Username = param
 	}

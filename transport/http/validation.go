@@ -16,7 +16,6 @@ import (
 var (
 	idReg              = fmt.Sprintf("{id:%s}", constant.UUIDReg)
 	stringReg          = regexp.MustCompile("(^[a-zA-Z0-9_ \\/.-]*$)")
-	pemEncodedKeyReg   = regexp.MustCompile("(^[-a-zA-Z0-9//=+\012 ]*$)")
 	sha256HexStringReg = regexp.MustCompile("^[a-fA-F0-9]{64}$")
 	sha384HexStringReg = regexp.MustCompile("^[a-fA-F0-9]{96}$")
 )
@@ -27,15 +26,6 @@ func ValidateStrings(strings []string) error {
 		if !stringReg.MatchString(stringValue) {
 			return errors.New("Invalid string formatted input")
 		}
-	}
-	return nil
-}
-
-// ValidatePemEncodedKey method is used to validate input keys in PEM format
-func ValidatePemEncodedKey(key string) error {
-	in := strings.TrimSpace(key)
-	if in == "" || !pemEncodedKeyReg.MatchString(in) {
-		return errors.New("Invalid pem format")
 	}
 	return nil
 }
@@ -59,6 +49,9 @@ func ValidateSha384HexString(value string) error {
 }
 
 func ValidateQueryParamKeys(params url.Values, validQueries map[string]bool) error {
+	if len(params) == 0 {
+		return ErrInvalidQueryParam
+	}
 	if len(params) > constant.MaxQueryParamsLength {
 		return ErrTooManyQueryParams
 	}

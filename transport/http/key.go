@@ -6,6 +6,7 @@ package http
 import (
 	"context"
 	"crypto/rsa"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -377,8 +378,12 @@ func validateKeyCreateRequest(keyCreateReq model.KeyRequest) error {
 	keyData := keyCreateReq.KeyInfo.KeyData
 	kmipKeyID := keyCreateReq.KeyInfo.KmipKeyID
 	if keyData != "" {
-		if err := ValidatePemEncodedKey(keyData); err != nil {
-			return errors.New("key_data must be PEM formatted")
+		decodedKey, err := base64.StdEncoding.DecodeString(keyData)
+		if err != nil {
+			return errors.New("key_data must be base64 encoded string for AES key and the private key in PEM format for RSA/EC keys")
+		}
+		if strings.ToUpper(algorithm) == constant.CRYPTOALGAES && !allowedAESKeyLengths[len(decodedKey)*8] {
+			return errors.New("key_data must be base64 encoded string for AES key of 256, 192 or 128 bits")
 		}
 	} else if kmipKeyID != "" {
 		if err := ValidateStrings([]string{kmipKeyID}); err != nil {

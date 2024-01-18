@@ -146,6 +146,50 @@ func TestUserSearchHandlerInvalidQueryParam(t *testing.T) {
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
 }
 
+func TestUserSearchHandlerSqlInjection(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	var resp []model.UserResponse
+
+	mockService := &MockService{}
+	mockService.On("SearchUser", mock.Anything, mock.Anything).Return(resp, nil)
+	handler := createMockHandler(mockService)
+
+	err := setUserHandler(mockService, mux.NewRouter(), nil, jwtAuth)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	req, _ := http.NewRequest(http.MethodGet, "/kbs/v1/users?username=%3c%%3dThread%2ecurrent%2ebacktrace%%3e", nil)
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res := recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
+
+	req, _ = http.NewRequest(http.MethodGet, "/kbs/v1/users?username=%27%3B%20DROP%20TABLE%20your_table%3B%20--", nil)
+	req.Header.Set("Accept", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	res = recorder.Result()
+	defer res.Body.Close()
+
+	_, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Errorf("expected error to be nil got %v", err)
+	}
+	g.Expect(recorder.Code).To(gomega.Equal(http.StatusBadRequest))
+}
+
 func TestUserCreateHandlerInvalidHeaders(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	userInfo := &model.UserResponse{}
