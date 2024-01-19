@@ -12,8 +12,11 @@ RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
         GITCOMMIT=$(git describe --always); \
         VERSION=${VERSION:-v0.0.0}; \
         BUILDDATE=$(TZ=UTC date +%Y-%m-%dT%H:%M:%S%z); \
-        cd cmd && GOOS=linux GOSUMDB=off \
-        go build -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/kbs/v1/version.Version=${VERSION} -X intel/kbs/v1/version.GitHash=${GITCOMMIT}" -o kbs
+        cd cmd && env GOOS=linux CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2" \
+         go build \
+            -buildmode=pie \
+                -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/kbs/v1/version.Version=${VERSION} -X intel/kbs/v1/version.GitHash=${GITCOMMIT}" \
+                -o kbs
 
 FROM ubuntu:20.04 AS final
 # Install ca-certificates package to get the system certificates
