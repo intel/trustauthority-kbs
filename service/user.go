@@ -88,7 +88,7 @@ func (svc service) UpdateUser(ctx context.Context, updateUserReq *model.UpdateUs
 			return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Error searching for a user with the given name before updating"}
 		} else if len(existingUsers) != 0 && existingUsers[0].ID != updateUserReq.ID {
 			log.Error("Error search for a user with given filter criteria")
-			return nil, &HandledError{Code: http.StatusBadRequest, Message: "User with same username already exists"}
+			return nil, &HandledError{Code: http.StatusBadRequest, Message: "Error updating a user with the given name"}
 		}
 		user.Username = updateUserReq.UpdateUser.Username
 	}
