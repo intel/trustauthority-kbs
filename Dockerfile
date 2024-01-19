@@ -4,7 +4,7 @@
 ARG PACKAGES_TO_COVER="config\|keymanager\|transport\|service"
 ARG VERSION=v0.0.0
 
-FROM golang:1.21.4-bullseye AS builder
+FROM golang:1.21.6-bullseye AS builder
 ARG VERSION
 WORKDIR /app
 COPY . .
@@ -18,7 +18,7 @@ RUN GITTAG=$(git describe --tags --abbrev=0 2>/dev/null); \
                 -ldflags "-linkmode=external -s -extldflags '-Wl,-z,relro,-z,now' -X intel/kbs/v1/version.BuildDate=${BUILDDATE} -X intel/kbs/v1/version.Version=${VERSION} -X intel/kbs/v1/version.GitHash=${GITCOMMIT}" \
                 -o kbs
 
-FROM ubuntu:20.04 AS final
+FROM ubuntu:22.04 AS final
 # Install ca-certificates package to get the system certificates
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
     rm -rf /var/lib/apt/lists/*
