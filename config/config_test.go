@@ -36,6 +36,9 @@ func clearEnv() {
 	os.Unsetenv("KMIP_CLIENT_CERT_PATH")
 	os.Unsetenv("KMIP_ROOT_CERT_PATH")
 	os.Unsetenv("SAN_LIST")
+	os.Unsetenv("AUTHENTICATION_DEFEND_MAX_ATTEMPTS")
+	os.Unsetenv("AUTHENTICATION_DEFEND_INTERVAL_MINUTES")
+	os.Unsetenv("AUTHENTICATION_DEFEND_LOCKOUT_MINUTES")
 }
 
 func setValidEnv() {
@@ -60,6 +63,10 @@ func setValidEnv() {
 	os.Setenv("KMIP_CLIENT_CERT_PATH", "/etc/pykmip/client_certificate.pem")
 	os.Setenv("KMIP_ROOT_CERT_PATH", "/etc/pykmip/root_certificate.pem")
 	os.Setenv("SAN_LIST", "localhost")
+	os.Setenv("AUTHENTICATION_DEFEND_MAX_ATTEMPTS", "5")
+	os.Setenv("AUTHENTICATION_DEFEND_INTERVAL_MINUTES", "5")
+	os.Setenv("AUTHENTICATION_DEFEND_LOCKOUT_MINUTES", "5")
+
 }
 
 func setViperInit() {
@@ -208,6 +215,45 @@ func TestInvalidTokenValidity(t *testing.T) {
 	}
 	g := gomega.NewGomegaWithT(t)
 	cfg.BearerTokenValidityInMinutes = 0
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestInvalidAuthenticationDefendMaxAttemptsConfig(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	g := gomega.NewGomegaWithT(t)
+	cfg.AuthenticationDefendMaxAttempts = 0
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestInvalidAuthenticationDefendIntervalMinutesConfig(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	g := gomega.NewGomegaWithT(t)
+	cfg.AuthenticationDefendIntervalMinutes = 0
+	err = cfg.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
+func TestInvalidAuthenticationDefendLockoutMinutesConfig(t *testing.T) {
+	setValidEnv()
+	setViperInit()
+	cfg, err := LoadConfiguration()
+	if err != nil {
+		t.Log(err)
+	}
+	g := gomega.NewGomegaWithT(t)
+	cfg.AuthenticationDefendLockoutMinutes = 0
 	err = cfg.Validate()
 	g.Expect(err).To(gomega.HaveOccurred())
 }
