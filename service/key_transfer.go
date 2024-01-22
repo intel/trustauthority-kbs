@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"encoding/pem"
 	itaConnector "github.com/intel/trustauthority-client/go-connector"
+	"github.com/sirupsen/logrus"
 	"hash"
 	"intel/kbs/v1/crypt"
 	"io"
@@ -27,7 +28,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -52,9 +52,9 @@ type TransferKeyResponse struct {
 func (mw loggingMiddleware) TransferKeyWithEvidence(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
 	var err error
 	defer func(begin time.Time) {
-		log.Tracef("TransferKeyWithEvidence took %s since %s", time.Since(begin), begin)
+		logrus.Tracef("TransferKeyWithEvidence took %s since %s", time.Since(begin), begin)
 		if err != nil {
-			log.WithError(err)
+			logrus.WithError(err)
 		}
 	}(time.Now())
 	resp, err := mw.next.TransferKeyWithEvidence(ctx, req)
@@ -65,17 +65,17 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 	key, err := svc.remoteManager.RetrieveKey(req.KeyId)
 	if err != nil {
 		if err.Error() == RecordNotFound {
-			log.WithError(err).Error("Key with specified id doesn't exist")
+			logrus.WithError(err).Error("Key with specified id doesn't exist")
 			return nil, &HandledError{Code: http.StatusNotFound, Message: "Key with specified id does not exist"}
 		} else {
-			log.WithError(err).Error("Key retrieval failed")
+			logrus.WithError(err).Error("Key retrieval failed")
 			return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key"}
 		}
 	}
 
 	transferPolicy, err := svc.repository.KeyTransferPolicyStore.Retrieve(key.TransferPolicyID)
 	if err != nil {
-		log.WithError(err).Error("Key transfer policy retrieve failed")
+		logrus.WithError(err).Error("Key transfer policy retrieve failed")
 		return nil, &HandledError{Code: http.StatusInternalServerError, Message: "Failed to retrieve key transfer policy for the key"}
 	}
 
@@ -86,7 +86,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 			nonceArgs := itaConnector.GetNonceArgs{RequestId: itaRequestID}
 			nonceResp, err := svc.itaApiClient.GetNonce(nonceArgs)
 			if err != nil {
-				log.WithError(err).Error("Error retrieving nonce from Trust Authority service")
+				logrus.WithError(err).Error("Error retrieving nonce from Trust Authority service")
 				return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving nonce from Trust Authority service"}
 			}
 
@@ -101,7 +101,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 		}
 	} else {
 		if req.AttestationType != transferPolicy.AttestationType.String() {
-			log.Error("attestation-type in request header does not match with attestation-type in key-transfer policy")
+			logrus.Error("attestation-type in request header does not match with attestation-type in key-transfer policy")
 			return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-type in request header does not match with attestation-type in key-transfer policy"}
 		}
 
@@ -128,7 +128,7 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 
 		tokenResp, err := svc.itaApiClient.GetToken(tokenRequest)
 		if err != nil {
-			log.WithError(err).Error("Error retrieving token from Trust Authority service")
+			logrus.WithError(err).Error("Error retrieving token from Trust Authority service")
 			return nil, &HandledError{Code: http.StatusBadGateway, Message: "Error retrieving token from Trust Authority service"}
 		}
 		token = tokenResp.Token
@@ -136,13 +136,13 @@ func (svc service) TransferKeyWithEvidence(_ context.Context, req TransferKeyReq
 
 	claims, err := svc.authenticateToken(token)
 	if err != nil {
-		log.WithError(err).Error("Failed to authenticate attestation-token")
+		logrus.WithError(err).Error("Failed to authenticate attestation-token")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "Failed to authenticate attestation-token"}
 	}
 
 	tokenClaims := claims.(*model.AttestationTokenClaim)
 	if tokenClaims.AttesterType != transferPolicy.AttestationType {
-		log.Error("attestation-token is not valid for attestation-type in key-transfer policy")
+		logrus.Error("attestation-token is not valid for attestation-type in key-transfer policy")
 		return nil, &HandledError{Code: http.StatusUnauthorized, Message: "attestation-token is not valid for attestation-type in key-transfer policy"}
 	}
 
@@ -176,7 +176,7 @@ func (svc service) validateClaimsAndGetKey(tokenClaims *model.AttestationTokenCl
 
 	err := validateAttestationTokenClaims(tokenClaims, transferPolicy)
 	if err != nil {
-		log.WithError(err).Errorf("Failed to validate Token claims against Key transfer policy attributes")
+		logrus.WithError(err).Errorf("Failed to validate Token claims against Key transfer policy attributes")
 		return nil, http.StatusUnauthorized, &HandledError{Message: "Token claims validation against key-transfer-policy failed"}
 	}
 
@@ -187,7 +187,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 
 	publicKey, err := getPublicKey(userData, attesterType)
 	if err != nil {
-		log.WithError(err).Error("Error in getting public key")
+		logrus.WithError(err).Error("Error in getting public key")
 		return nil, http.StatusInternalServerError, &HandledError{Message: "Error in getting public key"}
 	}
 
@@ -200,7 +200,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 	swk, err := CreateSwk()
 	defer crypt.ZeroizeByteArray(swk)
 	if err != nil {
-		log.Error("Error in creating SWK key")
+		logrus.Error("Error in creating SWK key")
 		return nil, http.StatusInternalServerError, &HandledError{Message: "Error in creating SWK key"}
 	}
 
@@ -219,7 +219,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 
 		decodedBlock, _ := pem.Decode(privatePem)
 		if decodedBlock == nil {
-			log.Error("Failed to decode secret key")
+			logrus.Error("Failed to decode secret key")
 			return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to decode secret key"}
 		}
 		keyByte = decodedBlock.Bytes
@@ -236,7 +236,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 
 		decodedBlock, _ := pem.Decode(privatePem)
 		if decodedBlock == nil {
-			log.Error("Failed to decode secret key")
+			logrus.Error("Failed to decode secret key")
 			return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to decode secret key"}
 		}
 		keyByte = decodedBlock.Bytes
@@ -248,7 +248,7 @@ func (svc service) getWrappedKey(keyAlgorithm, userData string, id uuid.UUID, at
 	// Wrap secret key with swk
 	bytes, nonceByte, err = AesEncrypt(keyByte, swk)
 	if err != nil {
-		log.Error("Failed to encrypt secret key with swk")
+		logrus.Error("Failed to encrypt secret key with swk")
 		return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to encrypt secret key with swk"}
 	}
 
@@ -313,10 +313,10 @@ func getSecretKey(remoteManager *keymanager.RemoteManager, id uuid.UUID) (interf
 	secretKey, err := remoteManager.TransferKey(id)
 	if err != nil {
 		if err.Error() == RecordNotFound {
-			log.Error("Key with specified id could not be located")
+			logrus.Error("Key with specified id could not be located")
 			return nil, http.StatusNotFound, &HandledError{Message: "Key with specified id does not exist"}
 		} else {
-			log.WithError(err).Error("Key transfer failed")
+			logrus.WithError(err).Error("Key transfer failed")
 			return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to transfer Key"}
 		}
 	}
@@ -328,7 +328,7 @@ func wrapKey(publicKey *rsa.PublicKey, secretKey []byte, hash hash.Hash, label [
 	// Wrap secret key with public key
 	wrappedKey, err := rsa.EncryptOAEP(hash, rand.Reader, publicKey, secretKey, label)
 	if err != nil {
-		log.WithError(err).Error("Wrap key failed")
+		logrus.WithError(err).Error("Wrap key failed")
 		return nil, http.StatusInternalServerError, &HandledError{Message: "Failed to wrap key"}
 	}
 

@@ -5,16 +5,18 @@ package service
 
 import (
 	"context"
+	"intel/kbs/v1/constant"
 	"net/http"
 	"time"
 
 	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func (mw loggingMiddleware) CreateKeyTransferPolicy(ctx context.Context, ktp model.KeyTransferPolicy) (*model.KeyTransferPolicy, error) {
+	log = logrus.WithField("user", ctx.Value(constant.LogUserID))
 	var err error
 	defer func(begin time.Time) {
 		log.Tracef("CreateKeyTransferPolicy took %s since %s", time.Since(begin), begin)

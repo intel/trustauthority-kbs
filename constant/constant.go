@@ -79,6 +79,8 @@ const (
 	MinTokenValidityInMinutes    = 1
 	DefaultHttpReadHeaderTimeOut = 10
 
+	LogUserID = "user-id"
+
 	// defender constants
 	DefaultAuthDefendMaxAttempts  = 5
 	DefaultAuthDefendIntervalMins = 5

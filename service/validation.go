@@ -5,13 +5,13 @@ package service
 
 import (
 	_ "github.com/shaj13/libcache/fifo"
+	"github.com/sirupsen/logrus"
 	"intel/kbs/v1/constant"
 	"intel/kbs/v1/model"
 	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 func validateAttestationTokenClaims(tokenClaims *model.AttestationTokenClaim, transferPolicy *model.KeyTransferPolicy) error {
@@ -58,7 +58,7 @@ func validateSGXTokenClaims(tokenClaims *model.AttestationTokenClaim, sgxAttribu
 		validateMrEnclave(tokenClaims.SgxMrEnclave, sgxAttributes.MrEnclave) &&
 		validateIsvSvn(tokenClaims.SgxIsvSvn, sgxAttributes.IsvSvn) &&
 		validateTcbStatus(tokenClaims.AttesterTcbStatus, sgxAttributes.EnforceTCBUptoDate) {
-		log.Debug("All sgx attributes in attestation token matches with attributes in key transfer policy")
+		logrus.Debug("All sgx attributes in attestation token matches with attributes in key transfer policy")
 		return nil
 	}
 	return errors.New("sgx attributes in attestation token do not match with attributes in key transfer policy")
@@ -69,16 +69,16 @@ func validateMrSigner(tokenMrSigner string, policyMrSigner []string) bool {
 
 	// if MrSigner is not provided in policy, it should not be evaluated
 	if policyMrSigner == nil || len(policyMrSigner) == 0 {
-		log.Debug("MrSigner is not provided in key transfer policy, skipping MrSigner match against the token")
+		logrus.Debug("MrSigner is not provided in key transfer policy, skipping MrSigner match against the token")
 		return true
 	}
 
 	if contains(policyMrSigner, tokenMrSigner) {
-		log.Debug("MrSigner in attestation token matches with the key transfer policy")
+		logrus.Debug("MrSigner in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("MrSigner in attestation token does not match with the key transfer policy")
+	logrus.Error("MrSigner in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -87,16 +87,16 @@ func validateIsvProdId(tokenIsvProdId uint16, policyIsvProdIds []uint16) bool {
 
 	// if IsvProdId is not provided in policy, it should not be evaluated
 	if policyIsvProdIds == nil || len(policyIsvProdIds) == 0 {
-		log.Debug("IsvProdIds is not provided in key transfer policy, skipping IsvProdId match against the token")
+		logrus.Debug("IsvProdIds is not provided in key transfer policy, skipping IsvProdId match against the token")
 		return true
 	}
 
 	if contains(policyIsvProdIds, tokenIsvProdId) {
-		log.Debug("Isv Product Id in attestation token matches with the key transfer policy")
+		logrus.Debug("Isv Product Id in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("Isv Product Id in attestation token does not match with the key transfer policy")
+	logrus.Error("Isv Product Id in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -105,16 +105,16 @@ func validateMrEnclave(tokenMrEnclave string, policyMrEnclave []string) bool {
 
 	// if MrEnclave is not provided in policy, it should not be evaluated
 	if policyMrEnclave == nil || len(policyMrEnclave) == 0 {
-		log.Debug("MrEnclave is not provided in key transfer policy, skipping MrEnclave match against the token")
+		logrus.Debug("MrEnclave is not provided in key transfer policy, skipping MrEnclave match against the token")
 		return true
 	}
 
 	if contains(policyMrEnclave, tokenMrEnclave) {
-		log.Debug("Enclave Measurement in attestation token matches with the key transfer policy")
+		logrus.Debug("Enclave Measurement in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("Enclave Measurement in attestation token does not match with the key transfer policy")
+	logrus.Error("Enclave Measurement in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -123,15 +123,15 @@ func validateIsvSvn(tokenIsvSvn uint16, policyIsvSvn *uint16) bool {
 
 	// if IsvSvn is not provided in policy, it should not be evaluated
 	if policyIsvSvn == nil {
-		log.Debug("IsvSvn is not provided in key transfer policy, skipping IsvSvn match against the token")
+		logrus.Debug("IsvSvn is not provided in key transfer policy, skipping IsvSvn match against the token")
 		return true
 	}
 
 	if tokenIsvSvn == *policyIsvSvn {
-		log.Debug("IsvSvn in attestation token matches with the key transfer policy")
+		logrus.Debug("IsvSvn in attestation token matches with the key transfer policy")
 		return true
 	}
-	log.Error("IsvSvn in attestation token does not match with the key transfer policy")
+	logrus.Error("IsvSvn in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -139,12 +139,12 @@ func validateIsvSvn(tokenIsvSvn uint16, policyIsvSvn *uint16) bool {
 func validateTcbStatus(tcbStatus string, enforceTcbUptoDate *bool) bool {
 
 	if enforceTcbUptoDate == nil {
-		log.Debug("enforceTcbUptoDate is not provided in key transfer policy, skipping enforceTcbUptoDate match against the token")
+		logrus.Debug("enforceTcbUptoDate is not provided in key transfer policy, skipping enforceTcbUptoDate match against the token")
 		return true
 	}
 
 	if *enforceTcbUptoDate && tcbStatus != constant.TCBStatusUpToDate {
-		log.Error("TCB is not Up-to-Date")
+		logrus.Error("TCB is not Up-to-Date")
 		return false
 	}
 	return true
@@ -161,7 +161,7 @@ func validateTDXTokenClaims(tokenClaims *model.AttestationTokenClaim, tdxAttribu
 		validateRTMR(tokenClaims.TdxRTMR2, tdxAttributes.RTMR2) &&
 		validateRTMR(tokenClaims.TdxRTMR3, tdxAttributes.RTMR3) &&
 		validateTcbStatus(tokenClaims.AttesterTcbStatus, tdxAttributes.EnforceTCBUptoDate) {
-		log.Debug("All tdx attributes in attestation token matches with attributes in key transfer policy")
+		logrus.Debug("All tdx attributes in attestation token matches with attributes in key transfer policy")
 		return nil
 	}
 	return errors.New("tdx attributes in attestation token do not match with attributes in key transfer policy")
@@ -172,16 +172,16 @@ func validateMrSignerSeam(tokenMrSignerSeam string, policyMrSignerSeam []string)
 
 	// if MrSignerSeam is not provided in policy, it should not be evaluated
 	if policyMrSignerSeam == nil || len(policyMrSignerSeam) == 0 {
-		log.Debug("MrSignerSeam is not provided in key transfer policy, skipping MrSignerSeam match against the token")
+		logrus.Debug("MrSignerSeam is not provided in key transfer policy, skipping MrSignerSeam match against the token")
 		return true
 	}
 
 	if contains(policyMrSignerSeam, tokenMrSignerSeam) {
-		log.Debug("MrSignerSeam in attestation token matches with the key transfer policy")
+		logrus.Debug("MrSignerSeam in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("MrSignerSeam in attestation token does not match with the key transfer policy")
+	logrus.Error("MrSignerSeam in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -190,16 +190,16 @@ func validateMrSeam(tokenMrSeam string, policyMrSeam []string) bool {
 
 	// if MrSeam is not provided in policy, it should not be evaluated
 	if policyMrSeam == nil || len(policyMrSeam) == 0 {
-		log.Debug("MrSeam is not provided in key transfer policy, skipping MrSeam match against the token")
+		logrus.Debug("MrSeam is not provided in key transfer policy, skipping MrSeam match against the token")
 		return true
 	}
 
 	if contains(policyMrSeam, tokenMrSeam) {
-		log.Debug("Seam Measurement in attestation token matches with the key transfer policy")
+		logrus.Debug("Seam Measurement in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("Seam Measurement in attestation token does not match with the key transfer policy")
+	logrus.Error("Seam Measurement in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -208,15 +208,15 @@ func validateSeamSvn(tokenSeamSvn uint8, policySeamSvn *uint8) bool {
 
 	// if SeamSvn is not provided in policy, it should not be evaluated
 	if policySeamSvn == nil {
-		log.Debug("SeamSvn is not provided in key transfer policy, skipping SeamSvn match against the token")
+		logrus.Debug("SeamSvn is not provided in key transfer policy, skipping SeamSvn match against the token")
 		return true
 	}
 
 	if tokenSeamSvn == *policySeamSvn {
-		log.Debug("Seam Svn in attestation token matches with the key transfer policy")
+		logrus.Debug("Seam Svn in attestation token matches with the key transfer policy")
 		return true
 	}
-	log.Error("Seam Svn in attestation token does not match with the key transfer policy")
+	logrus.Error("Seam Svn in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -225,16 +225,16 @@ func validateMrTD(tokenMrTD string, policyMrTD []string) bool {
 
 	// if MrTD is not provided in policy, it should not be evaluated
 	if policyMrTD == nil || len(policyMrTD) == 0 {
-		log.Debug("MrTD is not provided in key transfer policy, skipping MrTD match against the token")
+		logrus.Debug("MrTD is not provided in key transfer policy, skipping MrTD match against the token")
 		return true
 	}
 
 	if contains(policyMrTD, tokenMrTD) {
-		log.Debug("TD Measurement in attestation token matches with the key transfer policy")
+		logrus.Debug("TD Measurement in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("TD Measurement in attestation token does not match with the key transfer policy")
+	logrus.Error("TD Measurement in attestation token does not match with the key transfer policy")
 	return false
 }
 
@@ -247,11 +247,11 @@ func validateRTMR(tokenRTMR string, policyRTMR string) bool {
 	}
 
 	if tokenRTMR == policyRTMR {
-		log.Debug("RTMR in attestation token matches with the key transfer policy")
+		logrus.Debug("RTMR in attestation token matches with the key transfer policy")
 		return true
 	}
 
-	log.Error("RTMR in attestation token does not match with the key transfer policy")
+	logrus.Error("RTMR in attestation token does not match with the key transfer policy")
 	return false
 }
 

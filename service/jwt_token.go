@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/shaj13/go-guardian/v2/auth"
 	"github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"intel/kbs/v1/defender"
 	"intel/kbs/v1/model"
@@ -30,6 +30,7 @@ func InitDefender(maxAttempts, intervalMins, lockoutDurationMins int) {
 }
 
 func (mw loggingMiddleware) CreateAuthToken(ctx context.Context, request model.AuthTokenRequest, jwtAuth *model.JwtAuthz) (string, error) {
+	log = logrus.WithField("user", request.Username)
 	var err error
 	defer func(begin time.Time) {
 		log.Tracef("CreateAuthToken took %s since %s", time.Since(begin), begin)
