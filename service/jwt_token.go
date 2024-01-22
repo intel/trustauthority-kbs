@@ -7,15 +7,27 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"github.com/pkg/errors"
 	"github.com/shaj13/go-guardian/v2/auth"
 	"github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"intel/kbs/v1/defender"
 	"intel/kbs/v1/model"
 	"math/big"
 	"net/http"
 	"time"
 )
+
+var defend *defender.Defender
+
+func InitDefender(maxAttempts, intervalMins, lockoutDurationMins int) {
+	defend = defender.New(maxAttempts,
+		time.Duration(intervalMins)*time.Minute,
+		time.Duration(lockoutDurationMins)*time.Minute)
+
+	defend.Cleanup()
+}
 
 func (mw loggingMiddleware) CreateAuthToken(ctx context.Context, request model.AuthTokenRequest, jwtAuth *model.JwtAuthz) (string, error) {
 	var err error
@@ -43,14 +55,15 @@ func (svc service) CreateAuthToken(ctx context.Context, request model.AuthTokenR
 		log.WithError(err).Error("Error search for a user with given filter criteria")
 		// introducing random delay to prevent authentication timing vulnerability in case of invalid user.
 		secureRandomDelay()
-		return "", &HandledError{Code: http.StatusBadRequest, Message: "Invalid username or password"}
+		return "", &HandledError{Code: http.StatusUnauthorized, Message: "Invalid username or password"}
 	}
-	// match the password against the store passwordHash
-	err = bcrypt.CompareHashAndPassword(users[0].PasswordHash, []byte(request.Password))
-	if err != nil {
-		log.WithError(err).Error("Password does not match for the given user")
-		return "", &HandledError{Code: http.StatusBadRequest, Message: "Invalid username or password"}
+
+	// check if this user is banned or allowed to retrieve a token
+	errorCode, err := checkIfUserBanned(users[0], request.Password)
+	if err != nil || errorCode != 0 {
+		return "", &HandledError{Code: errorCode, Message: err.Error()}
 	}
+
 	// generate token
 	u := auth.NewUserInfo(request.Username, users[0].ID.String(), nil, nil)
 	ns := jwt.SetNamedScopes(users[0].Permissions...)
@@ -62,6 +75,47 @@ func (svc service) CreateAuthToken(ctx context.Context, request model.AuthTokenR
 		return "", &HandledError{Code: http.StatusInternalServerError, Message: "Error while generating a token"}
 	}
 	return token, err
+}
+
+func checkIfUserBanned(user model.UserInfo, passwordProvided string) (int, error) {
+	// first let us make sure that this is not a user that is banned
+
+	log.Debug("Checking if the user is banned")
+	foundInDefendList := false
+	// check if we have an entry for the client in the defend map.
+	// There are several scenarios in this case
+	if client, ok := defend.Client(user.Username); ok {
+		foundInDefendList = true
+		if client.Banned() {
+			// case 1. Client is banned - however, the ban expired but cleanup is not done.
+			// just delete the client from the map
+			if client.BanExpired() {
+				defend.RemoveClient(client.Key())
+			} else {
+				log.Error("user is banned due to exceeded number of invalid attempts to get authorization token")
+				return http.StatusTooManyRequests, errors.Errorf("maximum login attempts exceeded for user : %s. Banned ", user.Username)
+			}
+		}
+	}
+
+	// match the password against the store passwordHash
+	err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(passwordProvided))
+	if err != nil {
+		log.WithError(err).Error("Password does not match for the given user")
+		// increment the count in case of invalid password, returns true if the user is banned after maxAttempt login
+		if defend.Inc(user.Username) {
+			log.Error("user is banned due to exceeded number of invalid attempts to get authorization token")
+			return http.StatusTooManyRequests, errors.Errorf("authentication failure - maximum login attempts exceeded for user : %s. Banned ", user.Username)
+		}
+		return http.StatusUnauthorized, errors.Errorf("invalid username or password provided")
+	}
+	// If we found the user earlier in the defend list, we should now remove as user is authorized
+	if foundInDefendList {
+		if client, ok := defend.Client(user.Username); ok {
+			defend.RemoveClient(client.Key())
+		}
+	}
+	return 0, nil
 }
 
 // secureRandomDelay introduces a cryptographically secure random delay between min and max durations.

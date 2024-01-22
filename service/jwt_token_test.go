@@ -10,6 +10,7 @@ import (
 	jwtStrategy "github.com/shaj13/go-guardian/v2/auth/strategies/jwt"
 	"github.com/stretchr/testify/mock"
 	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
 	"intel/kbs/v1/model"
 	"intel/kbs/v1/repository"
 	"intel/kbs/v1/repository/mocks"
@@ -37,6 +38,7 @@ var keeper = jwtStrategy.StaticSecret{
 var jwtAuthz, _ = SetupAuthZ(&keeper)
 
 func TestAuthTokenCreate(t *testing.T) {
+	InitDefender(constant.DefaultAuthDefendMaxAttempts, constant.DefaultAuthDefendIntervalMins, constant.DefaultAuthDefendLockoutMins)
 	g := gomega.NewGomegaWithT(t)
 
 	svc := LoggingMiddleware()(svcJWTTestInstance)

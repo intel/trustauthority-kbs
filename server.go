@@ -48,14 +48,17 @@ func (app *App) startServer() error {
 	}
 
 	log.WithFields(log.Fields{
-		"ServicePort":                  configuration.ServicePort,
-		"LogLevel":                     configuration.LogLevel,
-		"LogCaller":                    configuration.LogCaller,
-		"TrustAuthorityBaseUrl":        configuration.TrustAuthorityBaseUrl,
-		"TrustAuthorityApiUrl":         configuration.TrustAuthorityApiUrl,
-		"KeyManager":                   configuration.KeyManager,
-		"BearerTokenValidityInMinutes": configuration.BearerTokenValidityInMinutes,
-		"HttpReadHeaderTimeout":        configuration.HttpReadHeaderTimeout,
+		"ServicePort":                         configuration.ServicePort,
+		"LogLevel":                            configuration.LogLevel,
+		"LogCaller":                           configuration.LogCaller,
+		"TrustAuthorityBaseUrl":               configuration.TrustAuthorityBaseUrl,
+		"TrustAuthorityApiUrl":                configuration.TrustAuthorityApiUrl,
+		"KeyManager":                          configuration.KeyManager,
+		"BearerTokenValidityInMinutes":        configuration.BearerTokenValidityInMinutes,
+		"HttpReadHeaderTimeout":               configuration.HttpReadHeaderTimeout,
+		"AuthenticationDefendLockoutMinutes":  configuration.AuthenticationDefendLockoutMinutes,
+		"AuthenticationDefendIntervalMinutes": configuration.AuthenticationDefendIntervalMinutes,
+		"AuthenticationDefendMaxAttempts":     configuration.AuthenticationDefendMaxAttempts,
 	}).Info("Parse configs from environment")
 
 	// Initialize KeyManager
@@ -129,6 +132,9 @@ func (app *App) startServer() error {
 	if err != nil {
 		return err
 	}
+
+	// initialize defender
+	service.InitDefender(configuration.AuthenticationDefendMaxAttempts, configuration.AuthenticationDefendIntervalMinutes, configuration.AuthenticationDefendLockoutMinutes)
 
 	// Associate the service to rest endpoints/http
 	httpHandlers, err := httpTransport.NewHTTPHandler(svc, configuration, jwtAuthZ)

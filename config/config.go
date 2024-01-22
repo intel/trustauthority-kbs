@@ -16,30 +16,33 @@ import (
 // Constants for viper variable names. Will be used to set
 // default values as well as to get each value
 const (
-	ServicePort                  = "service-port"
-	LogLevel                     = "log-level"
-	LogCaller                    = "log-caller"
-	TrustAuthorityBaseUrl        = "trustauthority-base-url"
-	TrustAuthorityApiUrl         = "trustauthority-api-url"
-	TrustAuthorityApiKey         = "trustauthority-api-key"
-	KeyManager                   = "key-manager"
-	AdminUsername                = "admin-username"
-	AdminPassword                = "admin-password"
-	SanList                      = "san-list"
-	KmipVersion                  = "kmip.version"
-	KmipServerIP                 = "kmip.server-ip"
-	KmipServerPort               = "kmip.server-port"
-	KmipHostname                 = "kmip.hostname"
-	KmipUsername                 = "kmip.username"
-	KmipPassword                 = "kmip.password"
-	KmipClientKeyPath            = "kmip.client-key-path"
-	KmipClientCertPath           = "kmip.client-cert-path"
-	KmipRootCertPath             = "kmip.root-cert-path"
-	VaultClientToken             = "vault.client-token"
-	VaultServerIP                = "vault.server-ip"
-	VaultServerPort              = "vault.server-port"
-	BearerTokenValidityInMinutes = "bearer-token-validity-in-minutes"
-	HttpReadHeaderTimeout        = "http-read-header-timeout"
+	ServicePort                         = "service-port"
+	LogLevel                            = "log-level"
+	LogCaller                           = "log-caller"
+	TrustAuthorityBaseUrl               = "trustauthority-base-url"
+	TrustAuthorityApiUrl                = "trustauthority-api-url"
+	TrustAuthorityApiKey                = "trustauthority-api-key"
+	KeyManager                          = "key-manager"
+	AdminUsername                       = "admin-username"
+	AdminPassword                       = "admin-password"
+	SanList                             = "san-list"
+	KmipVersion                         = "kmip.version"
+	KmipServerIP                        = "kmip.server-ip"
+	KmipServerPort                      = "kmip.server-port"
+	KmipHostname                        = "kmip.hostname"
+	KmipUsername                        = "kmip.username"
+	KmipPassword                        = "kmip.password"
+	KmipClientKeyPath                   = "kmip.client-key-path"
+	KmipClientCertPath                  = "kmip.client-cert-path"
+	KmipRootCertPath                    = "kmip.root-cert-path"
+	VaultClientToken                    = "vault.client-token"
+	VaultServerIP                       = "vault.server-ip"
+	VaultServerPort                     = "vault.server-port"
+	BearerTokenValidityInMinutes        = "bearer-token-validity-in-minutes"
+	HttpReadHeaderTimeout               = "http-read-header-timeout"
+	AuthenticationDefendMaxAttempts     = "authentication-defend-max-attempts"
+	AuthenticationDefendIntervalMinutes = "authentication-defend-interval-minutes"
+	AuthenticationDefendLockoutMinutes  = "authentication-defend-lockout-minutes"
 )
 
 var (
@@ -48,20 +51,23 @@ var (
 )
 
 type Configuration struct {
-	ServicePort                  int         `yaml:"service-port" mapstructure:"service-port"`
-	LogLevel                     string      `yaml:"log-level" mapstructure:"log-level"`
-	LogCaller                    bool        `yaml:"log-caller" mapstructure:"log-caller"`
-	TrustAuthorityBaseUrl        string      `yaml:"trustauthority-base-url" mapstructure:"trustauthority-base-url"`
-	TrustAuthorityApiUrl         string      `yaml:"trustauthority-api-url" mapstructure:"trustauthority-api-url"`
-	TrustAuthorityApiKey         string      `yaml:"trustauthority-api-key" mapstructure:"trustauthority-api-key"`
-	KeyManager                   string      `yaml:"key-manager" mapstructure:"key-manager"`
-	AdminUsername                string      `yaml:"admin-username" mapstructure:"admin-username"`
-	AdminPassword                string      `yaml:"admin-password" mapstructure:"admin-password"`
-	SanList                      string      `yaml:"san-list" mapstructure:"san-list"`
-	Kmip                         KmipConfig  `yaml:"kmip"`
-	Vault                        VaultConfig `yaml:"vault"`
-	BearerTokenValidityInMinutes int         `yaml:"bearer-token-validity-in-minutes" mapstructure:"bearer-token-validity-in-minutes"`
-	HttpReadHeaderTimeout        int         `yaml:"http-read-header-timeout" mapstructure:"http-read-header-timeout"`
+	ServicePort                         int         `yaml:"service-port" mapstructure:"service-port"`
+	LogLevel                            string      `yaml:"log-level" mapstructure:"log-level"`
+	LogCaller                           bool        `yaml:"log-caller" mapstructure:"log-caller"`
+	TrustAuthorityBaseUrl               string      `yaml:"trustauthority-base-url" mapstructure:"trustauthority-base-url"`
+	TrustAuthorityApiUrl                string      `yaml:"trustauthority-api-url" mapstructure:"trustauthority-api-url"`
+	TrustAuthorityApiKey                string      `yaml:"trustauthority-api-key" mapstructure:"trustauthority-api-key"`
+	KeyManager                          string      `yaml:"key-manager" mapstructure:"key-manager"`
+	AdminUsername                       string      `yaml:"admin-username" mapstructure:"admin-username"`
+	AdminPassword                       string      `yaml:"admin-password" mapstructure:"admin-password"`
+	SanList                             string      `yaml:"san-list" mapstructure:"san-list"`
+	Kmip                                KmipConfig  `yaml:"kmip"`
+	Vault                               VaultConfig `yaml:"vault"`
+	BearerTokenValidityInMinutes        int         `yaml:"bearer-token-validity-in-minutes" mapstructure:"bearer-token-validity-in-minutes"`
+	HttpReadHeaderTimeout               int         `yaml:"http-read-header-timeout" mapstructure:"http-read-header-timeout"`
+	AuthenticationDefendMaxAttempts     int         `yaml:"authentication-defend-max-attempts" mapstructure:"authentication-defend-max-attempts"`
+	AuthenticationDefendIntervalMinutes int         `yaml:"authentication-defend-interval-minutes" mapstructure:"authentication-defend-interval-minutes"`
+	AuthenticationDefendLockoutMinutes  int         `yaml:"authentication-defend-lockout-minutes" mapstructure:"authentication-defend-lockout-minutes"`
 }
 
 type KmipConfig struct {
@@ -149,6 +155,18 @@ func (conf *Configuration) Validate() error {
 	_, err = base64.URLEncoding.DecodeString(conf.TrustAuthorityApiKey)
 	if err != nil {
 		return errors.Wrap(err, "ITA TRUSTAUTHORITY_API_KEY  is not a valid base64 string")
+	}
+
+	if conf.AuthenticationDefendIntervalMinutes < 1 {
+		return errors.New("Authentication Defend Interval Minutes config should be set for at least 1 minute")
+	}
+
+	if conf.AuthenticationDefendMaxAttempts < 1 {
+		return errors.New("Authentication Defend Max Attempts config should be at least 1")
+	}
+
+	if conf.AuthenticationDefendLockoutMinutes < 1 {
+		return errors.New("Authentication Defend Lockout Minutes config should be set for at least 1 minute")
 	}
 
 	return nil

@@ -21,24 +21,33 @@ func init() {
 
 	// Set default value for vault config
 	viper.SetDefault(VaultServerPort, constant.DefaultVaultPort)
+
+	// set default defender config
+	viper.SetDefault(AuthenticationDefendLockoutMinutes, constant.DefaultAuthDefendLockoutMins)
+	viper.SetDefault(AuthenticationDefendMaxAttempts, constant.DefaultAuthDefendMaxAttempts)
+	viper.SetDefault(AuthenticationDefendIntervalMinutes, constant.DefaultAuthDefendIntervalMins)
+
 }
 
 func DefaultConfig() *Configuration {
 	var cfg *Configuration
 
 	cfg = &Configuration{
-		ServicePort:                  viper.GetInt(ServicePort),
-		LogLevel:                     viper.GetString(LogLevel),
-		LogCaller:                    viper.GetBool(LogCaller),
-		TrustAuthorityApiUrl:         viper.GetString(TrustAuthorityApiUrl),
-		TrustAuthorityBaseUrl:        viper.GetString(TrustAuthorityBaseUrl),
-		TrustAuthorityApiKey:         viper.GetString(TrustAuthorityApiKey),
-		KeyManager:                   viper.GetString(KeyManager),
-		AdminPassword:                viper.GetString(AdminPassword),
-		AdminUsername:                viper.GetString(AdminUsername),
-		SanList:                      viper.GetString(SanList),
-		BearerTokenValidityInMinutes: viper.GetInt(BearerTokenValidityInMinutes),
-		HttpReadHeaderTimeout:        viper.GetInt(HttpReadHeaderTimeout),
+		ServicePort:                         viper.GetInt(ServicePort),
+		LogLevel:                            viper.GetString(LogLevel),
+		LogCaller:                           viper.GetBool(LogCaller),
+		TrustAuthorityApiUrl:                viper.GetString(TrustAuthorityApiUrl),
+		TrustAuthorityBaseUrl:               viper.GetString(TrustAuthorityBaseUrl),
+		TrustAuthorityApiKey:                viper.GetString(TrustAuthorityApiKey),
+		KeyManager:                          viper.GetString(KeyManager),
+		AdminPassword:                       viper.GetString(AdminPassword),
+		AdminUsername:                       viper.GetString(AdminUsername),
+		SanList:                             viper.GetString(SanList),
+		BearerTokenValidityInMinutes:        viper.GetInt(BearerTokenValidityInMinutes),
+		HttpReadHeaderTimeout:               viper.GetInt(HttpReadHeaderTimeout),
+		AuthenticationDefendMaxAttempts:     viper.GetInt(AuthenticationDefendMaxAttempts),
+		AuthenticationDefendIntervalMinutes: viper.GetInt(AuthenticationDefendIntervalMinutes),
+		AuthenticationDefendLockoutMinutes:  viper.GetInt(AuthenticationDefendLockoutMinutes),
 	}
 
 	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {

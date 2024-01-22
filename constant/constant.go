@@ -78,4 +78,9 @@ const (
 	MaxTokenValidityInMinutes    = 30
 	MinTokenValidityInMinutes    = 1
 	DefaultHttpReadHeaderTimeOut = 10
+
+	// defender constants
+	DefaultAuthDefendMaxAttempts  = 5
+	DefaultAuthDefendIntervalMins = 5
+	DefaultAuthDefendLockoutMins  = 15
 )
