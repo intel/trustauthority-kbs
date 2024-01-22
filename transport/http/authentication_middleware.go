@@ -5,8 +5,10 @@
 package http
 
 import (
+	"context"
 	"github.com/shaj13/go-guardian/v2/auth"
 	log "github.com/sirupsen/logrus"
+	"intel/kbs/v1/constant"
 	"intel/kbs/v1/model"
 
 	"net/http"
@@ -23,6 +25,8 @@ func authMiddleware(next http.Handler, authz *model.JwtAuthz) http.HandlerFunc {
 			return
 		}
 		r = auth.RequestWithUser(user, r)
-		next.ServeHTTP(w, r)
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, constant.LogUserID, user.GetID())
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

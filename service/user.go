@@ -7,14 +7,18 @@ package service
 import (
 	"context"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"intel/kbs/v1/constant"
 	"intel/kbs/v1/model"
 	"net/http"
 	"time"
 )
 
+var log *logrus.Entry
+
 func (mw loggingMiddleware) CreateUser(ctx context.Context, createUserRequest *model.User) (*model.UserResponse, error) {
+	log = logrus.WithField("user", ctx.Value(constant.LogUserID))
 	var err error
 	defer func(begin time.Time) {
 		log.Tracef("CreateUser took %s since %s", time.Since(begin), begin)

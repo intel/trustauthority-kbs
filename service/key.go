@@ -6,13 +6,14 @@ package service
 import (
 	"context"
 	"crypto/sha512"
+	"github.com/sirupsen/logrus"
+	"intel/kbs/v1/constant"
 	"net/http"
 	"time"
 
 	"intel/kbs/v1/model"
 
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -21,6 +22,7 @@ const (
 )
 
 func (mw loggingMiddleware) CreateKey(ctx context.Context, req model.KeyRequest) (*model.KeyResponse, error) {
+	log = logrus.WithField("user", ctx.Value(constant.LogUserID))
 	var err error
 	defer func(begin time.Time) {
 		log.Tracef("CreateKey took %s since %s", time.Since(begin), begin)
