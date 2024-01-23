@@ -363,7 +363,7 @@ type KeyUpdateRequest struct {
 
 // ---
 
-// swagger:operation PUT /keys Keys UpdateKey
+// swagger:operation PUT /keys/{id} Keys UpdateKey
 // ---
 //
 // description: |
@@ -384,6 +384,12 @@ type KeyUpdateRequest struct {
 // consumes:
 // - application/json
 // parameters:
+// - name: id
+//   description: Unique ID of the key.
+//   in: path
+//   required: true
+//   type: string
+//   format: uuid
 // - name: request body
 //   required: true
 //   in: body
