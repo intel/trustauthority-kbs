@@ -18,7 +18,10 @@ type KeyRequest struct {
 }
 
 type KeyUpdateRequest struct {
-	KeyId            uuid.UUID
+	KeyId uuid.UUID `json:"-"`
+	// Universal Unique IDentifier of the Key Transfer Policy
+	// required: true
+	// example: 4110594b-a753-4457-7d7f-3e52b6252ed6
 	TransferPolicyID uuid.UUID `json:"transfer_policy_id"`
 }
 

@@ -33,6 +33,8 @@ definitions:
                 type: string
                 x-go-name: CurveType
             key_data:
+                description: Denotes the private key(RSA/EC) or AES key in base64 string
+                example: YG2UtIG6OtaPjIIHQXJGxRmR0ozqiF3iQoVztc74ijo=
                 type: string
                 x-go-name: KeyData
             key_length:
@@ -181,13 +183,14 @@ definitions:
         x-go-package: intel/kbs/v1/model
     KeyUpdateRequest:
         properties:
-            KeyId:
-                format: uuid
-                type: string
             transfer_policy_id:
+                description: Universal Unique IDentifier of the Key Transfer Policy
+                example: 4110594b-a753-4457-7d7f-3e52b6252ed6
                 format: uuid
                 type: string
                 x-go-name: TransferPolicyID
+        required:
+            - transfer_policy_id
         type: object
         x-go-package: intel/kbs/v1/model
     PublicKey:
@@ -957,74 +960,6 @@ paths:
                     "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
                     "created_at": "2020-09-23T11:16:26.738467277Z"
                 }
-        put:
-            consumes:
-                - application/json
-            description: |
-                Updates a key with the key transfer policy.
-
-                The serialized KeyRequest Go struct object represents the content of the request body.
-
-                 | Attribute          | Description |
-                 |--------------------|-------------|
-                 | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
-            operationId: UpdateKey
-            parameters:
-                - in: body
-                  name: request body
-                  required: true
-                  schema:
-                    $ref: '#/definitions/KeyUpdateRequest'
-                - description: Content-Type header
-                  enum:
-                    - application/json
-                  in: header
-                  name: Content-Type
-                  required: true
-                  type: string
-                - description: Accept header
-                  enum:
-                    - application/json
-                  in: header
-                  name: Accept
-                  required: true
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "201":
-                    description: Successfully updated the key.
-                    schema:
-                        $ref: '#/definitions/KeyResponse'
-                "400":
-                    description: Invalid request body provided
-                "401":
-                    description: Request Unauthorized
-                "415":
-                    description: Invalid Accept Header in Request
-                "500":
-                    description: Internal server error
-            security:
-                - bearerToken: []
-            tags:
-                - Keys
-            x-permissions: keys:update
-            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
-            x-sample-call-input: |
-                {
-                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
-                }
-            x-sample-call-output: |-
-                {
-                    "key_information": {
-                        "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
-                        "algorithm": "AES",
-                        "key_length": 256
-                    },
-                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
-                    "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
-                    "created_at": "2020-09-23T11:16:26.738467277Z"
-                }
     /keys/{id}:
         delete:
             description: |
@@ -1100,6 +1035,80 @@ paths:
                         "key_length": 256
                     },
                     "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f83d9",
+                    "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
+                    "created_at": "2020-09-23T11:16:26.738467277Z"
+                }
+        put:
+            consumes:
+                - application/json
+            description: |
+                Updates a key with the key transfer policy.
+
+                The serialized KeyRequest Go struct object represents the content of the request body.
+
+                 | Attribute          | Description |
+                 |--------------------|-------------|
+                 | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+            operationId: UpdateKey
+            parameters:
+                - description: Unique ID of the key.
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/KeyUpdateRequest'
+                - description: Content-Type header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Content-Type
+                  required: true
+                  type: string
+                - description: Accept header
+                  enum:
+                    - application/json
+                  in: header
+                  name: Accept
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: Successfully updated the key.
+                    schema:
+                        $ref: '#/definitions/KeyResponse'
+                "400":
+                    description: Invalid request body provided
+                "401":
+                    description: Request Unauthorized
+                "415":
+                    description: Invalid Accept Header in Request
+                "500":
+                    description: Internal server error
+            security:
+                - bearerToken: []
+            tags:
+                - Keys
+            x-permissions: keys:update
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+            x-sample-call-input: |
+                {
+                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
+                }
+            x-sample-call-output: |-
+                {
+                    "key_information": {
+                        "id": "fc0cc779-22b6-4741-b0d9-e2e69635ad1e",
+                        "algorithm": "AES",
+                        "key_length": 256
+                    },
+                    "transfer_policy_id": "3ce27bbd-3c5f-4b15-8c0a-44310f0f84f8",
                     "transfer_link": "/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e/transfer",
                     "created_at": "2020-09-23T11:16:26.738467277Z"
                 }
@@ -1291,8 +1300,8 @@ paths:
 
                  | Attribute   | Description |
                  |-------------|-------------|
-                 | username    | Name of the user. |
-                 | password    | The password of the user. |
+                 | username    | Name of the user. Should be less than 256 characters. |
+                 | password    | The password of the user. Should be between 8 and 72 characters. |
                  | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update. |
             operationId: CreateUser
             parameters:
