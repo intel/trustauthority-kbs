@@ -190,7 +190,7 @@ type UserResponse struct {
 // ---
 //
 // description: |
-//   Searches for users.
+//   Searches for users. At least one of the query parameter must be provided.
 //
 //   Returns - The collection of serialized UserResponse Go struct objects.
 // x-permissions: users:search
