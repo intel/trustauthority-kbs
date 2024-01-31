@@ -290,7 +290,7 @@ type KeyUpdateRequest struct {
 // ---
 //
 // description: |
-//   Searches for keys.
+//   Searches for keys. At least one of the query parameter must be provided.
 //
 //   Returns - The collection of serialized KeyResponse Go struct objects.
 // x-permissions: keys:search
@@ -346,7 +346,7 @@ type KeyUpdateRequest struct {
 //   '500':
 //     description: Internal server error
 //
-// x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
+// x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys?algorithm=aes
 // x-sample-call-output: |
 //    [
 //        {

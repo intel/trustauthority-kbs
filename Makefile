@@ -1,5 +1,5 @@
 # Copyright(C) 2023 Intel Corporation. All Rights Reserved.
-ORGNAME := taas
+ORGNAME := trustauthority
 APPNAME := key-broker-service
 REPO := localhost:5000
 SHELL := /bin/bash

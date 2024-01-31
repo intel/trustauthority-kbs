@@ -795,7 +795,7 @@ paths:
     /keys:
         get:
             description: |
-                Searches for keys.
+                Searches for keys. At least one of the query parameter must be provided.
 
                 Returns - The collection of serialized KeyResponse Go struct objects.
             operationId: SearchKey
@@ -864,7 +864,7 @@ paths:
             tags:
                 - Keys
             x-permissions: keys:search
-            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
+            x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys?algorithm=aes
             x-sample-call-output: |-
                 [
                     {
@@ -1242,7 +1242,7 @@ paths:
     /users:
         get:
             description: |
-                Searches for users.
+                Searches for users. At least one of the query parameter must be provided.
 
                 Returns - The collection of serialized UserResponse Go struct objects.
             operationId: SearchUser

@@ -82,8 +82,6 @@ func (svc service) CreateAuthToken(ctx context.Context, request model.AuthTokenR
 
 func checkIfUserBanned(user model.UserInfo, passwordProvided string) (int, error) {
 	// first let us make sure that this is not a user that is banned
-
-	log.Debug("Checking if the user is banned")
 	foundInDefendList := false
 	// check if we have an entry for the client in the defend map.
 	// There are several scenarios in this case
