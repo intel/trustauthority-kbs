@@ -296,10 +296,8 @@ func getPublicKey(userData string, attesterType model.AttesterType) (*rsa.Public
 		for i := 0; i < len(modArr)/2; i++ {
 			modArr[i], modArr[len(modArr)-i-1] = modArr[len(modArr)-i-1], modArr[i]
 		}
-		eb = binary.LittleEndian.Uint32(key[:])
-	} else {
-		eb = binary.BigEndian.Uint32(key[:])
 	}
+	eb = binary.LittleEndian.Uint32(key[:])
 	n.SetBytes(modArr)
 
 	// imposing lower limit on the size of the public key for enhanced security reasons
