@@ -123,7 +123,14 @@ func (app *App) startServer() error {
 	}
 
 	block, _ := pem.Decode(bytes)
-	privKey, _ := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if block == nil {
+		return errors.New("Error while pem decoding JWT signing key")
+	}
+
+	privKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		return err
+	}
 	signingKey := privKey.(*rsa.PrivateKey)
 
 	jwtKeeper := jwtStrategy.StaticSecret{
