@@ -23,17 +23,17 @@ type TransferKeyResponse struct {
 // ---
 //
 // description: |
-//   Transfers a wrapped secret and wrapped swk.
+//   Transfers a wrapped secret and wrapped SWK.
 //
-//   The serialized KeyRequest Go struct object represents the content of the request body.
+//   The serialized KeyRequest Go struct object that represents the content of the request body.
 //
 //    | Attribute          | Description |
 //    |--------------------|-------------|
-//    | attestation_token  | Attestation token received from ITA. This is the only attribute required to retrieve the key in passport mode   |
+//    | attestation_token  | Attestation token received from Intel Trust Authority. This is the only attribute required to retrieve the key in passport mode   |
 //    | quote              | TEE quote from workload. This attribute is required to retrieve the key in background mode. |
-//    | nonce              | Verifier nonce from ITA. This is a serialized Go struct "VerifierNonce" in ITA connector. |
-//    | user_data          | TEE held data in attestation token. It is the public key created in the workload that is used to wrap the swk key. |
-//    | nonce              | Verifier nonce from ITA. This is a serialized Go struct "VerifierNonce" in ITA connector. |
+//    | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
+//    | user_data          | TEE held data in an attestation token. It is the public key created in the workload that is used to wrap the SWK key. |
+//    | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
 //
 // produces:
 // - application/json
@@ -41,7 +41,7 @@ type TransferKeyResponse struct {
 // - application/json
 // parameters:
 // - name: id
-//   description: Unique ID of the key.
+//   description: The unique ID of the key.
 //   in: path
 //   required: true
 //   type: string
@@ -52,14 +52,14 @@ type TransferKeyResponse struct {
 //   schema:
 //    "$ref": "#/definitions/TransferKeyRequest"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -67,21 +67,21 @@ type TransferKeyResponse struct {
 //     - application/json
 // responses:
 //   '200':
-//     description: Successfully transferred the key.
+//     description: The key was successfully transferred.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/TransferKeyResponse"
 //   '401':
-//     description: Failed to authenticate attestation-token
+//     description: Failed to authenticate the attestation token.
 //   '404':
-//     description: Key record not found
+//     description: The key record was not found.
 //   '400':
-//     description: Invalid request body provided
+//     description: An invalid request body was provided.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
 // x-sample-call-input: |

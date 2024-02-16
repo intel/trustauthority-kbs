@@ -7,14 +7,14 @@ package kbs
 // swagger:operation GET /version Version GetVersion
 // ---
 // description: |
-//   GetVersion is used to get the version of the application.
+//   GetVersion is used to retrieve the version of the application.
 //   Returns - The version of the application.
 //
 // produces:
 //   - text/plain
 // responses:
 //   '200':
-//     description: Successfully retrieved the version.
+//     description: The version was successfully retrieved.
 //     content: application/json
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/version
