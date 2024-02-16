@@ -29,29 +29,29 @@ type KeyTransferPolicyCollection struct {
 // ---
 //
 // description: |
-//   Creates a key transfer policy. Transfer-Policy with only one attestation-type i.e; SGX or TDX could be created at a time. Key transfer policy can be created
-//   either by providing only list of policy-ids or only TDX/SGX attributes or both policy-ids and attributes.
+//   Creates a key transfer policy. Only one SGX or TDX key transfer policy can be created at a time. A key 
+//   transfer policy can be created in the following ways: by providing a list of policy-ids, by providing TDX or SGX attributes, or by providing both a list of policy-ids and TDX or SGX attributes.
 //
 //   The serialized KeyTransferPolicy Go struct object represents the content of the request body.
 //
 //    | Attribute                                    | Description |
 //    |----------------------------------------------|-------------|
-//    | attestation_type                             | Array of Attestation Type identifiers that client must support to get the key. Expect client to advertise these with the key request e.g. "SGX", "TDX" (note that if key server needs to restrict technologies, then it should list only the ones that can receive the key). |
-//    | mrsigner                                     | Array of measurements of SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |
-//    | isvprodid                                    | Array of (16-bit value) (ISVPRODID). This is mandatory. This is like a qualifier for the issuer so same issuer (code signing) key can sign separate products. |
-//    | mrenclave                                    | Array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). Expect client to have one of these measurements in the SGX quote (this supports use case of providing key only to an SGX enclave that will enforce the key usage policy locally). |
+//    | attestation_type                             | An array of attestation-type identifiers that the client must support to get the key. The client must advertise these with the key request, e.g., "SGX," or "TDX." Note that if the key server needs to restrict technologies, it must list technologies that can receive the key. |
+//    | mrsigner                                     | An array of measurements of the SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |
+//    | isvprodid                                    | An array of (16-bit value) (ISVPRODID). This is mandatory. This is similar to a qualifier for the issuer, so the same issuer (code signing) key can sign separate products. |
+//    | mrenclave                                    | An array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). The client must have one of these measurements in the SGX quote. This supports the use case of providing a key only to an SGX enclave that locally enforces the key usage policy. |
 //    | isvsvn                                       | Minimum security version number required for Enclave. |
-//    | client_permissions                           | Array of permission to expect in client api key. Expect client api key to have all of these names. |
-//    | mrsignerseam                                 | Array of measurements of seam module issuer. This is mandatory. |
-//    | mrseam                                       | Array of measurements of seam module. This is mandatory. |
-//    | mrtd                                         | Array of TD measurements. |
-//    | rtmr0                                        | Measurement extended to RTMR0. |
-//    | rtmr1                                        | Measurement extended to RTMR1. |
-//    | rtmr2                                        | Measurement extended to RTMR2. |
-//    | rtmr3                                        | Measurement extended to RTMR3. |
-//    | seamsvn                                      | Minimum security version number of seam module. |
-//    | enforce_tcb_upto_date                        | Boolean value to enforce Up-To-Date TCB. |
-//    | policy_ids                                   | Array of TD/Enclave Attestation Policy Ids. |
+//    | client_permissions                           | An array of permissions to expect in the client API key. The client API key must have all of these names. |
+//    | mrsignerseam                                 | An array of measurements of seam module issuer. This is mandatory. |
+//    | mrseam                                       | An array of measurements of seam module. This is mandatory. |
+//    | mrtd                                         | A array of TD measurements. |
+//    | rtmr0                                        | The measurement extended to RTMR0. |
+//    | rtmr1                                        | The measurement extended to RTMR1. |
+//    | rtmr2                                        | The measurement extended to RTMR2. |
+//    | rtmr3                                        | The measurement extended to RTMR3. |
+//    | seamsvn                                      | The minimum security version number of seam module. |
+//    | enforce_tcb_upto_date                        | The boolean value to enforce an up-to-date TCB. |
+//    | policy_ids                                   | A array of TD/Enclave Attestation Policy Ids. |
 //
 // x-permissions: key-transfer-policies:create
 // security:
@@ -67,14 +67,14 @@ type KeyTransferPolicyCollection struct {
 //   schema:
 //    $ref: "#/definitions/KeyTransferPolicy"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -88,13 +88,13 @@ type KeyTransferPolicyCollection struct {
 //     schema:
 //       $ref: "#/definitions/KeyTransferPolicy"
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '400':
-//     description: Invalid request body provided
+//     description: An invalid request body was provided.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/key-transfer-policies
 // x-sgx-sample-call-input: |

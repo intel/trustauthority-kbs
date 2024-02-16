@@ -53,24 +53,24 @@ type KeyUpdateRequest struct {
 // ---
 //
 // description: |
-//   Creates or Registers a key.
+//   Creates or registers a key.
 //
 //   The serialized KeyRequest Go struct object represents the content of the request body.
 //
 //    | Attribute          | Description |
 //    |--------------------|-------------|
-//    | key_information    | A json object having all the required information about a key. |
-//    | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+//    | key_information    | A JSON object containing all the required information about a key. |
+//    | transfer_policy_id | The unique identifier of the transfer policy to be applied to this key. |
 //
 //   The serialized KeyInformation Go struct object represents the content of the key_information field.
 //
 //    | Attribute   | Description |
 //    |-------------|-------------|
-//    | algorithm   | Encryption algorithm used to create or register key. Supported algorithms are AES, RSA and EC. |
-//    | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for AES and RSA algorithm. |
-//    | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for EC algorithm. |
-//    | key_data    | Base64 encoded private key to be registered. Supported only if key is created locally. |
-//    | kmip_key_id | Unique KMIP identifier of key to be registered. Supported only if key is created on KMIP server. |
+//    | algorithm   | The encryption algorithm used to create or register a key.  The supported algorithms are AES, RSA, and EC. |
+//    | key_length  | The key length used to create a key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for the AES and RSA algorithms. |
+//    | curve_type  | The elliptic curve used to create a key. The supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for the EC algorithm. |
+//    | key_data    | The Base64 encoded private key to be registered.  It is only supported if the key is created locally. |
+//    | kmip_key_id | The unique KMIP identifier of the key to be registered.  It is only supported if the key is created on a KMIP server. |
 //
 // x-permissions: keys:create
 // security:
@@ -86,14 +86,14 @@ type KeyUpdateRequest struct {
 //   schema:
 //    "$ref": "#/definitions/KeyRequest"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -101,19 +101,19 @@ type KeyUpdateRequest struct {
 //     - application/json
 // responses:
 //   '201':
-//     description: Successfully created or registered the key.
+//     description: The key was successfully created or registered.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/KeyResponse"
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '400':
-//     description: Invalid request body provided
+//     description: An invalid request body was provided.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
 // x-sample-call-input: |
@@ -150,13 +150,13 @@ type KeyUpdateRequest struct {
 // - application/json
 // parameters:
 // - name: id
-//   description: Unique ID of the key.
+//   description: The unique ID of the key.
 //   in: path
 //   required: true
 //   type: string
 //   format: uuid
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -164,19 +164,19 @@ type KeyUpdateRequest struct {
 //     - application/json
 // responses:
 //   '200':
-//     description: Successfully retrieved the key.
+//     description: The key was successfully retrieved.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/KeyResponse"
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '404':
-//     description: Key record not found
+//     description: The key record was not found.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
 // x-sample-call-output: |
@@ -221,7 +221,7 @@ type KeyUpdateRequest struct {
 //   enum:
 //     - application/x-pem-file
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -229,17 +229,17 @@ type KeyUpdateRequest struct {
 //     - application/json
 // responses:
 //   '200':
-//     description: Successfully transferred the key.
+//     description: The key was successfully transferred.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/KeyTransferResponse"
 //   '404':
-//     description: Key record not found
+//     description: The key record was not found
 //   '415':
-//     description: Invalid Content-Type/Accept Header in Request
+//     description: Invalid Content-Type/Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
 // x-sample-call-input: |
@@ -275,13 +275,13 @@ type KeyUpdateRequest struct {
 //   format: uuid
 // responses:
 //   '204':
-//     description: Successfully deleted the key.
+//     description: The key was successfully deleted.
 //   '401':
-//     description: Request Unauthorized
+//     description: Request Unauthorized.
 //   '404':
-//     description: Key record not found
+//     description: The key record was not found.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
 
 // ---
@@ -290,7 +290,7 @@ type KeyUpdateRequest struct {
 // ---
 //
 // description: |
-//   Searches for keys. At least one of the query parameter must be provided.
+//   Searches for keys. At least one of the query parameters must be provided.
 //
 //   Returns - The collection of serialized KeyResponse Go struct objects.
 // x-permissions: keys:search
@@ -318,7 +318,7 @@ type KeyUpdateRequest struct {
 //   required: false
 //   enum: [secp256r1, secp384r1, secp521r1, prime256v1]
 // - name: transferPolicyId
-//   description: Unique identifier of transfer policy.
+//   description: Unique identifier of the transfer policy.
 //   in: query
 //   type: string
 //   format: uuid
@@ -373,7 +373,7 @@ type KeyUpdateRequest struct {
 //
 //    | Attribute          | Description |
 //    |--------------------|-------------|
-//    | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+//    | transfer_policy_id | The unique identifier of the transfer policy to be applied to this key. |
 //
 //
 // x-permissions: keys:update
@@ -396,14 +396,14 @@ type KeyUpdateRequest struct {
 //   schema:
 //    "$ref": "#/definitions/KeyUpdateRequest"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -411,19 +411,19 @@ type KeyUpdateRequest struct {
 //     - application/json
 // responses:
 //   '201':
-//     description: Successfully updated the key.
+//     description: The key was successfully updated.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/KeyResponse"
 //   '401':
-//     description: Request Unauthorized
+//     description: Request Unauthorized.
 //   '400':
-//     description: Invalid request body provided
+//     description: An invalid request body was provided.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
 // x-sample-call-input: |

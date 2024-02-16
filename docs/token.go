@@ -20,14 +20,14 @@ type AuthTokenRequest struct {
 // ---
 //
 // description: |
-//   Creates a JWT for the specified user in the request
+//   Creates a JWT for the specified user in the request.
 //
 //   The serialized AuthTokenRequest Go struct object represents the content of the request body.
 //
 //    | Attribute  | Description |
 //    |------------|-------------|
-//    | username   | Name of the user for which the token is being requested. This user should already be created using /users POST API |
-//    | password   | The password of the user for which the token is being requested |
+//    | username   | Name of the user for which the token is being requested. This user should already be created using /users POST API. |
+//    | password   | The password of the user for which the token is being requested. |
 //
 //
 // produces:
@@ -41,14 +41,14 @@ type AuthTokenRequest struct {
 //   schema:
 //    "$ref": "#/definitions/AuthTokenRequest"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -56,15 +56,15 @@ type AuthTokenRequest struct {
 //     - application/jwt
 // responses:
 //   '200':
-//     description: Successfully issued authentication token for specified user.
+//     description: Successfully issued an authentication token for the specified user.
 //     content:
 //       application/jwt
 //   '400':
-//     description: Invalid request body provided or User with given name does not exist or Password does not match for the given user
+//     description: An invalid request body was provided, or a user with the given name does not exist, or the password does not match the given user.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/token
 // x-sample-call-input: |

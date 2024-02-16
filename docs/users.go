@@ -28,15 +28,15 @@ type UserResponse struct {
 // ---
 //
 // description: |
-//   Creates a user with the given username, password and API permissions
+//   Creates a user with the given username, password, and API permissions.
 //
 //   The serialized User Go struct object represents the content of the request body.
 //
 //    | Attribute   | Description |
 //    |-------------|-------------|
-//    | username    | Name of the user. Should be less than 256 characters. |
-//    | password    | The password of the user. Should be between 8 and 72 characters. |
-//    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update. |
+//    | username    | The name of the user. It must be less than 256 characters. |
+//    | password    | The password of the user. It must be between 8 and 72 characters. |
+//    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. The supported KBS APIs are users, keys, and key-transfer-policies. The supported CRUD_permissions are create, delete, search, and update. |
 //
 // x-permissions: users:create
 // security:
@@ -52,14 +52,14 @@ type UserResponse struct {
 //   schema:
 //    "$ref": "#/definitions/User"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -73,13 +73,13 @@ type UserResponse struct {
 //     schema:
 //       $ref: "#/definitions/UserResponse"
 //   '400':
-//     description: Invalid request body provided
+//     description: An invalid request body was provided.
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users
 // x-sample-call-input: |
@@ -106,7 +106,7 @@ type UserResponse struct {
 // ---
 //
 // description: |
-//   Retrieves a user information for the provided user ID.
+//   Retrieves user information for the provided user ID.
 //   Returns - The serialized UserResponse Go struct object that was retrieved.
 // x-permissions: users:search
 // security:
@@ -115,13 +115,13 @@ type UserResponse struct {
 // - application/json
 // parameters:
 // - name: id
-//   description: Unique ID of the user.
+//   description: The unique ID of the user.
 //   in: path
 //   required: true
 //   type: string
 //   format: uuid
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -129,19 +129,19 @@ type UserResponse struct {
 //     - application/json
 // responses:
 //   '200':
-//     description: Successfully retrieved the user information.
+//     description: The user information was successfully retrieved.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/UserResponse"
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '404':
-//     description: User record not found
+//     description: The user record was not found.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
 // x-sample-call-output: |
@@ -168,20 +168,20 @@ type UserResponse struct {
 // - bearerToken: []
 // parameters:
 // - name: id
-//   description: Unique ID of the user.
+//   description: The unique ID of the user.
 //   in: path
 //   required: true
 //   type: string
 //   format: uuid
 // responses:
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '204':
-//     description: Successfully deleted the user.
+//     description: The user was successfully deleted.
 //   '404':
-//     description: user record not found
+//     description: The user record was not found.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
 
 // ---
@@ -190,7 +190,7 @@ type UserResponse struct {
 // ---
 //
 // description: |
-//   Searches for users. At least one of the query parameter must be provided.
+//   Searches for users. At least one of the query parameters must be provided.
 //
 //   Returns - The collection of serialized UserResponse Go struct objects.
 // x-permissions: users:search
@@ -200,12 +200,12 @@ type UserResponse struct {
 //  - application/json
 // parameters:
 // - name: username
-//   description: the name of the user want to search.
+//   description: The name of the user for which to search.
 //   in: query
 //   type: string
 //   required: false
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -213,19 +213,19 @@ type UserResponse struct {
 //     - application/json
 // responses:
 //   '200':
-//     description: Successfully retrieved the users.
+//     description: The users were successfully retrieved.
 //     content:
 //       application/json
 //     schema:
 //       $ref: "#/definitions/UserResponse"
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '400':
-//     description: Invalid values for request params
+//     description: Invalid values for request params.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users?username=keysAdmin
 // x-sample-call-output: |
@@ -246,15 +246,15 @@ type UserResponse struct {
 // ---
 //
 // description: |
-//   Updates a user with username, password and API permissions provided in the body of the request for a user with ID in the path parameter
+//   Updates a user with the username, password, and API permissions provided in the body of the request for a user with the ID in the path parameter.
 //
 //   The serialized User Go struct object represents the content of the request body.
 //
 //    | Attribute   | Description |
 //    |-------------|-------------|
-//    | username    | Name of the user |
-//    | password    | The password of the user |\
-//    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
+//    | username    | Name of the user. |
+//    | password    | The password of the user. |
+//    | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. The supported KBS API's are users, keys, and key-transfer-policies. The supported CRUD_permissions are create, delete, search. and update|
 //
 // x-permissions: users:update
 // security:
@@ -265,7 +265,7 @@ type UserResponse struct {
 // - application/json
 // parameters:
 // - name: id
-//   description: Unique ID of the user.
+//   description: The unique ID of the user.
 //   in: path
 //   required: true
 //   type: string
@@ -276,14 +276,14 @@ type UserResponse struct {
 //   schema:
 //    "$ref": "#/definitions/User"
 // - name: Content-Type
-//   description: Content-Type header
+//   description: Content-Type header.
 //   in: header
 //   type: string
 //   required: true
 //   enum:
 //     - application/json
 // - name: Accept
-//   description: Accept header
+//   description: Accept header.
 //   in: header
 //   type: string
 //   required: true
@@ -297,13 +297,13 @@ type UserResponse struct {
 //     schema:
 //       $ref: "#/definitions/UserResponse"
 //   '400':
-//     description: Invalid request body provided
+//     description: An invalid request body was provided.
 //   '401':
-//     description: Request Unauthorized
+//     description: The request was unauthorized.
 //   '415':
-//     description: Invalid Accept Header in Request
+//     description: Invalid Accept Header in the request.
 //   '500':
-//     description: Internal server error
+//     description: Internal server error.
 //
 // x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
 // x-sample-call-input: |
