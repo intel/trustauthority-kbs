@@ -535,30 +535,7 @@ paths:
         post:
             consumes:
                 - application/json
-            description: |
-                Creates a key transfer policy. Transfer-Policy with only one attestation-type i.e; SGX or TDX could be created at a time. Key transfer policy can be created
-                either by providing only list of policy-ids or only TDX/SGX attributes or both policy-ids and attributes.
-
-                The serialized KeyTransferPolicy Go struct object represents the content of the request body.
-
-                 | Attribute                                    | Description |
-                 |----------------------------------------------|-------------|
-                 | attestation_type                             | Array of Attestation Type identifiers that client must support to get the key. Expect client to advertise these with the key request e.g. "SGX", "TDX" (note that if key server needs to restrict technologies, then it should list only the ones that can receive the key). |
-                 | mrsigner                                     | Array of measurements of SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |
-                 | isvprodid                                    | Array of (16-bit value) (ISVPRODID). This is mandatory. This is like a qualifier for the issuer so same issuer (code signing) key can sign separate products. |
-                 | mrenclave                                    | Array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). Expect client to have one of these measurements in the SGX quote (this supports use case of providing key only to an SGX enclave that will enforce the key usage policy locally). |
-                 | isvsvn                                       | Minimum security version number required for Enclave. |
-                 | client_permissions                           | Array of permission to expect in client api key. Expect client api key to have all of these names. |
-                 | mrsignerseam                                 | Array of measurements of seam module issuer. This is mandatory. |
-                 | mrseam                                       | Array of measurements of seam module. This is mandatory. |
-                 | mrtd                                         | Array of TD measurements. |
-                 | rtmr0                                        | Measurement extended to RTMR0. |
-                 | rtmr1                                        | Measurement extended to RTMR1. |
-                 | rtmr2                                        | Measurement extended to RTMR2. |
-                 | rtmr3                                        | Measurement extended to RTMR3. |
-                 | seamsvn                                      | Minimum security version number of seam module. |
-                 | enforce_tcb_upto_date                        | Boolean value to enforce Up-To-Date TCB. |
-                 | policy_ids                                   | Array of TD/Enclave Attestation Policy Ids. |
+            description: "Creates a key transfer policy. Only one SGX or TDX key transfer policy can be created at a time. A key \ntransfer policy can be created in the following ways: by providing a list of policy-ids, by providing TDX or SGX attributes, or by providing both a list of policy-ids and TDX or SGX attributes.\n\nThe serialized KeyTransferPolicy Go struct object represents the content of the request body.\n\n | Attribute                                    | Description |\n |----------------------------------------------|-------------|\n | attestation_type                             | An array of attestation-type identifiers that the client must support to get the key. The client must advertise these with the key request, e.g., \"SGX,\" or \"TDX.\" Note that if the key server needs to restrict technologies, it must list technologies that can receive the key. |\n | mrsigner                                     | An array of measurements of the SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |\n | isvprodid                                    | An array of (16-bit value) (ISVPRODID). This is mandatory. This is similar to a qualifier for the issuer, so the same issuer (code signing) key can sign separate products. |\n | mrenclave                                    | An array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). The client must have one of these measurements in the SGX quote. This supports the use case of providing a key only to an SGX enclave that locally enforces the key usage policy. |\n | isvsvn                                       | Minimum security version number required for Enclave. |\n | client_permissions                           | An array of permissions to expect in the client API key. The client API key must have all of these names. |\n | mrsignerseam                                 | An array of measurements of seam module issuer. This is mandatory. |\n | mrseam                                       | An array of measurements of seam module. This is mandatory. |\n | mrtd                                         | A array of TD measurements. |\n | rtmr0                                        | The measurement extended to RTMR0. |\n | rtmr1                                        | The measurement extended to RTMR1. |\n | rtmr2                                        | The measurement extended to RTMR2. |\n | rtmr3                                        | The measurement extended to RTMR3. |\n | seamsvn                                      | The minimum security version number of seam module. |\n | enforce_tcb_upto_date                        | The boolean value to enforce an up-to-date TCB. |\n | policy_ids                                   | A array of TD/Enclave Attestation Policy Ids. |\n"
             operationId: CreateKeyTransferPolicy
             parameters:
                 - in: body
@@ -566,14 +543,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/KeyTransferPolicy'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -588,13 +565,13 @@ paths:
                     schema:
                         $ref: '#/definitions/KeyTransferPolicy'
                 "400":
-                    description: Invalid request body provided
+                    description: An invalid request body was provided.
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -795,7 +772,7 @@ paths:
     /keys:
         get:
             description: |
-                Searches for keys. At least one of the query parameter must be provided.
+                Searches for keys. At least one of the query parameters must be provided.
 
                 Returns - The collection of serialized KeyResponse Go struct objects.
             operationId: SearchKey
@@ -832,7 +809,7 @@ paths:
                   in: query
                   name: curveType
                   type: string
-                - description: Unique identifier of transfer policy.
+                - description: Unique identifier of the transfer policy.
                   format: uuid
                   in: query
                   name: transferPolicyId
@@ -882,24 +859,24 @@ paths:
             consumes:
                 - application/json
             description: |
-                Creates or Registers a key.
+                Creates or registers a key.
 
                 The serialized KeyRequest Go struct object represents the content of the request body.
 
                  | Attribute          | Description |
                  |--------------------|-------------|
-                 | key_information    | A json object having all the required information about a key. |
-                 | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+                 | key_information    | A JSON object containing all the required information about a key. |
+                 | transfer_policy_id | The unique identifier of the transfer policy to be applied to this key. |
 
                 The serialized KeyInformation Go struct object represents the content of the key_information field.
 
                  | Attribute   | Description |
                  |-------------|-------------|
-                 | algorithm   | Encryption algorithm used to create or register key. Supported algorithms are AES, RSA and EC. |
-                 | key_length  | Key length used to create key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for AES and RSA algorithm. |
-                 | curve_type  | Elliptic curve used to create key. Supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for EC algorithm. |
-                 | key_data    | Base64 encoded private key to be registered. Supported only if key is created locally. |
-                 | kmip_key_id | Unique KMIP identifier of key to be registered. Supported only if key is created on KMIP server. |
+                 | algorithm   | The encryption algorithm used to create or register a key.  The supported algorithms are AES, RSA, and EC. |
+                 | key_length  | The key length used to create a key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for the AES and RSA algorithms. |
+                 | curve_type  | The elliptic curve used to create a key. The supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for the EC algorithm. |
+                 | key_data    | The Base64 encoded private key to be registered.  It is only supported if the key is created locally. |
+                 | kmip_key_id | The unique KMIP identifier of the key to be registered.  It is only supported if the key is created on a KMIP server. |
             operationId: CreateKey
             parameters:
                 - in: body
@@ -907,14 +884,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/KeyRequest'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -925,17 +902,17 @@ paths:
                 - application/json
             responses:
                 "201":
-                    description: Successfully created or registered the key.
+                    description: The key was successfully created or registered.
                     schema:
                         $ref: '#/definitions/KeyResponse'
                 "400":
-                    description: Invalid request body provided
+                    description: An invalid request body was provided.
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -974,13 +951,13 @@ paths:
                   type: string
             responses:
                 "204":
-                    description: Successfully deleted the key.
+                    description: The key was successfully deleted.
                 "401":
-                    description: Request Unauthorized
+                    description: Request Unauthorized.
                 "404":
-                    description: Key record not found
+                    description: The key record was not found.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -993,13 +970,13 @@ paths:
                 Returns - The serialized KeyResponse Go struct object that was retrieved.
             operationId: RetrieveKey
             parameters:
-                - description: Unique ID of the key.
+                - description: The unique ID of the key.
                   format: uuid
                   in: path
                   name: id
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1010,17 +987,17 @@ paths:
                 - application/json
             responses:
                 "200":
-                    description: Successfully retrieved the key.
+                    description: The key was successfully retrieved.
                     schema:
                         $ref: '#/definitions/KeyResponse'
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "404":
-                    description: Key record not found
+                    description: The key record was not found.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1048,7 +1025,7 @@ paths:
 
                  | Attribute          | Description |
                  |--------------------|-------------|
-                 | transfer_policy_id | Unique identifier of the transfer policy to apply to this key. |
+                 | transfer_policy_id | The unique identifier of the transfer policy to be applied to this key. |
             operationId: UpdateKey
             parameters:
                 - description: Unique ID of the key.
@@ -1062,14 +1039,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/KeyUpdateRequest'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1080,17 +1057,17 @@ paths:
                 - application/json
             responses:
                 "201":
-                    description: Successfully updated the key.
+                    description: The key was successfully updated.
                     schema:
                         $ref: '#/definitions/KeyResponse'
                 "400":
-                    description: Invalid request body provided
+                    description: An invalid request body was provided.
                 "401":
-                    description: Request Unauthorized
+                    description: Request Unauthorized.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1117,20 +1094,20 @@ paths:
             consumes:
                 - application/json
             description: |
-                Transfers a wrapped secret and wrapped swk.
+                Transfers a wrapped secret and wrapped SWK.
 
-                The serialized KeyRequest Go struct object represents the content of the request body.
+                The serialized KeyRequest Go struct object that represents the content of the request body.
 
                  | Attribute          | Description |
                  |--------------------|-------------|
-                 | attestation_token  | Attestation token received from ITA. This is the only attribute required to retrieve the key in passport mode   |
+                 | attestation_token  | Attestation token received from Intel Trust Authority. This is the only attribute required to retrieve the key in passport mode   |
                  | quote              | TEE quote from workload. This attribute is required to retrieve the key in background mode. |
-                 | nonce              | Verifier nonce from ITA. This is a serialized Go struct "VerifierNonce" in ITA connector. |
-                 | user_data          | TEE held data in attestation token. It is the public key created in the workload that is used to wrap the swk key. |
-                 | nonce              | Verifier nonce from ITA. This is a serialized Go struct "VerifierNonce" in ITA connector. |
+                 | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
+                 | user_data          | TEE held data in an attestation token. It is the public key created in the workload that is used to wrap the SWK key. |
+                 | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
             operationId: TransferKey
             parameters:
-                - description: Unique ID of the key.
+                - description: The unique ID of the key.
                   format: uuid
                   in: path
                   name: id
@@ -1141,14 +1118,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/TransferKeyRequest'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1159,19 +1136,19 @@ paths:
                 - application/json
             responses:
                 "200":
-                    description: Successfully transferred the key.
+                    description: The key was successfully transferred.
                     schema:
                         $ref: '#/definitions/TransferKeyResponse'
                 "400":
-                    description: Invalid request body provided
+                    description: An invalid request body was provided.
                 "401":
-                    description: Failed to authenticate attestation-token
+                    description: Failed to authenticate the attestation token.
                 "404":
-                    description: Key record not found
+                    description: The key record was not found.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             tags:
                 - TransferKey
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
@@ -1189,14 +1166,14 @@ paths:
             consumes:
                 - application/json
             description: |
-                Creates a JWT for the specified user in the request
+                Creates a JWT for the specified user in the request.
 
                 The serialized AuthTokenRequest Go struct object represents the content of the request body.
 
                  | Attribute  | Description |
                  |------------|-------------|
-                 | username   | Name of the user for which the token is being requested. This user should already be created using /users POST API |
-                 | password   | The password of the user for which the token is being requested |
+                 | username   | Name of the user for which the token is being requested. This user should already be created using /users POST API. |
+                 | password   | The password of the user for which the token is being requested. |
             operationId: CreateAuthToken
             parameters:
                 - in: body
@@ -1204,14 +1181,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/AuthTokenRequest'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/jwt
                   in: header
@@ -1222,13 +1199,13 @@ paths:
                 - application/jwt
             responses:
                 "200":
-                    description: Successfully issued authentication token for specified user.
+                    description: Successfully issued an authentication token for the specified user.
                 "400":
-                    description: Invalid request body provided or User with given name does not exist or Password does not match for the given user
+                    description: An invalid request body was provided, or a user with the given name does not exist, or the password does not match the given user.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             tags:
                 - Token
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/token
@@ -1242,16 +1219,16 @@ paths:
     /users:
         get:
             description: |
-                Searches for users. At least one of the query parameter must be provided.
+                Searches for users. At least one of the query parameters must be provided.
 
                 Returns - The collection of serialized UserResponse Go struct objects.
             operationId: SearchUser
             parameters:
-                - description: the name of the user want to search.
+                - description: The name of the user for which to search.
                   in: query
                   name: username
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1262,17 +1239,17 @@ paths:
                 - application/json
             responses:
                 "200":
-                    description: Successfully retrieved the users.
+                    description: The users were successfully retrieved.
                     schema:
                         $ref: '#/definitions/UserResponse'
                 "400":
-                    description: Invalid values for request params
+                    description: Invalid values for request params.
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1294,15 +1271,15 @@ paths:
             consumes:
                 - application/json
             description: |
-                Creates a user with the given username, password and API permissions
+                Creates a user with the given username, password, and API permissions.
 
                 The serialized User Go struct object represents the content of the request body.
 
                  | Attribute   | Description |
                  |-------------|-------------|
-                 | username    | Name of the user. Should be less than 256 characters. |
-                 | password    | The password of the user. Should be between 8 and 72 characters. |
-                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update. |
+                 | username    | The name of the user. It must be less than 256 characters. |
+                 | password    | The password of the user. It must be between 8 and 72 characters. |
+                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. The supported KBS APIs are users, keys, and key-transfer-policies. The supported CRUD_permissions are create, delete, search, and update. |
             operationId: CreateUser
             parameters:
                 - in: body
@@ -1310,14 +1287,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/User'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1332,13 +1309,13 @@ paths:
                     schema:
                         $ref: '#/definitions/UserResponse'
                 "400":
-                    description: Invalid request body provided
+                    description: An invalid request body was provided.
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1368,7 +1345,7 @@ paths:
                 Deletes a user account and associated roles.
             operationId: DeleteUser
             parameters:
-                - description: Unique ID of the user.
+                - description: The unique ID of the user.
                   format: uuid
                   in: path
                   name: id
@@ -1376,13 +1353,13 @@ paths:
                   type: string
             responses:
                 "204":
-                    description: Successfully deleted the user.
+                    description: The user was successfully deleted.
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "404":
-                    description: user record not found
+                    description: The user record was not found.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1391,17 +1368,17 @@ paths:
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users/9acad9da-4ef0-4865-9426-f9c5a8be4d62
         get:
             description: |
-                Retrieves a user information for the provided user ID.
+                Retrieves user information for the provided user ID.
                 Returns - The serialized UserResponse Go struct object that was retrieved.
             operationId: RetrieveUser
             parameters:
-                - description: Unique ID of the user.
+                - description: The unique ID of the user.
                   format: uuid
                   in: path
                   name: id
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1412,17 +1389,17 @@ paths:
                 - application/json
             responses:
                 "200":
-                    description: Successfully retrieved the user information.
+                    description: The user information was successfully retrieved.
                     schema:
                         $ref: '#/definitions/UserResponse'
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "404":
-                    description: User record not found
+                    description: The user record was not found.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1444,18 +1421,18 @@ paths:
             consumes:
                 - application/json
             description: |
-                Updates a user with username, password and API permissions provided in the body of the request for a user with ID in the path parameter
+                Updates a user with the username, password, and API permissions provided in the body of the request for a user with the ID in the path parameter.
 
                 The serialized User Go struct object represents the content of the request body.
 
                  | Attribute   | Description |
                  |-------------|-------------|
-                 | username    | Name of the user |
-                 | password    | The password of the user |\
-                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. Supported KBS API's are users, keys, key-transfer-policies. Supported CRUD_permissions are create, delete, search and update|
+                 | username    | Name of the user. |
+                 | password    | The password of the user. |
+                 | permissions | The KBS REST API permissions in ["{KBS_API}:{CRUD_permissions}"] format. The supported KBS API's are users, keys, and key-transfer-policies. The supported CRUD_permissions are create, delete, search. and update|
             operationId: UpdateUser
             parameters:
-                - description: Unique ID of the user.
+                - description: The unique ID of the user.
                   format: uuid
                   in: path
                   name: id
@@ -1466,14 +1443,14 @@ paths:
                   required: true
                   schema:
                     $ref: '#/definitions/User'
-                - description: Content-Type header
+                - description: Content-Type header.
                   enum:
                     - application/json
                   in: header
                   name: Content-Type
                   required: true
                   type: string
-                - description: Accept header
+                - description: Accept header.
                   enum:
                     - application/json
                   in: header
@@ -1488,13 +1465,13 @@ paths:
                     schema:
                         $ref: '#/definitions/UserResponse'
                 "400":
-                    description: Invalid request body provided
+                    description: An invalid request body was provided.
                 "401":
-                    description: Request Unauthorized
+                    description: The request was unauthorized.
                 "415":
-                    description: Invalid Accept Header in Request
+                    description: Invalid Accept Header in the request.
                 "500":
-                    description: Internal server error
+                    description: Internal server error.
             security:
                 - bearerToken: []
             tags:
@@ -1521,14 +1498,14 @@ paths:
     /version:
         get:
             description: |
-                GetVersion is used to get the version of the application.
+                GetVersion is used to retrieve the version of the application.
                 Returns - The version of the application.
             operationId: GetVersion
             produces:
                 - text/plain
             responses:
                 "200":
-                    description: Successfully retrieved the version.
+                    description: The version was successfully retrieved.
             tags:
                 - Version
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/version
