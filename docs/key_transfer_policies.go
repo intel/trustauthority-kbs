@@ -29,7 +29,7 @@ type KeyTransferPolicyCollection struct {
 // ---
 //
 // description: |
-//   Creates a key transfer policy. Only one SGX or TDX key transfer policy can be created at a time. A key 
+//   Creates a key transfer policy. Only one SGX or TDX key transfer policy can be created at a time. A key
 //   transfer policy can be created in the following ways: by providing a list of policy-ids, by providing TDX or SGX attributes, or by providing both a list of policy-ids and TDX or SGX attributes.
 //
 //   The serialized KeyTransferPolicy Go struct object represents the content of the request body.
@@ -41,7 +41,6 @@ type KeyTransferPolicyCollection struct {
 //    | isvprodid                                    | An array of (16-bit value) (ISVPRODID). This is mandatory. This is similar to a qualifier for the issuer, so the same issuer (code signing) key can sign separate products. |
 //    | mrenclave                                    | An array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). The client must have one of these measurements in the SGX quote. This supports the use case of providing a key only to an SGX enclave that locally enforces the key usage policy. |
 //    | isvsvn                                       | Minimum security version number required for Enclave. |
-//    | client_permissions                           | An array of permissions to expect in the client API key. The client API key must have all of these names. |
 //    | mrsignerseam                                 | An array of measurements of seam module issuer. This is mandatory. |
 //    | mrseam                                       | An array of measurements of seam module. This is mandatory. |
 //    | mrtd                                         | A array of TD measurements. |
