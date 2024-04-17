@@ -5,7 +5,7 @@ REPO := localhost:5000
 SHELL := /bin/bash
 
 GITCOMMIT := $(shell git describe --always)
-VERSION := v1.0.1
+VERSION := v1.1.0
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%S%z)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 DOCKER_PROXY_FLAGS := ""
