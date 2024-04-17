@@ -4,7 +4,7 @@
 ARG PACKAGES_TO_COVER="config\|keymanager\|transport\|service"
 ARG VERSION=v0.0.0
 
-FROM golang:1.21.6-bullseye AS builder
+FROM golang:1.22 AS builder
 ARG VERSION
 WORKDIR /app
 COPY . .
@@ -45,8 +45,7 @@ WORKDIR /app
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build \
     BUILDDATE=$(TZ=UTC date +%Y-%m-%dT%H:%M:%S%z); \
-    COVER_PACKAGES=$(go list ./... | grep v1/ | grep ${PACKAGES_TO_COVER} | tr '\n' ','); \
-    env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off \
+    env CGO_CFLAGS_ALLOW="-f.*" GOEXPERIMENT=nocoverageredesign GOOS=linux GOSUMDB=off \
     /usr/local/go/bin/go test ./... \
         -coverpkg="${COVER_PACKAGES}" -coverprofile cover.out \
     -ldflags "-X intel/kbs/cache/v1/version.BuildDate=${BUILDDATE} -X intel/kbs/cache/v1/version.Version=${VERSION} -X intel/kbs/cache/v1/version.GitHash=${GITCOMMIT}"

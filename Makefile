@@ -5,7 +5,7 @@ REPO := localhost:5000
 SHELL := /bin/bash
 
 GITCOMMIT := $(shell git describe --always)
-VERSION := v1.0.0
+VERSION := v1.0.1
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%S%z)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 DOCKER_PROXY_FLAGS := ""
@@ -47,7 +47,7 @@ test: test-image
 	docker run -i ${DOCKER_RUN_PROXY_FLAGS} --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "/usr/local/go/bin/go test ./..."
 
 test-coverage: test-image
-	docker run -i ${DOCKER_RUN_PROXY_FLAGS} --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "/usr/local/go/bin/go test ./... -coverprofile=cover.out; /usr/local/go/bin/go tool cover -func cover.out"
+	docker run -i ${DOCKER_RUN_PROXY_FLAGS} --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) /bin/bash -c "GOEXPERIMENT=nocoverageredesign /usr/local/go/bin/go test ./... -coverprofile=cover.out; /usr/local/go/bin/go tool cover -func cover.out"
 
 go-fmt: test-image
 	docker run -i --rm $(ORGNAME)/$(APPNAME)-unit-test:$(VERSION) env GOOS=linux GOSUMDB=off /usr/local/go/bin/gofmt -l .
