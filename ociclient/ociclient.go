@@ -7,6 +7,10 @@
 package ociclient
 
 import (
+	"github.com/oracle/oci-go-sdk/v65/common"
+	"github.com/oracle/oci-go-sdk/v65/secrets"
+	"github.com/oracle/oci-go-sdk/v65/vault"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,6 +22,8 @@ type OCIClient interface {
 }
 
 type ociClient struct {
+	sc *(secrets.SecretsClient)
+	vc *(vault.VaultsClient)
 }
 
 func NewOCIClient() OCIClient {
@@ -25,6 +31,19 @@ func NewOCIClient() OCIClient {
 }
 
 func (oc *ociClient) InitializeClient() error {
+	secretsClient, err := secrets.NewSecretsClientWithConfigurationProvider(common.DefaultConfigProvider())
+	if err != nil {
+		return errors.Wrap(err, "ociclient/ociclient:InitializeClient() Failed to initialize OCI secrets client")
+	}
+
+	vaultsClient, err := vault.NewVaultsClientWithConfigurationProvider(common.DefaultConfigProvider())
+	if err != nil {
+		return errors.Wrap(err, "ociclient/ociclient:InitializeClient() Failed to initialize OCI vaults client")
+	}
+
+	oc.sc = &secretsClient
+	oc.vc = &vaultsClient
+
 	log.Info("ociclient/ociclient:InitializeClient() OCI client initialized")
 
 	return nil
