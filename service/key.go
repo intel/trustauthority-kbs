@@ -54,7 +54,9 @@ func (svc service) CreateKey(_ context.Context, keyCreateReq model.KeyRequest) (
 
 	var err error
 	var createdKey *model.KeyResponse
-	if keyCreateReq.KeyInfo.KeyData == "" && keyCreateReq.KeyInfo.KmipKeyID == "" {
+	if keyCreateReq.KeyInfo.KeyData == "" &&
+		keyCreateReq.KeyInfo.KmipKeyID == "" &&
+		(keyCreateReq.OciInfo == nil || keyCreateReq.OciInfo.SecretId == "") {
 
 		log.Debug("Create key request received")
 		createdKey, err = svc.remoteManager.CreateKey(&keyCreateReq)
