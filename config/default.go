@@ -53,7 +53,8 @@ func DefaultConfig() *Configuration {
 		AuthenticationDefendLockoutMinutes:  viper.GetInt(AuthenticationDefendLockoutMinutes),
 	}
 
-	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {
+	if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager ||
+		strings.ToLower(cfg.KeyManager) == constant.OCIKeyManager {
 		cfg.Vault = VaultConfig{
 			ServerIP:    viper.GetString(VaultServerIP),
 			ServerPort:  viper.GetString(VaultServerPort),
