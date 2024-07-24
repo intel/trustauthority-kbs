@@ -59,7 +59,7 @@ func DefaultConfig() *Configuration {
 			ServerPort:  viper.GetString(VaultServerPort),
 			ClientToken: viper.GetString(VaultClientToken),
 		}
-	} else {
+	} else if strings.ToLower(cfg.KeyManager) == constant.KmipKeyManager {
 		cfg.Kmip = KmipConfig{
 			Version:                   viper.GetString(KmipVersion),
 			ServerIP:                  viper.GetString(KmipServerIP),
@@ -72,5 +72,6 @@ func DefaultConfig() *Configuration {
 			RootCertificateFilePath:   viper.GetString(KmipRootCertPath),
 		}
 	}
+	// Currently we do nothing special for OCI config.
 	return cfg
 }
