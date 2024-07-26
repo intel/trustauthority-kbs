@@ -14,7 +14,7 @@ require (
 	github.com/intel/trustauthority-client v1.1.0
 	github.com/onsi/gomega v1.27.10
 	github.com/pkg/errors v0.9.1
-	github.com/shaj13/go-guardian/v2 v2.11.5
+	github.com/shaj13/go-guardian/v2 v2.11.6
 	github.com/shaj13/libcache v1.2.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.18.2
@@ -80,7 +80,7 @@ require (
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.3 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
