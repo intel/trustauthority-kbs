@@ -125,7 +125,7 @@ Follow these instructions to install the PyKMIP KMS. If your organization is usi
 
 KBS can be built using targets from Makefile.
 
-`make docker` is used to build the KBS docker image (key-broker-service:v1.1.1) using the Dockerfile.
+`make docker` is used to build the KBS docker image (key-broker-service:v1.1.2) using the Dockerfile.
 
 ### Install the KBS
 
@@ -203,7 +203,7 @@ On Linux, follow the steps below to install the KBS:
 4. Run the KBS container.
 
     ```bash
-    docker run -d --restart unless-stopped --name kbs --env-file <KBS env file> -p <KBS port>:9443 -v /etc/kbs/certs:/etc/kbs/certs -v /etc/hosts:/etc/hosts -v /opt/kbs:/opt/kbs trustauthority/key-broker-service:v1.1.1
+    docker run -d --restart unless-stopped --name kbs --env-file <KBS env file> -p <KBS port>:9443 -v /etc/kbs/certs:/etc/kbs/certs -v /etc/hosts:/etc/hosts -v /opt/kbs:/opt/kbs trustauthority/key-broker-service:v1.1.2
     ```
 ## KBS key creation and key retrieval
 
