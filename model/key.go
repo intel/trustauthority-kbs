@@ -14,6 +14,7 @@ import (
 
 type KeyRequest struct {
 	KeyInfo *KeyInfo `json:"key_information"`
+	OciInfo *OciInfo `json:"oci_information,omitempty"`
 	// Universal Unique IDentifier of the Key Transfer Policy
 	// required: true
 	// example: 4110594b-a753-4457-7d7f-3e52b62f2ed8
@@ -60,6 +61,24 @@ type KeyInfo struct {
 	// KMIP Key ID, if the key is already created in KMIP Backend
 	// example: 7110194b-a703-4657-9d7f-3e02b62f2ed8
 	KmipKeyID string `json:"kmip_key_id,omitempty"`
+}
+
+type OciInfo struct {
+	// The OCID of the compartment where you want to create the secret.
+	// example: ocid1.test.oc1..<unique_ID>EXAMPLE-compartmentId-Value
+	CompartmentId string `json:"compartment_id,omitempty"`
+	// The OCID of the master encryption key that is used to encrypt the secret.
+	// example: ocid1.test.oc1..<unique_ID>EXAMPLE-keyId-Value
+	KeyId string `json:"key_id,omitempty"`
+	// OCI Secret ID, if the key is already created in OCI backend
+	// example: ocid1.test.oc1..<unique_ID>EXAMPLE-secretId-Value
+	SecretId string `json:"secret_id,omitempty"`
+	// A user-friendly name for the secret.
+	// example: EXAMPLE-secretName-Value
+	SecretName string `json:"secret_name,omitempty"`
+	// The OCID of the vault where you want to create the secret.
+	// example: ocid1.test.oc1..<unique_ID>EXAMPLE-vaultId-Value
+	VaultId string `json:"vault_id,omitempty"`
 }
 
 type KeyFilterCriteria struct {
