@@ -56,6 +56,14 @@ func (om *OCIManager) CreateKey(keyRequest *model.KeyRequest) (*model.KeyAttribu
 }
 
 func (om *OCIManager) DeleteKey(keyAttributes *model.KeyAttributes) error {
+	err := om.client.DeleteKey(keyAttributes.OciSecretId)
+	if err != nil {
+		log.Errorf("Error while deleting key: %s", err.Error())
+		return err
+	}
+
+	log.Infof("OCI: Deleting key: algorithm = %q; secret id = %q", keyAttributes.Algorithm, keyAttributes.OciSecretId)
+
 	return nil
 }
 
