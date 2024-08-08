@@ -60,7 +60,26 @@ func (om *OCIManager) DeleteKey(keyAttributes *model.KeyAttributes) error {
 }
 
 func (om *OCIManager) RegisterKey(keyRequest *model.KeyRequest) (*model.KeyAttributes, error) {
-	return nil, nil
+	if keyRequest.KeyInfo.OciSecretId == "" {
+		return nil, errors.New("oci_secret_id cannot be empty for register operation in OCI mode")
+	}
+
+	newUuid, err := uuid.NewRandom()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create new UUID")
+	}
+	keyAttributes := &model.KeyAttributes{
+		ID:               newUuid,
+		Algorithm:        keyRequest.KeyInfo.Algorithm,
+		KeyLength:        keyRequest.KeyInfo.KeyLength,
+		OciSecretId:      keyRequest.KeyInfo.OciSecretId,
+		TransferPolicyId: keyRequest.TransferPolicyID,
+		CreatedAt:        time.Now().UTC(),
+	}
+
+	log.Infof("OCI: Registering key: algorithm = %q; secret id = %q", keyAttributes.Algorithm, keyAttributes.OciSecretId)
+
+	return keyAttributes, nil
 }
 
 func (om *OCIManager) TransferKey(keyAttributes *model.KeyAttributes) ([]byte, error) {
