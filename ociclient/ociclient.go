@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"intel/kbs/v1/model"
 	"regexp"
+	"time"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/secrets"
@@ -91,6 +92,28 @@ func (oc *ociClient) CreateKey(keyAttributes *model.KeyAttributes) error {
 }
 
 func (oc *ociClient) DeleteKey(secretId string) error {
+	// Create a request and dependent object(s).
+	req := vault.ScheduleSecretDeletionRequest{
+		SecretId: common.String(secretId),
+
+		ScheduleSecretDeletionDetails: vault.ScheduleSecretDeletionDetails{
+			TimeOfDeletion: &common.SDKTime{
+				Time: time.Now().Add(time.Hour * 48),
+			},
+		},
+	}
+
+	// Send the request using the vault client.
+	resp, err := oc.vc.ScheduleSecretDeletion(context.Background(), req)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to delete key '%s' from oci server", secretId)
+	}
+
+	// TODO: Check response for error.
+	fmt.Printf("ociclient/ociclient:DeleteKey(): response:\n%s\n\n", resp)
+
+	log.Infof("ociclient/ociclient:DeleteKey() Deleted key '%s' from oci server", secretId)
+
 	return nil
 }
 
