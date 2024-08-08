@@ -90,5 +90,13 @@ func (om *OCIManager) RegisterKey(keyRequest *model.KeyRequest) (*model.KeyAttri
 }
 
 func (om *OCIManager) TransferKey(keyAttributes *model.KeyAttributes) ([]byte, error) {
-	return nil, nil
+	if keyAttributes.Oci.SecretId == "" {
+		return nil, errors.New("key is not created with OCI key manager")
+	}
+
+	secretVersionNumber := int64(0)
+
+	log.Infof("OCI: Transferring key: secret id = %q; secret version = %d", keyAttributes.Oci.SecretId, secretVersionNumber)
+
+	return om.client.GetKey(keyAttributes.Oci.SecretId, secretVersionNumber)
 }
