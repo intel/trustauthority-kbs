@@ -70,9 +70,9 @@ type TdxAttributes struct {
 	// Hash of the Contents of the TDX SEAM Module
 	// example: 0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe
 	MrSeam []string `json:"mrseam,omitempty"`
-	// The Security Version Number of the TDX SEAM Module
-	// example: 00
-	SeamSvn *uint8 `json:"seamsvn,omitempty"`
+	// The Security Version Number of the TDX SEAM Module calculated as majorVersion x 256 + minorVersion
+	// example: 258
+	SeamSvn *uint16 `json:"seamsvn,omitempty"`
 	// SHA-384 measurement of a TD, accumulated during TD build.
 	// example: df656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50
 	MRTD []string `json:"mrtd,omitempty"`

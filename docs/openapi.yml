@@ -194,6 +194,10 @@ definitions:
         type: object
         x-go-package: intel/kbs/v1/model
     PublicKey:
+        description: |-
+            The value of the modulus N is considered secret by this library and protected
+            from leaking through timing side-channels. However, neither the value of the
+            exponent E nor the precise bit size of N are similarly protected.
         properties:
             E:
                 format: int64
@@ -303,9 +307,9 @@ definitions:
                 type: string
                 x-go-name: RTMR3
             seamsvn:
-                description: The Security Version Number of the TDX SEAM Module
-                example: 0
-                format: uint8
+                description: The Security Version Number of the TDX SEAM Module calculated as majorVersion x 256 + minorVersion
+                example: 258
+                format: uint16
                 type: integer
                 x-go-name: SeamSvn
         type: object
@@ -515,7 +519,7 @@ paths:
                           "mrseam": [
                               "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
                           ],
-                          "seamsvn": 0,
+                          "seamsvn": 258,
                           "mrtd": [
                               "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
                           ],
@@ -535,7 +539,29 @@ paths:
         post:
             consumes:
                 - application/json
-            description: "Creates a key transfer policy. Only one SGX or TDX key transfer policy can be created at a time. A key \ntransfer policy can be created in the following ways: by providing a list of policy-ids, by providing TDX or SGX attributes, or by providing both a list of policy-ids and TDX or SGX attributes.\n\nThe serialized KeyTransferPolicy Go struct object represents the content of the request body.\n\n | Attribute                                    | Description |\n |----------------------------------------------|-------------|\n | attestation_type                             | An array of attestation-type identifiers that the client must support to get the key. The client must advertise these with the key request, e.g., \"SGX,\" or \"TDX.\" Note that if the key server needs to restrict technologies, it must list technologies that can receive the key. |\n | mrsigner                                     | An array of measurements of the SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |\n | isvprodid                                    | An array of (16-bit value) (ISVPRODID). This is mandatory. This is similar to a qualifier for the issuer, so the same issuer (code signing) key can sign separate products. |\n | mrenclave                                    | An array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). The client must have one of these measurements in the SGX quote. This supports the use case of providing a key only to an SGX enclave that locally enforces the key usage policy. |\n | isvsvn                                       | Minimum security version number required for Enclave. |\n | client_permissions                           | An array of permissions to expect in the client API key. The client API key must have all of these names. |\n | mrsignerseam                                 | An array of measurements of seam module issuer. This is mandatory. |\n | mrseam                                       | An array of measurements of seam module. This is mandatory. |\n | mrtd                                         | A array of TD measurements. |\n | rtmr0                                        | The measurement extended to RTMR0. |\n | rtmr1                                        | The measurement extended to RTMR1. |\n | rtmr2                                        | The measurement extended to RTMR2. |\n | rtmr3                                        | The measurement extended to RTMR3. |\n | seamsvn                                      | The minimum security version number of seam module. |\n | enforce_tcb_upto_date                        | The boolean value to enforce an up-to-date TCB. |\n | policy_ids                                   | A array of TD/Enclave Attestation Policy Ids. |\n"
+            description: |
+                Creates a key transfer policy. Only one SGX or TDX key transfer policy can be created at a time. A key
+                transfer policy can be created in the following ways: by providing a list of policy-ids, by providing TDX or SGX attributes, or by providing both a list of policy-ids and TDX or SGX attributes.
+
+                The serialized KeyTransferPolicy Go struct object represents the content of the request body.
+
+                 | Attribute                                    | Description |
+                 |----------------------------------------------|-------------|
+                 | attestation_type                             | An array of attestation-type identifiers that the client must support to get the key. The client must advertise these with the key request, e.g., "SGX," or "TDX." Note that if the key server needs to restrict technologies, it must list technologies that can receive the key. |
+                 | mrsigner                                     | An array of measurements of the SGX enclave’s code signing certificate. This is mandatory. The same issuer must be added as a trusted certificate in key server configuration settings. |
+                 | isvprodid                                    | An array of (16-bit value) (ISVPRODID). This is mandatory. This is similar to a qualifier for the issuer, so the same issuer (code signing) key can sign separate products. |
+                 | mrenclave                                    | An array of enclave measurements that are allowed to retrieve the key (MRENCLAVE). The client must have one of these measurements in the SGX quote. This supports the use case of providing a key only to an SGX enclave that locally enforces the key usage policy. |
+                 | isvsvn                                       | Minimum security version number required for Enclave. |
+                 | mrsignerseam                                 | An array of measurements of seam module issuer. This is mandatory. |
+                 | mrseam                                       | An array of measurements of seam module. This is mandatory. |
+                 | mrtd                                         | A array of TD measurements. |
+                 | rtmr0                                        | The measurement extended to RTMR0. |
+                 | rtmr1                                        | The measurement extended to RTMR1. |
+                 | rtmr2                                        | The measurement extended to RTMR2. |
+                 | rtmr3                                        | The measurement extended to RTMR3. |
+                 | seamsvn                                      | The minimum security version number of seam module. |
+                 | enforce_tcb_upto_date                        | The boolean value to enforce an up-to-date TCB. |
+                 | policy_ids                                   | A array of TD/Enclave Attestation Policy Ids. |
             operationId: CreateKeyTransferPolicy
             parameters:
                 - in: body
@@ -636,7 +662,7 @@ paths:
                         "rtmr1": "a53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9b",
                         "rtmr2": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                         "rtmr3": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                        "seamsvn": 0,
+                        "seamsvn": 258,
                         "enforce_tcb_upto_date": false
                     },
                     "policy_ids": [
@@ -657,7 +683,7 @@ paths:
                         "mrseam": [
                             "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
                         ],
-                        "seamsvn": 0,
+                        "seamsvn": 258,
                         "mrtd": [
                             "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
                         ],
@@ -753,7 +779,7 @@ paths:
                         "mrseam": [
                             "0f3b72d0f9606086d6a7800e7d50b82fa6cb5ec64c7210353a0696c1eef343679bf5b9e8ec0bf58ab3fce10f2c166ebe"
                         ],
-                        "seamsvn": 0,
+                        "seamsvn": 258,
                         "mrtd": [
                             "cf656414fc0f49b23e2ae64b6f23b82901e2206aab36b671e360ebd414899dab51bbb60134bbe6ad8dcc70b995d9dc50"
                         ],

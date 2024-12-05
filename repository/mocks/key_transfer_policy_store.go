@@ -113,7 +113,7 @@ func NewFakeKeyTransferPolicyStore() *MockKeyTransferPolicyStore {
 		log.WithError(err).Errorf("Error creating key transfer policy")
 	}
 
-	var j uint8 = 4
+	var j uint16 = 4
 
 	_, err = store.Create(&model.KeyTransferPolicy{
 		ID:              uuid.MustParse("f64e25de-634f-44a3-b520-db480d8781ce"),

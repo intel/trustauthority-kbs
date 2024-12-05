@@ -58,7 +58,7 @@ type TDXClaims struct {
 	TdxRTMR2              string                       `json:"tdx_rtmr2"`
 	TdxRTMR3              string                       `json:"tdx_rtmr3"`
 	TdxReportData         string                       `json:"tdx_report_data,omitempty"`
-	TdxSeamSvn            uint8                        `json:"tdx_seamsvn"`
+	TdxSeamSvn            uint16                       `json:"tdx_seamsvn"`
 	TdxTDAttributeDebug   bool                         `json:"tdx_td_attributes_debug"`
 	TdxTDAttributesSeptVe bool                         `json:"tdx_td_attributes_septve_disable"`
 	TdxTDAttributePKS     bool                         `json:"tdx_td_attributes_protection_keys"`

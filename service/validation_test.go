@@ -18,9 +18,6 @@ import (
 var zeroVal uint16 = 0
 var oneVal uint16 = 1
 
-var zeroVal8 uint8 = 0
-var oneVal8 uint8 = 1
-
 func TestValidateAttestationTokenClaimsSGX(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
@@ -179,7 +176,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -200,7 +197,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -219,7 +216,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -238,7 +235,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      oneVal8,
+			TdxSeamSvn:      oneVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -257,7 +254,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -276,7 +273,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -295,7 +292,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        "b53c98b16f0de470338e7f072d9c5fcef6171327ec6c78b842e637251b1de6e37354c47fb68de27ef14bb67caf288d9e",
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -314,7 +311,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -333,7 +330,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OK",
 		AttesterType:      "TDX",
@@ -352,7 +349,7 @@ func TestValidateAttestationTokenClaimsTDX(t *testing.T) {
 			TdxRTMR1:        cns.ValidRTMR1,
 			TdxRTMR2:        cns.ValidRTMR2,
 			TdxRTMR3:        cns.ValidRTMR3,
-			TdxSeamSvn:      zeroVal8,
+			TdxSeamSvn:      zeroVal,
 		},
 		AttesterTcbStatus: "OUT_OF_DATE",
 		AttesterType:      "TDX",

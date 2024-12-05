@@ -71,7 +71,7 @@ func validateSGXTokenClaims(tokenClaims *model.AttestationTokenClaim, sgxAttribu
 func validateMrSigner(tokenMrSigner string, policyMrSigner []string) bool {
 
 	// if MrSigner is not provided in policy, it should not be evaluated
-	if policyMrSigner == nil || len(policyMrSigner) == 0 {
+	if len(policyMrSigner) == 0 {
 		logrus.Debug("MrSigner is not provided in key transfer policy, skipping MrSigner match against the token")
 		return true
 	}
@@ -89,7 +89,7 @@ func validateMrSigner(tokenMrSigner string, policyMrSigner []string) bool {
 func validateIsvProdId(tokenIsvProdId uint16, policyIsvProdIds []uint16) bool {
 
 	// if IsvProdId is not provided in policy, it should not be evaluated
-	if policyIsvProdIds == nil || len(policyIsvProdIds) == 0 {
+	if len(policyIsvProdIds) == 0 {
 		logrus.Debug("IsvProdIds is not provided in key transfer policy, skipping IsvProdId match against the token")
 		return true
 	}
@@ -107,7 +107,7 @@ func validateIsvProdId(tokenIsvProdId uint16, policyIsvProdIds []uint16) bool {
 func validateMrEnclave(tokenMrEnclave string, policyMrEnclave []string) bool {
 
 	// if MrEnclave is not provided in policy, it should not be evaluated
-	if policyMrEnclave == nil || len(policyMrEnclave) == 0 {
+	if len(policyMrEnclave) == 0 {
 		logrus.Debug("MrEnclave is not provided in key transfer policy, skipping MrEnclave match against the token")
 		return true
 	}
@@ -174,7 +174,7 @@ func validateTDXTokenClaims(tokenClaims *model.AttestationTokenClaim, tdxAttribu
 func validateMrSignerSeam(tokenMrSignerSeam string, policyMrSignerSeam []string) bool {
 
 	// if MrSignerSeam is not provided in policy, it should not be evaluated
-	if policyMrSignerSeam == nil || len(policyMrSignerSeam) == 0 {
+	if len(policyMrSignerSeam) == 0 {
 		logrus.Debug("MrSignerSeam is not provided in key transfer policy, skipping MrSignerSeam match against the token")
 		return true
 	}
@@ -192,7 +192,7 @@ func validateMrSignerSeam(tokenMrSignerSeam string, policyMrSignerSeam []string)
 func validateMrSeam(tokenMrSeam string, policyMrSeam []string) bool {
 
 	// if MrSeam is not provided in policy, it should not be evaluated
-	if policyMrSeam == nil || len(policyMrSeam) == 0 {
+	if len(policyMrSeam) == 0 {
 		logrus.Debug("MrSeam is not provided in key transfer policy, skipping MrSeam match against the token")
 		return true
 	}
@@ -207,7 +207,7 @@ func validateMrSeam(tokenMrSeam string, policyMrSeam []string) bool {
 }
 
 // validateSeamSvn- Function to Validate seamSvn
-func validateSeamSvn(tokenSeamSvn uint8, policySeamSvn *uint8) bool {
+func validateSeamSvn(tokenSeamSvn uint16, policySeamSvn *uint16) bool {
 
 	// if SeamSvn is not provided in policy, it should not be evaluated
 	if policySeamSvn == nil {
@@ -227,7 +227,7 @@ func validateSeamSvn(tokenSeamSvn uint8, policySeamSvn *uint8) bool {
 func validateMrTD(tokenMrTD string, policyMrTD []string) bool {
 
 	// if MrTD is not provided in policy, it should not be evaluated
-	if policyMrTD == nil || len(policyMrTD) == 0 {
+	if len(policyMrTD) == 0 {
 		logrus.Debug("MrTD is not provided in key transfer policy, skipping MrTD match against the token")
 		return true
 	}
