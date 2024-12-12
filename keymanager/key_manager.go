@@ -7,6 +7,7 @@
 package keymanager
 
 import (
+	"intel/kbs/v1/ociclient"
 	"intel/kbs/v1/vaultclient"
 	"strings"
 
@@ -27,6 +28,13 @@ func NewKeyManager(cfg *config.Configuration) (KeyManager, error) {
 			return nil, errors.Wrap(err, "Failed to initialize KmipManager")
 		}
 		return NewKmipManager(kmipClient), nil
+	} else if strings.ToLower(cfg.KeyManager) == constant.OCIKeyManager {
+		ociClient := ociclient.NewOCIClient()
+		err := ociClient.InitializeClient()
+		if err != nil {
+			return nil, errors.Wrap(err, "keymanager/key_manager:NewKeyManager() Failed to initialize OCI client")
+		}
+		return NewOCIManager(ociClient), nil
 	} else if strings.ToLower(cfg.KeyManager) == constant.VaultKeyManager {
 		vaultClient := vaultclient.NewVaultClient()
 		err := vaultClient.InitializeClient(cfg.Vault.ServerIP, cfg.Vault.ServerPort, cfg.Vault.ClientToken)
