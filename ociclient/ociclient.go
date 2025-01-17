@@ -8,6 +8,9 @@ package ociclient
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
+	"regexp"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/secrets"
@@ -88,5 +91,36 @@ func (oc *ociClient) DeleteKey(secretId string) error {
 }
 
 func (oc *ociClient) GetKey(secretId string, secretVersionNumber int64) ([]byte, error) {
-	return nil, nil
+	// Create request and dependent object(s).
+	req := secrets.GetSecretBundleRequest{
+		SecretId: common.String(secretId),
+	}
+
+	// If the secret version was provided, include it. Otherwise it'll just
+	// fallback to the current version.
+	if secretVersionNumber > 0 {
+		req.VersionNumber = common.Int64(secretVersionNumber)
+	}
+
+	// Send the request using the secrets client.
+	resp, err := oc.sc.GetSecretBundle(context.Background(), req)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get secret bundle")
+	}
+
+	// Parse bundle contents.
+	re := regexp.MustCompile(`\{ Content=([-A-Za-z0-9+/]*) \}`)
+	strs := re.FindStringSubmatch(fmt.Sprintf("%s", resp.SecretBundle.SecretBundleContent))
+	if strs == nil || len(strs) != 2 {
+		return nil, errors.New("could not extract secret")
+	}
+	contentStr := strs[1]
+
+	// Decode the contents.
+	decodedStr, err := base64.StdEncoding.DecodeString(contentStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodedStr, nil
 }
