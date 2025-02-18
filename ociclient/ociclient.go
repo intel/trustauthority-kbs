@@ -7,6 +7,8 @@
 package ociclient
 
 import (
+	"context"
+
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/secrets"
 	"github.com/oracle/oci-go-sdk/v65/vault"
@@ -50,7 +52,35 @@ func (oc *ociClient) InitializeClient() error {
 }
 
 func (oc *ociClient) CreateKey(OciCompartmentId, OciKeyId, OciSecretName, OciVaultId string) (string, error) {
-	return "", nil
+	// Create request and dependent object(s).
+	req := vault.CreateSecretRequest{
+		CreateSecretDetails: vault.CreateSecretDetails{
+			// Required
+			CompartmentId: &OciCompartmentId,
+			KeyId:         &OciKeyId,
+			SecretName:    &OciSecretName,
+			VaultId:       &OciVaultId,
+
+			// TODO: For now just use random bytes, but it should be possible
+			//       to select the key type.
+			SecretGenerationContext: vault.BytesGenerationContext{
+				GenerationTemplate: vault.BytesGenerationContextGenerationTemplate512,
+			},
+
+			// Optional
+			EnableAutoGeneration: common.Bool(true),
+		},
+	}
+
+	// Send the request using the vault client.
+	resp, err := oc.vc.CreateSecret(context.Background(), req)
+	if err != nil {
+		return "", errors.Wrap(err, "ociclient/ociclient:CreateKey() Failed to create OCI secret")
+	}
+
+	log.Infof("ociclient/ociclient:CreateKey() Created key '%s' (%s) on oci server", *resp.Secret.Id, OciSecretName)
+
+	return *resp.Secret.Id, nil
 }
 
 func (oc *ociClient) DeleteKey(secretId string) error {
