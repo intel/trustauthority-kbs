@@ -47,6 +47,7 @@ const (
 
 	// kmipmanager constants
 	KmipKeyManager   = "kmip"
+	OCIKeyManager    = "oci"
 	VaultKeyManager  = "vault"
 	DefaultVaultPort = 8200
 

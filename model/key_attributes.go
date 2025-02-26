@@ -24,6 +24,16 @@ type KeyAttributes struct {
 	TransferPolicyId uuid.UUID `json:"transfer_policy_id,omitempty"`
 	TransferLink     string    `json:"transfer_link,omitempty"`
 	CreatedAt        time.Time `json:"created_at,omitempty"`
+
+	Oci *OciAttributes `json:"oci_attributes,omitempty"`
+}
+
+type OciAttributes struct {
+	CompartmentId string `json:"compartment_id,omitempty"`
+	KeyId         string `json:"key_id,omitempty"`
+	SecretName    string `json:"secret_name,omitempty"`
+	SecretId      string `json:"secret_id,omitempty"`
+	VaultId       string `json:"vault_id,omitempty"`
 }
 
 func (ka *KeyAttributes) ToKeyResponse() *KeyResponse {
