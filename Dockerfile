@@ -4,7 +4,7 @@
 ARG PACKAGES_TO_COVER="config\|keymanager\|transport\|service"
 ARG VERSION=v0.0.0
 
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 ARG VERSION
 WORKDIR /app
 COPY . .
