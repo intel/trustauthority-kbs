@@ -6,7 +6,7 @@ go 1.22
 require (
 	github.com/gemalto/kmip-go v0.0.6
 	github.com/go-kit/kit v0.13.0
-	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.1
