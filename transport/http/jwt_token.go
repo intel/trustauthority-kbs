@@ -72,6 +72,9 @@ func decodeCreateAuthTokenHttpRequest(_ context.Context, r *http.Request) (inter
 func encodeCreateAuthTokenHttpResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	resp := response.(string)
 	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-	w.Write([]byte(resp))
+	_, err := w.Write([]byte(resp))
+	if err != nil {
+		return err
+	}
 	return nil
 }
