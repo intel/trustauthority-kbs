@@ -152,9 +152,6 @@ func (kc *kmipClient) GetKey(keyID, algorithm string) ([]byte, error) {
 
 	switch algorithm {
 	case constant.CRYPTOALGAES:
-		if respPayload.SymmetricKey == nil {
-			return nil, errors.New("symmetric key is nil")
-		}
 		err = decoder.DecodeValue(&keyValue, respPayload.SymmetricKey.KeyBlock.KeyValue.(ttlv.TTLV))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to decode symmetric keyblock")
