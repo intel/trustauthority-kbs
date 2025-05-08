@@ -64,13 +64,17 @@ type KeyUpdateRequest struct {
 //
 //   The serialized KeyInformation Go struct object represents the content of the key_information field.
 //
-//    | Attribute   | Description |
-//    |-------------|-------------|
-//    | algorithm   | The encryption algorithm used to create or register a key.  The supported algorithms are AES, RSA, and EC. |
-//    | key_length  | The key length used to create a key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for the AES and RSA algorithms. |
-//    | curve_type  | The elliptic curve used to create a key. The supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for the EC algorithm. |
-//    | key_data    | The Base64 encoded private key to be registered.  It is only supported if the key is created locally. |
-//    | kmip_key_id | The unique KMIP identifier of the key to be registered.  It is only supported if the key is created on a KMIP server. |
+//    | Attribute          | Description |
+//    |--------------------|-------------|
+//    | algorithm          | The encryption algorithm used to create or register a key.  The supported algorithms are AES, RSA, and EC. |
+//    | key_length         | The key length used to create a key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for the AES and RSA algorithms. |
+//    | curve_type         | The elliptic curve used to create a key. The supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for the EC algorithm. |
+//    | key_data           | The Base64 encoded private key to be registered.  It is only supported if the key is created locally. |
+//    | kmip_key_id        | The unique KMIP identifier of the key to be registered.  It is only supported if the key is created on a KMIP server. |
+//    | oci_compartment_id | The Oracle Cloud ID (OCID) of the compartment where you want to create the secret. |
+//    | oci_key_id         | The Oracle Cloud ID (OCID) of the master encryption key that is used to encrypt the secret. You must specify a symmetric key to encrypt the secret during import to the vault. You cannot encrypt secrets with asymmetric keys. Furthermore, the key must exist in the vault that you specify. |
+//    | oci_secret_name    | A user-friendly name for the secret. Secret names should be unique within a vault. Avoid entering confidential information. Valid characters are uppercase or lowercase letters, numbers, hyphens, underscores, and periods. |
+//    | oci_vault_id       | The Oracle Cloud ID (OCID) of the vault where you want to create the secret. |
 //
 // x-permissions: keys:create
 // security:
