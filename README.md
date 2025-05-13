@@ -2,7 +2,7 @@
 
 The Intel Trust Authority Key Broker Service (KBS) is deployed as a container image. The Key Broker Service (KBS) enables key distribution using a Trusted Execution Environment (TEE) like SGX and TDX attestation to authorize key transfers by retaining image decryption keys. The KBS acts as a bridge between an attestation service (like Intel Trust Authority) and the existing ecosystem of KMIP key management platforms. It brokers access to the secrets stored in the key management services by evaluating attestation tokens against a key transfer policy that informs the broker of the specific trust requirements for retrieving a key.
 
-The KBS provides and retains encryption/decryption keys for various purposes. When a TEE workload requests the decryption key to operate on a resource, the KBS requests the workload's attestation from Intel Trust Authority, verifies all digital signatures, and retains the final control over whether the decryption key is issued. If the workload's attestation meets the policy requirements, the KBS issues a decryption key, wrapped using the public key from the attested workload, cryptographically ensuring that only the attested workload can decrypt the requested key. The KBS also acts as a policy broker that analyzes key requests, decides how to respond, and wraps the keys using a bound public key. The key broker Service connects to a backend Hashicorp Vault KMS and third-party KMIP-compliant key management servers like PyKMIP for key creation and vaulting services.
+The KBS provides and retains encryption/decryption keys for various purposes. When a TEE workload requests the decryption key to operate on a resource, the KBS requests the workload's attestation from Intel Trust Authority, verifies all digital signatures, and retains the final control over whether the decryption key is issued. If the workload's attestation meets the policy requirements, the KBS issues a decryption key, wrapped using the public key from the attested workload, cryptographically ensuring that only the attested workload can decrypt the requested key. The KBS also acts as a policy broker that analyzes key requests, decides how to respond, and wraps the keys using a bound public key. The key broker Service connects to a backend Hashicorp Vault KMS, third-party KMIP-compliant key management servers like PyKMIP, or OCI Vault for key creation and vaulting services.
 
 # About the KBS
 
@@ -56,11 +56,11 @@ Installing the Intel Key Broker System requires a Key Management System to be in
 ### Prerequisites
 
 - You must have an Intel Trust Authority account set up with access to the Trust Authority Download center
-- Hashicorp Vault KMS or PyKMIP must be installed and running
+- Hashicorp Vault KMS or PyKMIP must be installed and running, or an OCI Vault account must be created
 
 ### Install the Key Management System (KMS)
 
-Intel's KBS works with two Key Management Systems, [Hashicorp Vault](#install-hashicorp-vault-kms) OR [PyKMIP](#install-pykmip). Follow the installation instructions for the KMS appropriate for your environment:
+Intel's KBS works with three Key Management Systems, [Hashicorp Vault](#install-hashicorp-vault-kms), [PyKMIP](#install-pykmip), and [OCI Vault](#setup-oci-key-vault-account). Follow the installation instructions for the KMS appropriate for your environment:
 
 #### Install Hashicorp vault KMS
 
@@ -121,6 +121,26 @@ Follow these instructions to install the PyKMIP KMS. If your organization is usi
     KMIP_VERSION=KMIP version
     ```
 
+#### Setup OCI Key Vault Account
+
+No software needs to be installed in order to use OCI Vault. However, an account needs to be created and the system configured to use the Vault SDK. An Oracle Cloud Free Tier account is sufficient to use OCI Vault.
+
+1. Create an OCI account, follow the instructions at https://signup.cloud.oracle.com/
+
+2. Configure SDK access, follow the instructions at https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm
+
+3. Create a vault, follow the instructions at https://docs.oracle.com/en-us/iaas/Content/KeyManagement/Tasks/managingvaults_topic-To_create_a_new_vault.htm#createnewvault
+
+4. Create a master encryption key, follow the instructions at https://docs.oracle.com/en-us/iaas/Content/KeyManagement/Tasks/managingkeys_topic-To_create_a_new_key.htm#createnewkey
+
+To create a key with the KBS, the following information is required:
+
+    - OCI compartment ID
+    - OCI vault ID
+    - OCI key ID
+
+This information can be found by logging in to https://cloud.oracle.com. To get the OCID of the compartment, navigate to `Identity & Security -> Identity -> Compartments`. Find the correct compartment in the list and the OCID will be displayed and can be copied. To get the OCID of the vault, navigate to `Identity & Security -> Key Management & Secret Management -> Vaults`, select the correct vault and under the `General information` page, the OCID of the vault is listed and can be copied. To get the OCID of the key, navigate to `Identity & Security -> Key Management & Secret Management -> Vaults`, select the `Master Encryption Keys` tab, then select the correct key from the list and it will go to the `Key Information` page. The OCID of the key is listed and can be copied.
+
 ### Build the KBS
 
 KBS can be built using targets from Makefile.
@@ -152,7 +172,7 @@ On Linux, follow the steps below to install the KBS:
 
    ```bash
    LOG_LEVEL=<DEBUG, INFO, TRACE, ERROR>
-   KEY_MANAGER=<VAULT or KMIP, default VAULT>
+   KEY_MANAGER=<VAULT, KMIP, or OCI, default VAULT>
    ADMIN_USERNAME=<kbs admin username>
    ADMIN_PASSWORD=<kbs admin password>
    HTTP_READ_HEADER_TIMEOUT=<kbs server read header timeout, default 10sec>
@@ -192,6 +212,11 @@ On Linux, follow the steps below to install the KBS:
    KMIP_PASSWORD=KMIP password
    KMIP_VERSION=KMIP version    
    ```
+
+   ***OCI Vault configuration***
+
+   There is no special configuration required to use OCI Vault.
+
 3. Optionally, configure a proxy setting.
 
     If you're running behind a proxy, use this configuration.
