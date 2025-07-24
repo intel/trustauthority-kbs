@@ -9,6 +9,7 @@ package keymanager
 import (
 	"intel/kbs/v1/model"
 	"intel/kbs/v1/ociclient"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,6 +21,12 @@ type OCIManager struct {
 	client ociclient.OCIClient
 }
 
+func checkOCID(ocid string) bool {
+	re := regexp.MustCompile(`ocid1\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.[A-Za-z0-9]*\.[A-Za-z0-9.]+`)
+
+	return re.MatchString(ocid)
+}
+
 func NewOCIManager(c ociclient.OCIClient) *OCIManager {
 	return &OCIManager{c}
 }
@@ -28,6 +35,19 @@ func (om *OCIManager) CreateKey(keyRequest *model.KeyRequest) (*model.KeyAttribu
 	if keyRequest.OciInfo.CompartmentId == "" || keyRequest.OciInfo.KeyId == "" ||
 		keyRequest.OciInfo.SecretName == "" || keyRequest.OciInfo.VaultId == "" {
 		return nil, errors.New("Missing oci_compartment_id, oci_key_id, oci_secret_name, or oci_vault_id")
+	}
+
+	if !checkOCID(keyRequest.OciInfo.CompartmentId) {
+		return nil, errors.New("Invalid oci_compartment_id")
+	}
+	if !checkOCID(keyRequest.OciInfo.KeyId) {
+		return nil, errors.New("Invalid oci_key_id")
+	}
+	if !checkOCID(keyRequest.OciInfo.SecretName) {
+		return nil, errors.New("Invalid oci_secret_name")
+	}
+	if !checkOCID(keyRequest.OciInfo.VaultId) {
+		return nil, errors.New("Invalid oci_vault_id")
 	}
 
 	newUuid, err := uuid.NewRandom()
