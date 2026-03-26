@@ -44,10 +44,10 @@ func FuzzValidateStrings(f *testing.F) {
 func FuzzValidateSha256HexString(f *testing.F) {
 	seeds := []string{
 		"",
-		"ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316a",  // valid 64-char
-		"ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316",   // 63 chars
-		"ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316aa", // 65 chars
-		"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",   // invalid hex
+		"ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316a",    // valid 64-char
+		"ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316",     // 63 chars
+		"ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316aa",   // 65 chars
+		"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",    // invalid hex
 		"  ad46749ed41ebaa2327252041ee746d3791a9f2431830fee0883f7993caf316a ", // padded
 		"\x00" + string(make([]byte, 63)),
 	}
@@ -64,7 +64,7 @@ func FuzzValidateSha256HexString(f *testing.F) {
 func FuzzValidateSha384HexString(f *testing.F) {
 	seeds := []string{
 		"",
-		"83d719e77deaca1470f6baf62a4d774303c899db69020f9c70ee1dfc08c7ce9e83d719e77deaca1470f6baf62a4d7743", // 95 chars
+		"83d719e77deaca1470f6baf62a4d774303c899db69020f9c70ee1dfc08c7ce9e83d719e77deaca1470f6baf62a4d7743",  // 95 chars
 		"83d719e77deaca1470f6baf62a4d774303c899db69020f9c70ee1dfc08c7ce9e83d719e77deaca1470f6baf62a4d77430", // 97 chars
 		string(make([]byte, 96)),
 	}

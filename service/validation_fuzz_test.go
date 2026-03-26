@@ -29,7 +29,7 @@ func FuzzAttestationTokenClaims(f *testing.F) {
 			SgxIsvProdId: 1,
 			SgxIsvSvn:    1,
 		},
-		AttesterType:  model.SGX,
+		AttesterType:      model.SGX,
 		AttesterTcbStatus: "UpToDate",
 	}
 	sgxSeedBytes, _ := json.Marshal(sgxSeed)
@@ -41,7 +41,7 @@ func FuzzAttestationTokenClaims(f *testing.F) {
 			TdxMrSignerSeam: "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 			TdxMRTD:         "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 		},
-		AttesterType:  model.TDX,
+		AttesterType:      model.TDX,
 		AttesterTcbStatus: "UpToDate",
 	}
 	tdxSeedBytes, _ := json.Marshal(tdxSeed)
