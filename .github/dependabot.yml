@@ -1,0 +1,61 @@
+# Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+# Dependabot configuration — automated dependency updates (SCA 2.2)
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # ── Go modules ─────────────────────────────────────────────────────────────
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    # Only group patch-level updates to reduce PR noise; keep minor/major separate
+    groups:
+      go-patch-updates:
+        update-types:
+          - "patch"
+    labels:
+      - "dependencies"
+      - "go"
+    commit-message:
+      prefix: "chore(deps)"
+    reviewers:
+      - "intel/trustauthority-kbs-maintainers"
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    groups:
+      actions-updates:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(actions)"
+
+  # ── Docker base image ───────────────────────────────────────────────────────
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"

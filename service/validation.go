@@ -56,6 +56,10 @@ func isPolicyIdMatched(tokenPolicyIds []model.PolicyClaim, keyPolicyIds []uuid.U
 
 func validateSGXTokenClaims(tokenClaims *model.AttestationTokenClaim, sgxAttributes *model.SgxAttributes) error {
 
+	if tokenClaims.SGXClaims == nil {
+		return errors.New("sgx claims are missing from attestation token")
+	}
+
 	if validateMrSigner(tokenClaims.SgxMrSigner, sgxAttributes.MrSigner) &&
 		validateIsvProdId(tokenClaims.SgxIsvProdId, sgxAttributes.IsvProductId) &&
 		validateMrEnclave(tokenClaims.SgxMrEnclave, sgxAttributes.MrEnclave) &&
@@ -154,6 +158,10 @@ func validateTcbStatus(tcbStatus string, enforceTcbUptoDate *bool) bool {
 }
 
 func validateTDXTokenClaims(tokenClaims *model.AttestationTokenClaim, tdxAttributes *model.TdxAttributes) error {
+
+	if tokenClaims.TDXClaims == nil {
+		return errors.New("tdx claims are missing from attestation token")
+	}
 
 	if validateMrSignerSeam(tokenClaims.TdxMrSignerSeam, tdxAttributes.MrSignerSeam) &&
 		validateMrSeam(tokenClaims.TdxMrSeam, tdxAttributes.MrSeam) &&

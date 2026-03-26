@@ -1,0 +1,11 @@
+# TruffleHog ignore paths — known-safe patterns / test fixtures
+# Each line is a file path glob relative to the repository root.
+# Docs: https://github.com/trufflesecurity/trufflehog#exclude-paths
+
+# Test resource files may contain fake credentials for unit tests
+test/resource/
+# Mock files contain synthetic tokens/keys for testing
+**/mock_*.go
+**/*_mock.go
+# Generated documentation
+docs/openapi.yml
