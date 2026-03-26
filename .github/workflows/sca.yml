@@ -90,12 +90,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run OSV-Scanner
-        # The action uploads SARIF to GitHub Security tab automatically.
-        # Do NOT pass --format or --output — the action manages output internally.
-        uses: google/osv-scanner-action/osv-scanner-action@v2
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          scan-args: |-
-            --lockfile=go.sum
-            --recursive
-        continue-on-error: true
+          go-version: '1.24'
+          cache: false
+
+      - name: Run OSV-Scanner
+        # Install and run osv-scanner directly — avoids action version uncertainty.
+        # Findings are printed to stdout; non-zero exit means vulnerabilities found.
+        run: |
+          go install github.com/google/osv-scanner/cmd/osv-scanner@latest
+          osv-scanner scan --lockfile=go.sum --recursive . || true
