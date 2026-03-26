@@ -90,10 +90,10 @@ issues:
     - vendor
     - docs
   exclude-files:
-    - ".*_mock.*\.go"
-    - "mock_.*\.go"  # Exclude test files from some noisy rules
+    - '.*_mock.*\.go'
+    - 'mock_.*\.go'
   exclude-rules:
-    - path: "_test\\.go"
+    - path: '_test\.go'
       linters:
         - errcheck
         - gosec
