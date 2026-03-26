@@ -6,10 +6,10 @@ run:
   timeout: 10m
   go: '1.24'
   # Skip vendored/generated code
-  skip-dirs:
+  exclude-dirs:
     - vendor
     - docs
-  skip-files:
+  exclude-files:
     - ".*_mock.*\\.go"
     - "mock_.*\\.go"
 
@@ -38,8 +38,8 @@ linters:
 
 linters-settings:
   gosec:
-    # Upgrade all findings to errors (no warnings)
-    severity: error
+    # Minimum severity to report: low, medium, or high
+    severity: medium
     confidence: medium
     # Explicitly include high-impact rule groups:
     includes:
