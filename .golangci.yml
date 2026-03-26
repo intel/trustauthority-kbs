@@ -5,13 +5,7 @@
 run:
   timeout: 10m
   go: '1.24'
-  # Skip vendored/generated code
-  exclude-dirs:
-    - vendor
-    - docs
-  exclude-files:
-    - ".*_mock.*\\.go"
-    - "mock_.*\\.go"
+
 
 linters:
   disable-all: true
@@ -91,8 +85,13 @@ linters-settings:
 issues:
   # Show all issues, not just the first 3 per linter
   max-issues-per-linter: 0
-  max-same-issues: 0
-  # Exclude test files from some noisy rules
+  max-same-issues: 0  # Skip vendored/generated code
+  exclude-dirs:
+    - vendor
+    - docs
+  exclude-files:
+    - ".*_mock.*\.go"
+    - "mock_.*\.go"  # Exclude test files from some noisy rules
   exclude-rules:
     - path: "_test\\.go"
       linters:
