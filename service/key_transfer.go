@@ -13,6 +13,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -347,7 +348,26 @@ func getPublicKey(userData string, attesterType model.AttesterType) (*rsa.Public
 	if len(key) < 5 {
 		return nil, errors.New("attester held data is missing or invalid")
 	}
+	// If the decoded bytes are PEM-encoded (e.g. produced by trustauthority-cli or
+	// standard OpenSSL/Go tools), parse them as a standard PKIX public key.
+	// This handles TDX attesters that embed the public key as a PEM block in user_data.
+	if block, _ := pem.Decode(key); block != nil {
+		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse PEM public key")
+		}
+		rsaPub, ok := pub.(*rsa.PublicKey)
+		if !ok {
+			return nil, errors.New("public key in user_data is not an RSA key")
+		}
+		if rsaPub.N.BitLen() <= 2048 {
+			return nil, errors.New("RSA key size must be greater than 2048 bits")
+		}
+		return rsaPub, nil
+	}
 
+	// Legacy raw binary format: [4-byte exponent][modulus]
+	// SGX enclaves transmit in Little Endian; all others use Big Endian.
 	modArr := key[4:]
 	var eb uint32
 	n := big.Int{}
