@@ -128,7 +128,7 @@ func (oc *ociClient) GetKey(secretId string, secretVersionNumber int64) ([]byte,
 	}
 
 	// Parse bundle contents.
-	re := regexp.MustCompile(`\{ Content=([-A-Za-z0-9+/]*) \}`)
+	re := regexp.MustCompile(`\{ Content=((?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?) \}`)
 	strs := re.FindStringSubmatch(fmt.Sprintf("%s", resp.SecretBundle.SecretBundleContent))
 	if strs == nil || len(strs) != 2 {
 		return nil, errors.New("could not extract secret")
