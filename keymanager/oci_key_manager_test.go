@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+const ociTestOCIDSuffix = "phx.amaaaaaagj4tlxyauuxceaf5wonurepxqyx4ctxxtfxe43ngum6an4q6eqdq"
+
 func TestOciManagerCreateKey(t *testing.T) {
 
 	type args struct {
@@ -33,10 +35,10 @@ func TestOciManagerCreateKey(t *testing.T) {
 		{
 			name: "Create key",
 			args: args{
-				compartmentId: "ocid1.compartment.oc1",
-				keyId:         "ocid1.key.oc1",
+				compartmentId: "ocid1.compartment.oc1." + ociTestOCIDSuffix,
+				keyId:         "ocid1.key.oc1." + ociTestOCIDSuffix,
 				secretName:    "oci.secret.name",
-				vaultId:       "ocid1.vault.oc1",
+				vaultId:       "ocid1.vault.oc1." + ociTestOCIDSuffix,
 			},
 			wantErr:  false,
 			wantFail: false,
@@ -44,10 +46,10 @@ func TestOciManagerCreateKey(t *testing.T) {
 		{
 			name: "negative test - Create key",
 			args: args{
-				compartmentId: "ocid1.compartment.oc1",
-				keyId:         "ocid1.key.oc1",
+				compartmentId: "ocid1.compartment.oc1." + ociTestOCIDSuffix,
+				keyId:         "ocid1.key.oc1." + ociTestOCIDSuffix,
 				secretName:    "oci.secret.name",
-				vaultId:       "ocid1.vault.oc1",
+				vaultId:       "ocid1.vault.oc1." + ociTestOCIDSuffix,
 			},
 			wantErr:  true,
 			wantFail: true,
@@ -56,9 +58,9 @@ func TestOciManagerCreateKey(t *testing.T) {
 			name: "negative test - Missing compartment ID",
 			args: args{
 				compartmentId: "",
-				keyId:         "ocid1.key.oc1",
+				keyId:         "ocid1.key.oc1." + ociTestOCIDSuffix,
 				secretName:    "oci.secret.name",
-				vaultId:       "ocid1.vault.oc1",
+				vaultId:       "ocid1.vault.oc1." + ociTestOCIDSuffix,
 			},
 			wantErr:  true,
 			wantFail: false,
@@ -66,10 +68,10 @@ func TestOciManagerCreateKey(t *testing.T) {
 		{
 			name: "negative test - Missing key ID",
 			args: args{
-				compartmentId: "ocid1.compartment.oc1",
+				compartmentId: "ocid1.compartment.oc1." + ociTestOCIDSuffix,
 				keyId:         "",
 				secretName:    "oci.secret.name",
-				vaultId:       "ocid1.vault.oc1",
+				vaultId:       "ocid1.vault.oc1." + ociTestOCIDSuffix,
 			},
 			wantErr:  true,
 			wantFail: false,
@@ -77,10 +79,10 @@ func TestOciManagerCreateKey(t *testing.T) {
 		{
 			name: "negative test - Missing secret name",
 			args: args{
-				compartmentId: "ocid1.compartment.oc1",
-				keyId:         "ocid1.key.oc1",
+				compartmentId: "ocid1.compartment.oc1." + ociTestOCIDSuffix,
+				keyId:         "ocid1.key.oc1." + ociTestOCIDSuffix,
 				secretName:    "",
-				vaultId:       "ocid1.vault.oc1",
+				vaultId:       "ocid1.vault.oc1." + ociTestOCIDSuffix,
 			},
 			wantErr:  true,
 			wantFail: false,
@@ -88,8 +90,8 @@ func TestOciManagerCreateKey(t *testing.T) {
 		{
 			name: "negative test - Missing vault ID",
 			args: args{
-				compartmentId: "ocid1.compartment.oc1",
-				keyId:         "ocid1.key.oc1",
+				compartmentId: "ocid1.compartment.oc1." + ociTestOCIDSuffix,
+				keyId:         "ocid1.key.oc1." + ociTestOCIDSuffix,
 				secretName:    "oci.secret.name",
 				vaultId:       "",
 			},
