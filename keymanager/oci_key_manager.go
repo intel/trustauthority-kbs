@@ -28,9 +28,9 @@ func checkOCID(ocid string) bool {
 }
 
 func checkSecretName(name string) bool {
-       re := regexp.MustCompile(`[A-Za-z0-9]+`)
+	re := regexp.MustCompile(`[A-Za-z0-9]+`)
 
-       return re.MatchString(name)
+	return re.MatchString(name)
 }
 
 func NewOCIManager(c ociclient.OCIClient) *OCIManager {
