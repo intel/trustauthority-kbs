@@ -99,12 +99,12 @@ func (oc *ociClient) DeleteKey(secretId string) error {
 		},
 	}
 
+	log.Infof("ociclient/ociclient:DeleteKey() Deleting key '%s' from oci server", secretId)
+
 	// Send the request using the vault client.
 	if _, err := oc.vc.ScheduleSecretDeletion(context.Background(), req); err != nil {
 		return errors.Wrapf(err, "Failed to delete key '%s' from oci server", secretId)
 	}
-
-	log.Infof("ociclient/ociclient:DeleteKey() Deleted key '%s' from oci server", secretId)
 
 	return nil
 }
