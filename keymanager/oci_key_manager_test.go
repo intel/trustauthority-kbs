@@ -17,6 +17,7 @@ import (
 )
 
 const ociTestOCIDSuffix = "phx.amaaaaaagj4tlxyauuxceaf5wonurepxqyx4ctxxtfxe43ngum6an4q6eqdq"
+const ociHyderabadTestOCIDSuffix = "ap-hyderabad-1.amaaaaaagj4tlxyauuxceaf5wonurepxqyx4ctxxtfxe43ngum6an4q6eqdq"
 
 func TestOciManagerCreateKey(t *testing.T) {
 
@@ -39,6 +40,17 @@ func TestOciManagerCreateKey(t *testing.T) {
 				keyId:         "ocid1.key.oc1." + ociTestOCIDSuffix,
 				secretName:    "oci.secret.name",
 				vaultId:       "ocid1.vault.oc1." + ociTestOCIDSuffix,
+			},
+			wantErr:  false,
+			wantFail: false,
+		},
+		{
+			name: "Create key with hyphenated OCI region",
+			args: args{
+				compartmentId: "ocid1.compartment.oc1." + ociHyderabadTestOCIDSuffix,
+				keyId:         "ocid1.key.oc1." + ociHyderabadTestOCIDSuffix,
+				secretName:    "oci.secret.name",
+				vaultId:       "ocid1.vault.oc1." + ociHyderabadTestOCIDSuffix,
 			},
 			wantErr:  false,
 			wantFail: false,

@@ -22,7 +22,7 @@ type OCIManager struct {
 }
 
 func checkOCID(ocid string) bool {
-	re := regexp.MustCompile(`ocid1\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.[A-Za-z0-9]*\.[A-Za-z0-9.]+`)
+	re := regexp.MustCompile(`^ocid1\.[A-Za-z0-9]+\.[A-Za-z0-9]+\.[A-Za-z0-9-]*\.[A-Za-z0-9.]+$`)
 
 	return re.MatchString(ocid)
 }
