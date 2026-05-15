@@ -90,8 +90,7 @@ func (om *OCIManager) DeleteKey(keyAttributes *model.KeyAttributes) error {
 
 	err := om.client.DeleteKey(keyAttributes.Oci.SecretId)
 	if err != nil {
-		errors.Wrap(err, "failed to delete key")
-		return err
+		return errors.Wrap(err, "failed to delete key")
 	}
 
 	return nil
