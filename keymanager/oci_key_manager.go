@@ -27,6 +27,12 @@ func checkOCID(ocid string) bool {
 	return re.MatchString(ocid)
 }
 
+func checkSecretName(name string) bool {
+       re := regexp.MustCompile(`[A-Za-z0-9]+`)
+
+       return re.MatchString(name)
+}
+
 func NewOCIManager(c ociclient.OCIClient) *OCIManager {
 	return &OCIManager{c}
 }
@@ -43,7 +49,7 @@ func (om *OCIManager) CreateKey(keyRequest *model.KeyRequest) (*model.KeyAttribu
 	if !checkOCID(keyRequest.OciInfo.KeyId) {
 		return nil, errors.New("Invalid oci_key_id")
 	}
-	if !checkOCID(keyRequest.OciInfo.SecretName) {
+	if !checkSecretName(keyRequest.OciInfo.SecretName) {
 		return nil, errors.New("Invalid oci_secret_name")
 	}
 	if !checkOCID(keyRequest.OciInfo.VaultId) {
