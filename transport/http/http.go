@@ -10,16 +10,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"intel/kbs/v1/config"
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/service"
+	"intel/kbs/v1/session"
+	"net/http"
+	"time"
+
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/shaj13/libcache/fifo"
 	log "github.com/sirupsen/logrus"
-	"intel/kbs/v1/config"
-	"intel/kbs/v1/constant"
-	"intel/kbs/v1/model"
-	"intel/kbs/v1/service"
-	"net/http"
 )
 
 func NewHTTPHandler(svc service.Service, conf *config.Configuration, jwtAuthz *model.JwtAuthz) (http.Handler, error) {
@@ -48,6 +51,13 @@ func NewHTTPHandler(svc service.Service, conf *config.Configuration, jwtAuthz *m
 				return nil, err
 			}
 		}
+	}
+
+	{
+		v0Store := session.NewInMemoryStore(10*time.Minute, time.Minute)
+		prefix := r.PathPrefix(fmt.Sprintf("/%s/%s", constant.ServiceName, constant.ApiVersionV0))
+		sr := prefix.Subrouter()
+		setRCARHandler(sr, v0Store)
 	}
 
 	h := handlers.RecoveryHandler(

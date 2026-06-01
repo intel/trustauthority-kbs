@@ -45,12 +45,12 @@ func (svc *MockService) UpdateKey(ctx context.Context, request model.KeyUpdateRe
 
 func (svc *MockService) DeleteKeyTransferPolicy(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx, id)
-	return args.Get(0).(interface{}), args.Error(1)
+	return args.Get(0), args.Error(1)
 }
 
 func (svc *MockService) DeleteKey(ctx context.Context, keyId uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx)
-	return args.Get(0).(interface{}), args.Error(1)
+	return args.Get(0), args.Error(1)
 }
 
 func (svc *MockService) CreateKeyTransferPolicy(ctx context.Context, ktp model.KeyTransferPolicy) (*model.KeyTransferPolicy, error) {
@@ -60,7 +60,7 @@ func (svc *MockService) CreateKeyTransferPolicy(ctx context.Context, ktp model.K
 
 func (svc *MockService) RetrieveKeyTransferPolicy(ctx context.Context, id uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx, id)
-	return args.Get(0).(interface{}), args.Error(1)
+	return args.Get(0), args.Error(1)
 }
 
 func (svc *MockService) CreateKey(ctx context.Context, req model.KeyRequest) (*model.KeyResponse, error) {
@@ -70,7 +70,7 @@ func (svc *MockService) CreateKey(ctx context.Context, req model.KeyRequest) (*m
 
 func (svc *MockService) RetrieveKey(ctx context.Context, keyId uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx)
-	return args.Get(0).(interface{}), args.Error(1)
+	return args.Get(0), args.Error(1)
 }
 
 func (svc *MockService) GetVersion(ctx context.Context) (*version.ServiceVersion, error) {
@@ -115,12 +115,12 @@ func (svc *MockService) SearchUser(ctx context.Context, criteria *model.UserFilt
 
 func (svc *MockService) DeleteUser(ctx context.Context, u uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx)
-	return args.Get(0).(interface{}), args.Error(1)
+	return args.Get(0), args.Error(1)
 }
 
 func (svc *MockService) RetrieveUser(ctx context.Context, u uuid.UUID) (interface{}, error) {
 	args := svc.Called(ctx)
-	return args.Get(0).(interface{}), args.Error(1)
+	return args.Get(0), args.Error(1)
 }
 
 func (svc *MockService) CreateAuthToken(ctx context.Context, request model.AuthTokenRequest, authz *model.JwtAuthz) (string, error) {

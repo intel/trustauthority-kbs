@@ -18,7 +18,7 @@ import (
 
 var (
 	idReg              = fmt.Sprintf("{id:%s}", constant.UUIDReg)
-	stringReg          = regexp.MustCompile("(^[a-zA-Z0-9_ \\/.-]*$)")
+	stringReg          = regexp.MustCompile(`(^[a-zA-Z0-9_ \/.-]*$)`)
 	sha256HexStringReg = regexp.MustCompile("^[a-fA-F0-9]{64}$")
 	sha384HexStringReg = regexp.MustCompile("^[a-fA-F0-9]{96}$")
 )

@@ -8,10 +8,12 @@ package constant
 
 // general KBS constants
 const (
-	ServiceName         = "kbs"
-	ExplicitServiceName = "Key Broker Service"
-	ServiceDir          = "kbs/"
-	ApiVersion          = "v1"
+	ServiceName           = "kbs"
+	ExplicitServiceName   = "Key Broker Service"
+	ServiceDir            = "kbs/"
+	ApiVersion            = "v1"
+	ApiVersionV0          = "v0"
+	ApiVersionV0Supported = "0.4.0" // Semantic version for RCAR protocol
 
 	HomeDir    = "/opt/" + ServiceDir
 	ConfigDir  = "/etc/" + ServiceDir
