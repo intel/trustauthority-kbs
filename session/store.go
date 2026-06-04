@@ -19,6 +19,7 @@ import (
 type Session struct {
 	ID               string
 	Nonce            string
+	RequestedTEE     model.Tee
 	TEEPubKey        model.JWK
 	Attested         bool
 	AttestationToken string // JWT token from verifier
@@ -58,10 +59,15 @@ func NewInMemoryStore(ttl, cleanupInterval time.Duration) *InMemoryStore {
 }
 
 func (s *InMemoryStore) Create(nonce string) *Session {
+	return s.CreateWithTEE(nonce, "")
+}
+
+func (s *InMemoryStore) CreateWithTEE(nonce string, tee model.Tee) *Session {
 	now := s.now()
 	sess := &Session{
 		ID:        uuid.NewString(),
 		Nonce:     nonce,
+		RequestedTEE: tee,
 		Attested:  false,
 		ExpiresAt: now.Add(s.ttl),
 	}

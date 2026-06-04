@@ -128,6 +128,11 @@ func (svc *MockService) CreateAuthToken(ctx context.Context, request model.AuthT
 	return args.Get(0).(string), args.Error(1)
 }
 
+func (svc *MockService) VerifyRCARAttestation(ctx context.Context, req *model.RCARAttestationRequest) (string, error) {
+	args := svc.Called(ctx, req)
+	return args.Get(0).(string), args.Error(1)
+}
+
 func createMockHandler(mockService *MockService) http.Handler {
 	return createMockHandlerWithAuth(mockService, jwtAuth)
 }

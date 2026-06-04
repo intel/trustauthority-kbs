@@ -15,6 +15,7 @@ import (
 
 	"intel/kbs/v1/constant"
 	"intel/kbs/v1/model"
+	"intel/kbs/v1/service"
 	"intel/kbs/v1/session"
 
 	"github.com/gorilla/mux"
@@ -25,10 +26,11 @@ const (
 	rcarSessionCookieName = "kbs-session-id"
 )
 
-func setRCARHandler(router *mux.Router, store *session.InMemoryStore) {
+func setRCARHandler(svc service.Service, router *mux.Router, store *session.InMemoryStore) error {
 	router.HandleFunc("/auth", makeRCARAuthHandler(store)).Methods(http.MethodPost)
-	router.HandleFunc("/attest", makeRCARAttestHandler(store)).Methods(http.MethodPost)
+	router.HandleFunc("/attest", makeRCARAttestHandler(svc, store)).Methods(http.MethodPost)
 	router.HandleFunc("/resource/{repository}/{type}/{tag}", makeRCARResourceHandler(store)).Methods(http.MethodGet)
+	return nil
 }
 
 func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
@@ -57,8 +59,8 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 			return
 		}
 
-		// Create session with nonce only; TEEPubKey comes in attestation
-		sess := store.Create(nonce)
+		// Persist requested TEE from /auth for use during attestation verification.
+		sess := store.CreateWithTEE(nonce, req.TEE)
 		http.SetCookie(w, &http.Cookie{
 			Name:     rcarSessionCookieName,
 			Value:    sess.ID,
@@ -71,14 +73,16 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Return Challenge with nonce and extra_params (no version field per Trustee spec)
+		extraParams := make(map[string]interface{})
+		extraParams["selected-hash-algorithm"] = "sha512"
 		_ = json.NewEncoder(w).Encode(&model.RCARChallenge{
 			Nonce:       nonce,
-			ExtraParams: make(map[string]interface{}),
+			ExtraParams: extraParams,
 		})
 	}
 }
 
-func makeRCARAttestHandler(store *session.InMemoryStore) http.HandlerFunc {
+func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(rcarSessionCookieName)
 		if err != nil {
@@ -117,9 +121,10 @@ func makeRCARAttestHandler(store *session.InMemoryStore) http.HandlerFunc {
 			return
 		}
 
-		// TODO: Call real attestation verifier service to validate evidence
-		// For now, generate a placeholder JWT token
-		token, err := generatePlaceholderAttestationToken(req.RuntimeData.TEEPubKey)
+		// Pass requested TEE hint from /auth to attestation service for robust
+		// SGX/TDX evidence routing.
+		ctx := service.WithRCARTEEHint(r.Context(), sess.RequestedTEE)
+		token, err := svc.VerifyRCARAttestation(ctx, &req)
 		if err != nil {
 			log.WithError(err).Error("failed to generate attestation token")
 			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to generate attestation token")
@@ -184,9 +189,9 @@ func resolveResourceAuthSession(r *http.Request, store *session.InMemoryStore) (
 }
 
 var (
-	errMissingResourceAuth   = &resourceAuthError{message: "missing session cookie or bearer token"}
+	errMissingResourceAuth     = &resourceAuthError{message: "missing session cookie or bearer token"}
 	errInvalidOrExpiredSession = &resourceAuthError{message: "invalid or expired session"}
-	errInvalidBearerToken    = &resourceAuthError{message: "invalid bearer token"}
+	errInvalidBearerToken      = &resourceAuthError{message: "invalid bearer token"}
 )
 
 type resourceAuthError struct {

@@ -56,29 +56,6 @@ type TransferKeyResponse struct {
 	KeyTransferResponse *model.KeyTransferResponse
 }
 
-// itaV2EvidenceTDX is the TDX sub-object sent to ITA /appraisal/v2/attest.
-type itaV2EvidenceTDX struct {
-	Quote       []byte `json:"quote,omitempty"`
-	RuntimeData []byte `json:"runtime_data,omitempty"`
-	EventLog    []byte `json:"event_log,omitempty"`
-}
-
-// itaV2EvidenceSGX is the SGX sub-object sent to ITA /appraisal/v2/attest.
-// SGX evidence has no event log (no RTMRs).
-type itaV2EvidenceSGX struct {
-	Quote       []byte `json:"quote,omitempty"`
-	RuntimeData []byte `json:"runtime_data,omitempty"`
-}
-
-// itaV2AttestRequest is the full body sent to ITA /appraisal/v2/attest.
-// SGX and TDX are mutually exclusive; NVGPU can only accompany TDX.
-type itaV2AttestRequest struct {
-	PolicyIds []uuid.UUID       `json:"policy_ids,omitempty"`
-	SGX       *itaV2EvidenceSGX `json:"sgx,omitempty"`
-	TDX       *itaV2EvidenceTDX `json:"tdx,omitempty"`
-	NVGPU     json.RawMessage   `json:"nvgpu,omitempty"`
-}
-
 func (mw loggingMiddleware) TransferKeyWithEvidence(ctx context.Context, req TransferKeyRequest) (*TransferKeyResponse, error) {
 	var err error
 	defer func(begin time.Time) {
@@ -498,37 +475,47 @@ func getPolicyIDsForAttestationTypes(transferPolicy *model.KeyTransferPolicy) []
 // with or without composite NVGPU evidence, via itaClient (AttestEvidence).
 // Pass nvgpu=nil for plain TDX; pass the raw NVGPU JSON for TDX+NVGPU.
 func (svc service) getTokenV2(ctx context.Context, quote, runtimeData, eventLog []byte, policyIds []uuid.UUID, nvgpu json.RawMessage, reqID string) (string, error) {
-	tdxEvidence := &itaV2EvidenceTDX{
+	tdxEvidence := &DCAPTEEEvidence{
 		Quote:       quote,
 		RuntimeData: runtimeData,
 		EventLog:    eventLog,
 	}
-	reqBody := itaV2AttestRequest{
+	var nvgpuReq *NVGPURequest
+	if len(nvgpu) > 0 {
+		nvgpuReq = &NVGPURequest{}
+		if err := json.Unmarshal(nvgpu, nvgpuReq); err != nil {
+			return "", errors.Wrap(err, "failed to parse NVGPU evidence")
+		}
+	}
+	reqBody := &AttestRequest{
 		PolicyIds: policyIds,
 		TDX:       tdxEvidence,
-		NVGPU:     nvgpu,
+		NVGPU:     nvgpuReq,
 	}
-	resp, err := svc.itaClient.AttestEvidence(reqBody, "", reqID)
-	if err != nil {
-		return "", errors.Wrap(err, "ITA v2 attest request failed")
-	}
-	return resp.Token, nil
+	return svc.getTokenV2FromRequest(reqBody, reqID, "ITA v2 attest request failed")
 }
 
 // getTokenV2SGX calls the ITA /appraisal/v2/attest endpoint for SGX-only V2
 // evidence via the consolidated itaClient (AttestEvidence).
 func (svc service) getTokenV2SGX(ctx context.Context, quote, runtimeData []byte, policyIds []uuid.UUID, reqID string) (string, error) {
-	sgxEvidence := &itaV2EvidenceSGX{
+	sgxEvidence := &DCAPTEEEvidence{
 		Quote:       quote,
 		RuntimeData: runtimeData,
 	}
-	reqBody := itaV2AttestRequest{
+	reqBody := &AttestRequest{
 		PolicyIds: policyIds,
 		SGX:       sgxEvidence,
 	}
+	return svc.getTokenV2FromRequest(reqBody, reqID, "ITA v2 SGX attest request failed")
+}
+
+func (svc service) getTokenV2FromRequest(reqBody *AttestRequest, reqID, wrapMsg string) (string, error) {
 	resp, err := svc.itaClient.AttestEvidence(reqBody, "", reqID)
 	if err != nil {
-		return "", errors.Wrap(err, "ITA v2 SGX attest request failed")
+		return "", errors.Wrap(err, wrapMsg)
+	}
+	if resp.Token == "" {
+		return "", errors.New("ITA returned no attestation token")
 	}
 	return resp.Token, nil
 }

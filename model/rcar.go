@@ -125,7 +125,7 @@ type RuntimeData struct {
 // CompositeEvidence contains TEE evidence following Trustee canonical structure.
 // Primary evidence is required; additional evidence contains secondary device attestations.
 type CompositeEvidence struct {
-	PrimaryEvidence    json.RawMessage `json:"primary_evidence"`                      // Required: Primary TEE evidence
+	PrimaryEvidence    json.RawMessage `json:"primary_evidence"`              // Required: Primary TEE evidence
 	AdditionalEvidence string          `json:"additional_evidence,omitempty"` // Optional: JSON string of HashMap<Tee, TeeEvidence>
 }
 
@@ -172,7 +172,7 @@ func (r *RCARAttestationRequest) Validate() error {
 	}
 
 	if len(r.TEEEvidence.PrimaryEvidence) == 0 {
-		return errors.New("tee-evidence.primary is required")
+		return errors.New("tee-evidence.primary_evidence is required")
 	}
 
 	return nil

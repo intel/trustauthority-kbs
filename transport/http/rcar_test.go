@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestRCARAuthSetsSessionCookie(t *testing.T) {
@@ -54,7 +55,11 @@ func TestRCARAttestRequiresSessionCookie(t *testing.T) {
 func TestRCARAttestMarksSessionAttested(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	h := createMockHandler(&MockService{})
+	mockSvc := &MockService{}
+	// Mock the VerifyRCARAttestation call to return a valid JWT-like token
+	mockSvc.On("VerifyRCARAttestation", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*model.RCARAttestationRequest")).
+		Return("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrYnMiLCJhdWQiOiJrYnMiLCJzdWIiOiJ0ZXN0In0.fake", nil)
+	h := createMockHandler(mockSvc)
 
 	// Step 1: Call /auth to get nonce and cookie
 	authReq, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader([]byte(`{"version":"0.4.0","tee":"sgx","extra-params":{}}`)))
@@ -127,7 +132,11 @@ func TestRCARAttestNonceMismatchFails(t *testing.T) {
 func TestRCARResourceWithBearerToken(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	h := createMockHandler(&MockService{})
+	mockSvc := &MockService{}
+	// Mock the VerifyRCARAttestation call to return a valid JWT-like token
+	mockSvc.On("VerifyRCARAttestation", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*model.RCARAttestationRequest")).
+		Return("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrYnMiLCJhdWQiOiJrYnMiLCJzdWIiOiJ0ZXN0In0.fake", nil)
+	h := createMockHandler(mockSvc)
 
 	authReq, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader([]byte(`{"version":"0.4.0","tee":"sgx","extra-params":{}}`)))
 	authReq.Header.Set("Content-Type", HTTPMediaTypeJson)
