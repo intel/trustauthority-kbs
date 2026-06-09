@@ -133,6 +133,11 @@ func (svc *MockService) VerifyRCARAttestation(ctx context.Context, req *model.RC
 	return args.Get(0).(string), args.Error(1)
 }
 
+func (svc *MockService) GetRCARResource(ctx context.Context, addr *model.ResourceAddress) ([]byte, error) {
+	args := svc.Called(ctx, addr)
+	return args.Get(0).([]byte), args.Error(1)
+}
+
 func createMockHandler(mockService *MockService) http.Handler {
 	return createMockHandlerWithAuth(mockService, jwtAuth)
 }

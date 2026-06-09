@@ -29,7 +29,7 @@ const (
 func setRCARHandler(svc service.Service, router *mux.Router, store *session.InMemoryStore) error {
 	router.HandleFunc("/auth", makeRCARAuthHandler(store)).Methods(http.MethodPost)
 	router.HandleFunc("/attest", makeRCARAttestHandler(svc, store)).Methods(http.MethodPost)
-	router.HandleFunc("/resource/{repository}/{type}/{tag}", makeRCARResourceHandler(store)).Methods(http.MethodGet)
+	router.HandleFunc("/resource/{repository}/{type}/{tag}", makeRCARResourceHandler(svc, store)).Methods(http.MethodGet)
 	return nil
 }
 
@@ -144,7 +144,7 @@ func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) ht
 	}
 }
 
-func makeRCARResourceHandler(store *session.InMemoryStore) http.HandlerFunc {
+func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sess, err := resolveResourceAuthSession(r, store)
 		if err != nil {
@@ -157,12 +157,32 @@ func makeRCARResourceHandler(store *session.InMemoryStore) http.HandlerFunc {
 		}
 
 		vars := mux.Vars(r)
-		if _, err := model.ParseResourceAddress(vars["repository"], vars["type"], vars["tag"]); err != nil {
+		addr, err := model.ParseResourceAddress(vars["repository"], vars["type"], vars["tag"])
+		if err != nil {
 			writeProblem(w, http.StatusBadRequest, "Invalid resource path", err.Error())
 			return
 		}
 
-		writeProblem(w, http.StatusNotImplemented, "Not implemented", "resource delivery will be implemented in a subsequent step")
+		resource, err := svc.GetRCARResource(r.Context(), addr)
+		if err != nil {
+			if handled, ok := err.(*service.HandledError); ok {
+				writeProblem(w, handled.Code, "Resource error", handled.Message)
+				return
+			}
+			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to retrieve resource")
+			return
+		}
+
+		jweResp, err := encryptResourceAsFlattenedJWE(sess.TEEPubKey, resource)
+		if err != nil {
+			log.WithError(err).Error("failed to encrypt resource response")
+			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to encrypt resource response")
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(jweResp)
 	}
 }
 

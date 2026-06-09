@@ -46,6 +46,7 @@ type Service interface {
 	GetVersion(context.Context) (*version.ServiceVersion, error)
 	CreateAuthToken(context.Context, model.AuthTokenRequest, *model.JwtAuthz) (string, error)
 	VerifyRCARAttestation(context.Context, *model.RCARAttestationRequest) (string, error)
+	GetRCARResource(context.Context, *model.ResourceAddress) ([]byte, error)
 }
 
 type service struct {

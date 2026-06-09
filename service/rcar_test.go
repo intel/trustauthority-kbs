@@ -36,18 +36,17 @@ func TestVerifyRCARAttestationSGXPrimaryQuoteString(t *testing.T) {
 			E:   "AQAB",
 		},
 	}
-	expectedRuntime, err := json.Marshal(runtimeData)
-	require.NoError(t, err)
+	expectedRuntimeJSON := `{"nonce":"nonce-1","tee-pubkey":{"kty":"RSA","n":"abc","e":"AQAB"},"additional-evidence":""}`
 
 	quote := []byte("test-quote")
 	quoteB64 := base64.StdEncoding.EncodeToString(quote)
 
 	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-1").
 		Run(func(args mock.Arguments) {
-			reqBody := args.Get(0).(AttestRequest)
+			reqBody := args.Get(0).(*AttestRequest)
 			require.NotNil(t, reqBody.SGX)
 			assert.Equal(t, quote, reqBody.SGX.Quote)
-			assert.Equal(t, expectedRuntime, reqBody.SGX.RuntimeData)
+			assert.JSONEq(t, expectedRuntimeJSON, string(reqBody.SGX.RuntimeData))
 			assert.Nil(t, reqBody.TDX)
 		}).
 		Return(itaConnector.AttestResponse{Token: "ita-token"}, nil)
@@ -91,7 +90,7 @@ func TestVerifyRCARAttestationTDXWithAdditionalNVGPU(t *testing.T) {
 	}
 	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-2").
 		Run(func(args mock.Arguments) {
-			reqBody := args.Get(0).(AttestRequest)
+			reqBody := args.Get(0).(*AttestRequest)
 			require.NotNil(t, reqBody.TDX)
 			assert.Equal(t, []byte("tdx-quote"), reqBody.TDX.Quote)
 			assert.Equal(t, []byte("eventlog"), reqBody.TDX.EventLog)
@@ -148,7 +147,7 @@ func TestVerifyRCARAttestationTransformsTrusteeNvidiaEvidence(t *testing.T) {
 
 	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-nv").
 		Run(func(args mock.Arguments) {
-			reqBody := args.Get(0).(AttestRequest)
+			reqBody := args.Get(0).(*AttestRequest)
 			require.NotNil(t, reqBody.TDX)
 			require.NotNil(t, reqBody.NVGPU)
 
@@ -195,7 +194,7 @@ func TestVerifyRCARAttestationTEEHintOverridesInference(t *testing.T) {
 
 	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-hint").
 		Run(func(args mock.Arguments) {
-			reqBody := args.Get(0).(AttestRequest)
+			reqBody := args.Get(0).(*AttestRequest)
 			require.NotNil(t, reqBody.TDX)
 			assert.Nil(t, reqBody.SGX)
 		}).

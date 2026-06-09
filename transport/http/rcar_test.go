@@ -8,14 +8,39 @@ package http
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"intel/kbs/v1/model"
+
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 )
+
+func testRSATEEPubKey(t *testing.T) model.JWK {
+	t.Helper()
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("failed to generate rsa key: %v", err)
+	}
+	eBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(eBytes, uint64(priv.PublicKey.E))
+	eBytes = bytes.TrimLeft(eBytes, "\x00")
+	if len(eBytes) == 0 {
+		eBytes = []byte{0}
+	}
+	return model.JWK{
+		Kty: "RSA",
+		N:   base64.RawURLEncoding.EncodeToString(priv.PublicKey.N.Bytes()),
+		E:   base64.RawURLEncoding.EncodeToString(eBytes),
+	}
+}
 
 func TestRCARAuthSetsSessionCookie(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
@@ -136,6 +161,8 @@ func TestRCARResourceWithBearerToken(t *testing.T) {
 	// Mock the VerifyRCARAttestation call to return a valid JWT-like token
 	mockSvc.On("VerifyRCARAttestation", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*model.RCARAttestationRequest")).
 		Return("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrYnMiLCJhdWQiOiJrYnMiLCJzdWIiOiJ0ZXN0In0.fake", nil)
+	mockSvc.On("GetRCARResource", mock.Anything, mock.AnythingOfType("*model.ResourceAddress")).
+		Return([]byte("my-secret-resource"), nil)
 	h := createMockHandler(mockSvc)
 
 	authReq, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader([]byte(`{"version":"0.4.0","tee":"sgx","extra-params":{}}`)))
@@ -151,8 +178,17 @@ func TestRCARResourceWithBearerToken(t *testing.T) {
 	err := json.Unmarshal(authRR.Body.Bytes(), &authChallenge)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	nonce := authChallenge["nonce"].(string)
+	teePub := testRSATEEPubKey(t)
 
-	attestBody := []byte(`{"runtime-data":{"nonce":"` + nonce + `","tee-pubkey":{"kty":"RSA","n":"abc","e":"AQAB"}},"tee-evidence":{"primary_evidence":"dGVzdA=="}}`)
+	attReq := model.RCARAttestationRequest{
+		RuntimeData: model.RuntimeData{
+			Nonce:     nonce,
+			TEEPubKey: teePub,
+		},
+		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: json.RawMessage(`"dGVzdA=="`)},
+	}
+	attestBody, err := json.Marshal(attReq)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 	attestReq, _ := http.NewRequest(http.MethodPost, "/kbs/v0/attest", bytes.NewReader(attestBody))
 	attestReq.Header.Set("Content-Type", HTTPMediaTypeJson)
 	attestReq.AddCookie(cookies[0])
@@ -167,13 +203,22 @@ func TestRCARResourceWithBearerToken(t *testing.T) {
 	token := attestResp["token"]
 	g.Expect(token).NotTo(gomega.BeEmpty())
 
-	resourceReq, _ := http.NewRequest(http.MethodGet, "/kbs/v0/resource/default/key/my-tag", nil)
+	resourceReq, _ := http.NewRequest(http.MethodGet, "/kbs/v0/resource/default/key/11111111-1111-1111-1111-111111111111", nil)
 	resourceReq.Header.Set("Authorization", "Bearer "+token)
 	resourceRR := httptest.NewRecorder()
 	h.ServeHTTP(resourceRR, resourceReq)
 
-	// Auth should succeed; endpoint is still not implemented.
-	g.Expect(resourceRR.Code).To(gomega.Equal(http.StatusNotImplemented))
+	g.Expect(resourceRR.Code).To(gomega.Equal(http.StatusOK))
+
+	var resp map[string]string
+	err = json.Unmarshal(resourceRR.Body.Bytes(), &resp)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(resp["protected"]).NotTo(gomega.BeEmpty())
+	g.Expect(resp["encrypted_key"]).NotTo(gomega.BeEmpty())
+	g.Expect(resp["aad"]).NotTo(gomega.BeEmpty())
+	g.Expect(resp["iv"]).NotTo(gomega.BeEmpty())
+	g.Expect(resp["ciphertext"]).NotTo(gomega.BeEmpty())
+	g.Expect(resp["tag"]).NotTo(gomega.BeEmpty())
 }
 
 func TestRCARResourceBearerTokenInvalid(t *testing.T) {
