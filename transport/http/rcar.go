@@ -164,7 +164,11 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 			return
 		}
 
-		resource, err := svc.GetRCARResource(r.Context(), addr)
+		// Inject the attestation token so the service can evaluate the resource policy
+		// against the token claims without re-parsing the session.
+		resourceCtx := service.WithRCARAttestationToken(r.Context(), sess.AttestationToken)
+
+		resource, err := svc.GetRCARResource(resourceCtx, addr)
 		if err != nil {
 			if handled, ok := err.(*service.HandledError); ok {
 				writeProblem(w, handled.Code, "Resource error", handled.Message)

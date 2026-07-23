@@ -27,9 +27,27 @@ func (rp *ResourcePolicy) Validate() error {
 		return errors.New("policy is required")
 	}
 
-	if _, err := base64.StdEncoding.DecodeString(rp.Policy); err != nil {
+	if _, err := decodePolicyValue(rp.Policy); err != nil {
 		return errors.Wrap(err, "policy must be base64 encoded")
 	}
 
 	return nil
+}
+
+func decodePolicyValue(policy string) ([]byte, error) {
+	decoders := []func(string) ([]byte, error){
+		base64.RawURLEncoding.DecodeString,
+		base64.URLEncoding.DecodeString,
+		base64.StdEncoding.DecodeString,
+		base64.RawStdEncoding.DecodeString,
+	}
+
+	for _, decode := range decoders {
+		decoded, err := decode(policy)
+		if err == nil {
+			return decoded, nil
+		}
+	}
+
+	return nil, errors.New("unsupported base64 encoding")
 }

@@ -32,6 +32,7 @@ type (
 
 	ResourcePolicyStore interface {
 		Set(policy *model.ResourcePolicy) error
+		Get() (*model.ResourcePolicy, error)
 	}
 
 	UserStore interface {

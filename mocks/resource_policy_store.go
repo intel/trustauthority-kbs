@@ -18,3 +18,10 @@ func (m *MockResourcePolicyStore) Set(policy *model.ResourcePolicy) error {
 	m.LastPolicy = policy
 	return m.Err
 }
+
+func (m *MockResourcePolicyStore) Get() (*model.ResourcePolicy, error) {
+	if m.Err != nil {
+		return nil, m.Err
+	}
+	return m.LastPolicy, nil
+}

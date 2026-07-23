@@ -42,3 +42,21 @@ func (rps *resourcePolicyStore) Set(policy *model.ResourcePolicy) error {
 
 	return nil
 }
+
+func (rps *resourcePolicyStore) Get() (*model.ResourcePolicy, error) {
+	path := filepath.Clean(filepath.Join(rps.dir, resourcePolicyFileName))
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil // no policy configured
+		}
+		return nil, errors.Wrap(err, "directory/resource_policy_store:Get() failed to read resource policy")
+	}
+
+	var policy model.ResourcePolicy
+	if err := json.Unmarshal(bytes, &policy); err != nil {
+		return nil, errors.Wrap(err, "directory/resource_policy_store:Get() failed to unmarshal resource policy")
+	}
+
+	return &policy, nil
+}
