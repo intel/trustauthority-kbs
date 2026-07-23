@@ -47,6 +47,7 @@ type Service interface {
 	CreateAuthToken(context.Context, model.AuthTokenRequest, *model.JwtAuthz) (string, error)
 	VerifyRCARAttestation(context.Context, *model.RCARAttestationRequest) (string, error)
 	GetRCARResource(context.Context, *model.ResourceAddress) ([]byte, error)
+	SetResourcePolicy(context.Context, model.ResourcePolicy) error
 }
 
 type service struct {
@@ -92,6 +93,7 @@ func SetupAuthZ(jwtKeeper *jwtStrategy.StaticSecret) (*model.JwtAuthz, error) {
 	opt := token.SetScopes(token.NewScope(constant.KeyTransferPolicyCreate, "/key-transfer-policies", "POST"),
 		token.NewScope(constant.KeyTransferPolicySearch, "/key-transfer-policies", "GET"),
 		token.NewScope(constant.KeyTransferPolicyDelete, "/key-transfer-policies", "DELETE"),
+		token.NewScope(constant.ResourcePolicySet, "/resource-policy", "POST"),
 		token.NewScope(constant.KeyCreate, "/keys", "POST"),
 		token.NewScope(constant.KeySearch, "/keys", "GET"),
 		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),

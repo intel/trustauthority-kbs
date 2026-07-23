@@ -138,6 +138,11 @@ func (svc *MockService) GetRCARResource(ctx context.Context, addr *model.Resourc
 	return args.Get(0).([]byte), args.Error(1)
 }
 
+func (svc *MockService) SetResourcePolicy(ctx context.Context, policy model.ResourcePolicy) error {
+	args := svc.Called(ctx, policy)
+	return args.Error(0)
+}
+
 func createMockHandler(mockService *MockService) http.Handler {
 	return createMockHandlerWithAuth(mockService, jwtAuth)
 }

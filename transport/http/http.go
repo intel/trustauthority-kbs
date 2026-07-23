@@ -57,7 +57,7 @@ func NewHTTPHandler(svc service.Service, conf *config.Configuration, jwtAuthz *m
 		v0Store := session.NewInMemoryStore(10*time.Minute, time.Minute)
 		prefix := r.PathPrefix(fmt.Sprintf("/%s/%s", constant.ServiceName, constant.ApiVersionV0))
 		sr := prefix.Subrouter()
-		if err := setRCARHandler(svc, sr, v0Store); err != nil {
+		if err := setRCARHandler(svc, sr, v0Store, jwtAuthz); err != nil {
 			return nil, err
 		}
 	}

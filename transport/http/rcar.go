@@ -26,10 +26,11 @@ const (
 	rcarSessionCookieName = "kbs-session-id"
 )
 
-func setRCARHandler(svc service.Service, router *mux.Router, store *session.InMemoryStore) error {
+func setRCARHandler(svc service.Service, router *mux.Router, store *session.InMemoryStore, auth *model.JwtAuthz) error {
 	router.HandleFunc("/auth", makeRCARAuthHandler(store)).Methods(http.MethodPost)
 	router.HandleFunc("/attest", makeRCARAttestHandler(svc, store)).Methods(http.MethodPost)
 	router.HandleFunc("/resource/{repository}/{type}/{tag}", makeRCARResourceHandler(svc, store)).Methods(http.MethodGet)
+	router.Handle("/resource-policy", authMiddleware(makeRCARResourcePolicyHandler(svc), auth)).Methods(http.MethodPost)
 	return nil
 }
 
@@ -183,6 +184,32 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(jweResp)
+	}
+}
+
+func makeRCARResourcePolicyHandler(svc service.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req model.ResourcePolicy
+		if err := decodeJSONBody(r, &req); err != nil {
+			writeProblem(w, http.StatusBadRequest, "Invalid request", err.Error())
+			return
+		}
+
+		if err := req.Validate(); err != nil {
+			writeProblem(w, http.StatusBadRequest, "Invalid request", err.Error())
+			return
+		}
+
+		if err := svc.SetResourcePolicy(r.Context(), req); err != nil {
+			if handled, ok := err.(*service.HandledError); ok {
+				writeProblem(w, handled.Code, "Resource policy error", handled.Message)
+				return
+			}
+			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to set resource policy")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

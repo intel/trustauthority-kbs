@@ -16,6 +16,7 @@ const (
 	KeyTransferPolicyCreate = "key_transfer_policies:create"
 	KeyTransferPolicyDelete = "key_transfer_policies:delete"
 	KeyTransferPolicySearch = "key_transfer_policies:search"
+	ResourcePolicySet       = "resource_policy:set"
 
 	UserCreate = "users:create"
 	UserDelete = "users:delete"
@@ -23,4 +24,4 @@ const (
 	UserUpdate = "users:update"
 )
 
-var AdminPermissions = []string{KeySearch, KeyCreate, KeyDelete, KeyTransfer, KeyUpdate, KeyTransferPolicyCreate, KeyTransferPolicySearch, KeyTransferPolicyDelete, UserDelete, UserSearch, UserCreate, UserUpdate}
+var AdminPermissions = []string{KeySearch, KeyCreate, KeyDelete, KeyTransfer, KeyUpdate, KeyTransferPolicyCreate, KeyTransferPolicySearch, KeyTransferPolicyDelete, ResourcePolicySet, UserDelete, UserSearch, UserCreate, UserUpdate}

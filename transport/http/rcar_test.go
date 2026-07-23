@@ -259,3 +259,48 @@ func TestRCARResourceCookieTakesPrecedenceOverBearer(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(problem["detail"]).To(gomega.Equal("invalid or expired session"))
 }
+
+func TestRCARResourcePolicyRequiresAuth(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/resource-policy", bytes.NewReader([]byte(`{"policy":"cG9saWN5"}`)))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusUnauthorized))
+}
+
+func TestRCARResourcePolicySetSuccess(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	mockSvc := &MockService{}
+	mockSvc.On("SetResourcePolicy", mock.Anything, model.ResourcePolicy{Policy: "cG9saWN5"}).Return(nil)
+
+	h := createMockHandler(mockSvc)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/resource-policy", bytes.NewReader([]byte(`{"policy":"cG9saWN5"}`)))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusOK))
+	mockSvc.AssertExpectations(t)
+}
+
+func TestRCARResourcePolicySetInvalidBody(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/resource-policy", bytes.NewReader([]byte(`{"policy":"@@notbase64@@"}`)))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusBadRequest))
+}

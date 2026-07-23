@@ -21,6 +21,7 @@ const (
 
 	KeysDir               = "keys/"
 	KeysTransferPolicyDir = "keys-transfer-policy/"
+	ResourcePolicyDir     = "resource-policy/"
 	UserDir               = "users/"
 
 	// defaults

@@ -26,6 +26,7 @@ var gKeyId uuid.UUID
 var itaClientConnector *mocks.MockClient = mocks.NewMockClient()
 var keyStore *mocks.MockKeyStore = mocks.NewFakeKeyStore()
 var keyTransPolicyStore *mocks.MockKeyTransferPolicyStore = mocks.NewFakeKeyTransferPolicyStore()
+var resourcePolicyStore *mocks.MockResourcePolicyStore = mocks.NewMockResourcePolicyStore()
 var kmipClient mocks.MockKmipClient = mocks.MockKmipClient{}
 var kmipKeyManager *mocks.MockKmipManager = mocks.NewMockKmipManager(kmipClient)
 var kRemoteManager *keymanager.RemoteManager = keymanager.NewRemoteManager(keyStore, kmipKeyManager)
@@ -34,6 +35,7 @@ var svcInstance Service = service{
 	repository: &repository.Repository{
 		KeyStore:               keyStore,
 		KeyTransferPolicyStore: keyTransPolicyStore,
+		ResourcePolicyStore:    resourcePolicyStore,
 	},
 	remoteManager: kRemoteManager,
 	config:        nil,

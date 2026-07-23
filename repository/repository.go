@@ -30,6 +30,10 @@ type (
 		Search(criteria *model.KeyTransferPolicyFilterCriteria) ([]model.KeyTransferPolicy, error)
 	}
 
+	ResourcePolicyStore interface {
+		Set(policy *model.ResourcePolicy) error
+	}
+
 	UserStore interface {
 		Create(user *model.UserInfo) (*model.UserInfo, error)
 		Retrieve(uuid.UUID) (*model.UserInfo, error)
@@ -42,6 +46,7 @@ type (
 type Repository struct {
 	KeyStore               KeyStore
 	KeyTransferPolicyStore KeyTransferPolicyStore
+	ResourcePolicyStore    ResourcePolicyStore
 	UserStore              UserStore
 }
 
@@ -49,6 +54,7 @@ func NewDirectoryRepository(basePath string) *Repository {
 	return &Repository{
 		KeyStore:               directory.NewKeyStore(basePath + constant.KeysDir),
 		KeyTransferPolicyStore: directory.NewKeyTransferPolicyStore(basePath + constant.KeysTransferPolicyDir),
+		ResourcePolicyStore:    directory.NewResourcePolicyStore(basePath + constant.ResourcePolicyDir),
 		UserStore:              directory.NewUserStore(basePath + constant.UserDir),
 	}
 }
