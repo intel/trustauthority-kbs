@@ -7,9 +7,14 @@
 package http
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -19,13 +24,14 @@ import (
 	"intel/kbs/v1/model"
 
 	jose "github.com/go-jose/go-jose/v4"
+	josecipher "github.com/go-jose/go-jose/v4/cipher"
 	"github.com/pkg/errors"
 )
 
 type jweFlattened struct {
 	Protected    string `json:"protected"`
 	EncryptedKey string `json:"encrypted_key"`
-	AAD          string `json:"aad"`
+	AAD          string `json:"aad,omitempty"`
 	IV           string `json:"iv"`
 	Ciphertext   string `json:"ciphertext"`
 	Tag          string `json:"tag"`
@@ -44,49 +50,208 @@ type jweGeneral struct {
 }
 
 func encryptResourceAsFlattenedJWE(teePubKey model.JWK, payload []byte) (*jweFlattened, error) {
-	recipient, err := buildJWERecipient(teePubKey)
+	if teePubKey.IsRSA() {
+		pk, err := rsaPublicKeyFromJWK(teePubKey)
+		if err != nil {
+			return nil, err
+		}
+		alg, err := rsaAlgFromJWK(teePubKey.Alg)
+		if err != nil {
+			return nil, err
+		}
+		return encryptRSAAsFlattenedJWE(pk, alg, payload)
+	}
+
+	if teePubKey.IsEC() {
+		pk, err := ecPublicKeyFromJWK(teePubKey)
+		if err != nil {
+			return nil, err
+		}
+		alg, err := ecAlgFromJWK(teePubKey.Alg)
+		if err != nil {
+			return nil, err
+		}
+		if alg != jose.ECDH_ES_A256KW {
+			return nil, errors.Errorf("unsupported ec jwk alg %q", teePubKey.Alg)
+		}
+		return encryptECDHESA256KWAsFlattenedJWE(pk, payload)
+	}
+
+	return nil, errors.Errorf("unsupported jwk kty %q", teePubKey.Kty)
+}
+
+func encryptRSAAsFlattenedJWE(pk *rsa.PublicKey, alg jose.KeyAlgorithm, payload []byte) (*jweFlattened, error) {
+	protected, err := marshalProtectedHeader(protectedHeader{
+		Alg: string(alg),
+		Enc: "A256GCM",
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to serialize protected header")
+	}
+
+	cek, err := randomBytes(32)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate content encryption key")
+	}
+	iv, ciphertext, tag, err := encryptA256GCM(cek, []byte(protected), payload)
 	if err != nil {
 		return nil, err
 	}
 
-	encrypter, err := jose.NewEncrypter(jose.A256GCM, recipient, nil)
+	var encryptedKey []byte
+	switch alg {
+	case jose.RSA_OAEP_256:
+		encryptedKey, err = rsa.EncryptOAEP(sha256.New(), rand.Reader, pk, cek, nil)
+	case jose.RSA_OAEP:
+		encryptedKey, err = rsa.EncryptOAEP(sha1.New(), rand.Reader, pk, cek, nil)
+	default:
+		return nil, errors.Errorf("unsupported rsa jwk alg %q", alg)
+	}
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize JWE encrypter")
-	}
-
-	obj, err := encrypter.Encrypt(payload)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to encrypt resource")
-	}
-
-	full := obj.FullSerialize()
-	var parsed jweGeneral
-	if err := json.Unmarshal([]byte(full), &parsed); err != nil {
-		return nil, errors.Wrap(err, "failed to parse JWE payload")
-	}
-
-	encryptedKey := parsed.EncryptedKey
-	if encryptedKey == "" {
-		if len(parsed.Recipients) == 0 {
-			return nil, errors.New("missing JWE recipient")
-		}
-		encryptedKey = parsed.Recipients[0].EncryptedKey
-	}
-
-	aad := parsed.AAD
-	if aad == "" {
-		// RCAR protocol examples require explicit aad for AEAD payloads.
-		aad = parsed.Protected
+		return nil, errors.Wrap(err, "failed to wrap content encryption key")
 	}
 
 	return &jweFlattened{
-		Protected:    parsed.Protected,
-		EncryptedKey: encryptedKey,
-		AAD:          aad,
-		IV:           parsed.IV,
-		Ciphertext:   parsed.Ciphertext,
-		Tag:          parsed.Tag,
+		Protected:    protected,
+		EncryptedKey: base64.RawURLEncoding.EncodeToString(encryptedKey),
+		IV:           base64.RawURLEncoding.EncodeToString(iv),
+		Ciphertext:   base64.RawURLEncoding.EncodeToString(ciphertext),
+		Tag:          base64.RawURLEncoding.EncodeToString(tag),
 	}, nil
+}
+
+func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, payload []byte) (*jweFlattened, error) {
+	ephemeralPriv, err := ecdsa.GenerateKey(pk.Curve, rand.Reader)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate ephemeral ec key")
+	}
+
+	kek := josecipher.DeriveECDHES(string(jose.ECDH_ES_A256KW), []byte{}, []byte{}, ephemeralPriv, pk, 32)
+	cek, err := randomBytes(32)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate content encryption key")
+	}
+	block, err := aes.NewCipher(kek)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize key wrap cipher")
+	}
+	encryptedKey, err := josecipher.KeyWrap(block, cek)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to wrap content encryption key")
+	}
+
+	curveName, coordLen, err := ecCurveMetadata(pk.Curve)
+	if err != nil {
+		return nil, err
+	}
+	ephemeralX := base64.RawURLEncoding.EncodeToString(bigIntToFixedBytes(ephemeralPriv.PublicKey.X, coordLen))
+	ephemeralY := base64.RawURLEncoding.EncodeToString(bigIntToFixedBytes(ephemeralPriv.PublicKey.Y, coordLen))
+
+	protected, err := marshalProtectedHeader(protectedHeader{
+		Alg: string(jose.ECDH_ES_A256KW),
+		Enc: "A256GCM",
+		EPK: &epkHeader{
+			Crv: curveName,
+			Kty: "EC",
+			X:   ephemeralX,
+			Y:   ephemeralY,
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to serialize protected header")
+	}
+
+	iv, ciphertext, tag, err := encryptA256GCM(cek, []byte(protected), payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return &jweFlattened{
+		Protected:    protected,
+		EncryptedKey: base64.RawURLEncoding.EncodeToString(encryptedKey),
+		IV:           base64.RawURLEncoding.EncodeToString(iv),
+		Ciphertext:   base64.RawURLEncoding.EncodeToString(ciphertext),
+		Tag:          base64.RawURLEncoding.EncodeToString(tag),
+	}, nil
+}
+
+func encryptA256GCM(cek []byte, aad []byte, payload []byte) ([]byte, []byte, []byte, error) {
+	iv, err := randomBytes(12)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to generate iv")
+	}
+
+	block, err := aes.NewCipher(cek)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to initialize content cipher")
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to initialize gcm cipher")
+	}
+
+	sealed := gcm.Seal(nil, iv, payload, aad)
+	tagSize := gcm.Overhead()
+	if len(sealed) < tagSize {
+		return nil, nil, nil, errors.New("invalid gcm output")
+	}
+
+	ciphertext := sealed[:len(sealed)-tagSize]
+	tag := sealed[len(sealed)-tagSize:]
+	return iv, ciphertext, tag, nil
+}
+
+func randomBytes(size int) ([]byte, error) {
+	b := make([]byte, size)
+	if _, err := rand.Read(b); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func marshalProtectedHeader(h protectedHeader) (string, error) {
+	raw, err := json.Marshal(h)
+	if err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(raw), nil
+}
+
+func ecCurveMetadata(curve elliptic.Curve) (string, int, error) {
+	switch curve {
+	case elliptic.P256():
+		return "P-256", 32, nil
+	case elliptic.P521():
+		return "P-521", 66, nil
+	default:
+		return "", 0, errors.New("unsupported ec curve")
+	}
+}
+
+func bigIntToFixedBytes(v *big.Int, size int) []byte {
+	if v == nil {
+		return make([]byte, size)
+	}
+	b := v.Bytes()
+	if len(b) >= size {
+		return b[len(b)-size:]
+	}
+	out := make([]byte, size)
+	copy(out[size-len(b):], b)
+	return out
+}
+
+type protectedHeader struct {
+	Alg string     `json:"alg"`
+	Enc string     `json:"enc"`
+	EPK *epkHeader `json:"epk,omitempty"`
+}
+
+type epkHeader struct {
+	Crv string `json:"crv"`
+	Kty string `json:"kty"`
+	X   string `json:"x"`
+	Y   string `json:"y"`
 }
 
 func buildJWERecipient(jwk model.JWK) (jose.Recipient, error) {
@@ -132,8 +297,6 @@ func ecAlgFromJWK(v string) (jose.KeyAlgorithm, error) {
 	switch strings.ToUpper(strings.TrimSpace(v)) {
 	case "", "ECDH-ES+A256KW":
 		return jose.ECDH_ES_A256KW, nil
-	case "ECDH-ES":
-		return jose.ECDH_ES, nil
 	default:
 		return "", errors.Errorf("unsupported ec jwk alg %q", v)
 	}
@@ -174,8 +337,8 @@ func ecPublicKeyFromJWK(jwk model.JWK) (*ecdsa.PublicKey, error) {
 	switch jwk.Crv {
 	case "P-256":
 		curve = elliptic.P256()
-	case "P-384":
-		curve = elliptic.P384()
+	case "P-521":
+		curve = elliptic.P521()
 	default:
 		return nil, errors.Errorf("unsupported ec curve %q", jwk.Crv)
 	}

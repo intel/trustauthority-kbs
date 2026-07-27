@@ -309,26 +309,3 @@ func generateNonce(size int) (string, error) {
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
-
-// generatePlaceholderAttestationToken creates a stub JWT token.
-// TODO: Replace with real verifier service call that validates evidence and returns actual JWT.
-// Format: header.payload.signature (base64url encoded)
-func generatePlaceholderAttestationToken(teePubKey model.JWK) (string, error) {
-	// Placeholder JWT: header.payload.signature
-	// In production, this would be:
-	// 1. Call attestation verifier with evidence
-	// 2. Verifier validates and returns real JWT with claims
-	// For now, use header.payload format that looks like JWT structure
-	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`))
-
-	// Minimal payload with placeholder claims
-	payloadJSON := []byte(`{"iss":"kbs","aud":"kbs","exp":` +
-		`"PLACEHOLDER","iat":"PLACEHOLDER","tee_pubkey":` +
-		`{"kty":"` + teePubKey.Kty + `"}}`)
-	payload := base64.RawURLEncoding.EncodeToString(payloadJSON)
-
-	// Placeholder signature (not cryptographically valid)
-	signature := base64.RawURLEncoding.EncodeToString([]byte(`placeholder_signature`))
-
-	return header + "." + payload + "." + signature, nil
-}
