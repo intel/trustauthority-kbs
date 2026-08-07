@@ -151,13 +151,13 @@ Note that when running with the OCI key manager, it is necessary to map the OCI 
       -v /etc/kbs/certs:/etc/kbs/certs \
       -v /opt/kbs:/opt/kbs \
       -v ~/.oci:/home/kbs/.oci \
-      trustauthority/key-broker-service:v1.4.0
+      trustauthority/key-broker-service:v1.5.0
 
 ### Build the KBS
 
 KBS can be built using targets from Makefile.
 
-`make docker` is used to build the KBS docker image (key-broker-service:v1.2.0) using the Dockerfile.
+`make docker` is used to build the KBS docker image (key-broker-service:v1.5.0) using the Dockerfile.
 
 ### Install the KBS
 
@@ -240,7 +240,7 @@ On Linux, follow the steps below to install the KBS:
 4. Run the KBS container.
 
     ```bash
-    docker run -d --restart unless-stopped --name kbs --env-file <KBS env file> -p <KBS port>:9443 -v /etc/kbs/certs:/etc/kbs/certs -v /etc/hosts:/etc/hosts -v /opt/kbs:/opt/kbs trustauthority/key-broker-service:v1.4.0
+    docker run -d --restart unless-stopped --name kbs --env-file <KBS env file> -p <KBS port>:9443 -v /etc/kbs/certs:/etc/kbs/certs -v /etc/hosts:/etc/hosts -v /opt/kbs:/opt/kbs trustauthority/key-broker-service:v1.5.0
     ```
 ## KBS key creation and key retrieval
 
