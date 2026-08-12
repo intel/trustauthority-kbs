@@ -147,14 +147,14 @@ func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) ht
 
 func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sess, err := resolveResourceAuthSession(r, store)
+		attestationToken, err := resolveResourceAuthSession(r, store)
 		if err != nil {
-			writeProblem(w, http.StatusUnauthorized, "Unauthorized", err.Error())
-			return
-		}
-		if !sess.Attested {
-			writeProblem(w, http.StatusForbidden, "Forbidden", "session is not attested")
-			return
+			log.WithError(err).Warn("failed to resolve resource auth session")
+			attestationToken, err = getBearerToken(r)
+			if err != nil {
+				writeProblem(w, http.StatusUnauthorized, "Unauthorized", "missing session cookie or bearer token")
+				return
+			}
 		}
 
 		vars := mux.Vars(r)
@@ -166,7 +166,7 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 
 		// Inject the attestation token so the service can evaluate the resource policy
 		// against the token claims without re-parsing the session.
-		resourceCtx := service.WithRCARAttestationToken(r.Context(), sess.AttestationToken)
+		resourceCtx := service.WithRCARAttestationToken(r.Context(), attestationToken)
 
 		resource, err := svc.GetRCARResource(resourceCtx, addr)
 		if err != nil {
@@ -178,7 +178,13 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 			return
 		}
 
-		jweResp, err := encryptResourceAsFlattenedJWE(sess.TEEPubKey, resource)
+		teePubKey, err := service.ExtractTEEPubKeyFromToken(attestationToken)
+		if err != nil {
+			writeProblem(w, http.StatusBadRequest, "Invalid TEE pub key in token", err.Error())
+			return
+		}
+
+		jweResp, err := encryptResourceAsFlattenedJWE(teePubKey, resource)
 		if err != nil {
 			log.WithError(err).Error("failed to encrypt resource response")
 			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to encrypt resource response")
@@ -217,56 +223,34 @@ func makeRCARResourcePolicyHandler(svc service.Service) http.HandlerFunc {
 	}
 }
 
-func resolveResourceAuthSession(r *http.Request, store *session.InMemoryStore) (*session.Session, error) {
-	if cookie, err := r.Cookie(rcarSessionCookieName); err == nil {
-		sess, ok := store.Get(cookie.Value)
-		if !ok {
-			return nil, errInvalidOrExpiredSession
+func resolveResourceAuthSession(r *http.Request, store *session.InMemoryStore) (string, error) {
+	if cookie, err := r.Cookie(rcarSessionCookieName); err != nil {
+		return "", errSessionCookieNotFound
+	} else {
+		if sess, ok := store.Get(cookie.Value); !ok {
+			return "", errSessionNotFound
+		} else if !sess.Attested {
+			return "", errSessionNotAttested
+		} else {
+			return sess.AttestationToken, nil
 		}
-		return sess, nil
 	}
-
-	bearer, err := getBearerToken(r)
-	if err != nil {
-		return nil, err
-	}
-
-	sess, ok := store.GetByAttestationToken(bearer)
-	if !ok {
-		return nil, errInvalidBearerToken
-	}
-
-	return sess, nil
-}
-
-var (
-	errMissingResourceAuth     = &resourceAuthError{message: "missing session cookie or bearer token"}
-	errInvalidOrExpiredSession = &resourceAuthError{message: "invalid or expired session"}
-	errInvalidBearerToken      = &resourceAuthError{message: "invalid bearer token"}
-)
-
-type resourceAuthError struct {
-	message string
-}
-
-func (e *resourceAuthError) Error() string {
-	return e.message
 }
 
 func getBearerToken(r *http.Request) (string, error) {
 	authz := strings.TrimSpace(r.Header.Get("Authorization"))
 	if authz == "" {
-		return "", errMissingResourceAuth
+		return "", errMissingBearerToken
 	}
 
 	parts := strings.SplitN(authz, " ", 2)
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-		return "", errMissingResourceAuth
+		return "", errMissingBearerToken
 	}
 
 	token := strings.TrimSpace(parts[1])
 	if token == "" {
-		return "", errMissingResourceAuth
+		return "", errMissingBearerToken
 	}
 
 	return token, nil

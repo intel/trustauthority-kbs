@@ -20,7 +20,6 @@ type Session struct {
 	ID               string
 	Nonce            string
 	RequestedTEE     model.Tee
-	TEEPubKey        model.JWK
 	Attested         bool
 	AttestationToken string // JWT token from verifier
 	ExpiresAt        time.Time
@@ -65,11 +64,11 @@ func (s *InMemoryStore) Create(nonce string) *Session {
 func (s *InMemoryStore) CreateWithTEE(nonce string, tee model.Tee) *Session {
 	now := s.now()
 	sess := &Session{
-		ID:        uuid.NewString(),
-		Nonce:     nonce,
+		ID:           uuid.NewString(),
+		Nonce:        nonce,
 		RequestedTEE: tee,
-		Attested:  false,
-		ExpiresAt: now.Add(s.ttl),
+		Attested:     false,
+		ExpiresAt:    now.Add(s.ttl),
 	}
 
 	s.mu.Lock()
@@ -95,25 +94,6 @@ func (s *InMemoryStore) Get(id string) (*Session, bool) {
 	return cloneSession(sess), true
 }
 
-// GetByAttestationToken returns the first non-expired session matching the
-// given attestation token.
-func (s *InMemoryStore) GetByAttestationToken(token string) (*Session, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	for _, sess := range s.sessions {
-		if sess.AttestationToken != token {
-			continue
-		}
-		if s.now().After(sess.ExpiresAt) {
-			continue
-		}
-		return cloneSession(sess), true
-	}
-
-	return nil, false
-}
-
 func (s *InMemoryStore) MarkAttested(id string, token string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -132,7 +112,7 @@ func (s *InMemoryStore) MarkAttested(id string, token string) error {
 	return nil
 }
 
-// StoreAttestationData stores the TEEPubKey and attestation token, marking the session as attested.
+// StoreAttestationData stores the attestation token, marking the session as attested.
 func (s *InMemoryStore) StoreAttestationData(id string, teePubKey *model.JWK, token string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -146,9 +126,6 @@ func (s *InMemoryStore) StoreAttestationData(id string, teePubKey *model.JWK, to
 		return errors.New("session expired")
 	}
 
-	if teePubKey != nil {
-		sess.TEEPubKey = *teePubKey
-	}
 	sess.Attested = true
 	sess.AttestationToken = token
 	return nil

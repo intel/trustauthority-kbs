@@ -193,3 +193,49 @@ func TestParseTokenClaims_Empty(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(claims).To(gomega.BeNil())
 }
+
+func makeJWT(payloadJSON string) string {
+	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`))
+	payload := base64.RawURLEncoding.EncodeToString([]byte(payloadJSON))
+	return header + "." + payload + ".fakesig"
+}
+
+func TestExtractTEEPubKeyFromToken_V1TopLevel(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	rtd := base64.RawURLEncoding.EncodeToString([]byte(`{"tee-pubkey":{"kty":"RSA","n":"mod","e":"AQAB"},"nonce":"n","additional-evidence":""}`))
+	token := makeJWT(`{"attester_runtime_data":"` + rtd + `"}`)
+
+	jwk, err := ExtractTEEPubKeyFromToken(token)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(jwk.Kty).To(gomega.Equal("RSA"))
+}
+
+func TestExtractTEEPubKeyFromToken_V2Nested(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	rtd := base64.RawURLEncoding.EncodeToString([]byte(`{"tee-pubkey":{"kty":"RSA","n":"mod","e":"AQAB"},"nonce":"n","additional-evidence":""}`))
+	token := makeJWT(`{"tdx":{"attester_runtime_data":"` + rtd + `"}}`)
+
+	jwk, err := ExtractTEEPubKeyFromToken(token)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(jwk.Kty).To(gomega.Equal("RSA"))
+}
+
+func TestExtractTEEPubKeyFromToken_RuntimeDataAsObject(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	token := makeJWT(`{"attester_runtime_data":{"tee-pubkey":{"kty":"RSA","n":"mod","e":"AQAB"},"nonce":"n","additional-evidence":""}}`)
+
+	jwk, err := ExtractTEEPubKeyFromToken(token)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(jwk.Kty).To(gomega.Equal("RSA"))
+}
+
+func TestExtractTEEPubKeyFromToken_Missing(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	token := makeJWT(`{"attester_tcb_status":"OK"}`)
+	_, err := ExtractTEEPubKeyFromToken(token)
+	g.Expect(err).To(gomega.HaveOccurred())
+}

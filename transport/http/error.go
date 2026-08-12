@@ -23,3 +23,18 @@ var (
 	ErrInvalidFilterCriteria    = errors.New("Invalid filter criteria")
 	ErrInvalidAttestationType   = errors.New("Invalid attestion type header")
 )
+
+var (
+	errMissingBearerToken    = &resourceAuthError{message: "missing bearer token"}
+	errSessionCookieNotFound = &resourceAuthError{message: "session cookie not found"}
+	errSessionNotFound       = &resourceAuthError{message: "session not found"}
+	errSessionNotAttested    = &resourceAuthError{message: "session not attested"}
+)
+
+type resourceAuthError struct {
+	message string
+}
+
+func (e *resourceAuthError) Error() string {
+	return e.message
+}

@@ -49,7 +49,7 @@ type jweGeneral struct {
 	} `json:"recipients"`
 }
 
-func encryptResourceAsFlattenedJWE(teePubKey model.JWK, payload []byte) (*jweFlattened, error) {
+func encryptResourceAsFlattenedJWE(teePubKey *model.JWK, payload []byte) (*jweFlattened, error) {
 	if teePubKey.IsRSA() {
 		pk, err := rsaPublicKeyFromJWK(teePubKey)
 		if err != nil {
@@ -254,7 +254,7 @@ type epkHeader struct {
 	Y   string `json:"y"`
 }
 
-func buildJWERecipient(jwk model.JWK) (jose.Recipient, error) {
+func buildJWERecipient(jwk *model.JWK) (jose.Recipient, error) {
 	if jwk.IsRSA() {
 		pk, err := rsaPublicKeyFromJWK(jwk)
 		if err != nil {
@@ -302,7 +302,7 @@ func ecAlgFromJWK(v string) (jose.KeyAlgorithm, error) {
 	}
 }
 
-func rsaPublicKeyFromJWK(jwk model.JWK) (*rsa.PublicKey, error) {
+func rsaPublicKeyFromJWK(jwk *model.JWK) (*rsa.PublicKey, error) {
 	nBytes, err := decodeB64URL(jwk.N)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid rsa jwk modulus")
@@ -332,7 +332,7 @@ func rsaPublicKeyFromJWK(jwk model.JWK) (*rsa.PublicKey, error) {
 	return &rsa.PublicKey{N: n, E: e}, nil
 }
 
-func ecPublicKeyFromJWK(jwk model.JWK) (*ecdsa.PublicKey, error) {
+func ecPublicKeyFromJWK(jwk *model.JWK) (*ecdsa.PublicKey, error) {
 	var curve elliptic.Curve
 	switch jwk.Crv {
 	case "P-256":

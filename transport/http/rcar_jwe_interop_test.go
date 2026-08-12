@@ -31,7 +31,7 @@ func TestEncryptResourceAsFlattenedJWE_RSA_GuestCompat(t *testing.T) {
 		t.Fatalf("generate rsa key: %v", err)
 	}
 
-	pubJWK := model.JWK{
+	pubJWK := &model.JWK{
 		Kty: "RSA",
 		Alg: "RSA-OAEP-256",
 		N:   base64.RawURLEncoding.EncodeToString(priv.PublicKey.N.Bytes()),
@@ -59,7 +59,7 @@ func TestEncryptResourceAsFlattenedJWE_EC_GuestCompat(t *testing.T) {
 		t.Fatalf("generate ec key: %v", err)
 	}
 
-	pubJWK := model.JWK{
+	pubJWK := &model.JWK{
 		Kty: "EC",
 		Alg: "ECDH-ES+A256KW",
 		Crv: "P-256",
