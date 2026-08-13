@@ -14,17 +14,11 @@ import (
 
 	"intel/kbs/v1/model"
 
+	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 )
-
-// buildJWT constructs a minimal JWT-shaped string with the given JSON payload.
-func buildJWT(payloadJSON string) string {
-	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`))
-	payload := base64.RawURLEncoding.EncodeToString([]byte(payloadJSON))
-	return header + "." + payload + ".fakesig"
-}
 
 // clearResourcePolicy resets the shared mock resource policy store back to nil.
 func clearResourcePolicy() {
@@ -39,7 +33,15 @@ func setResourcePolicy(regoText string) {
 	}
 }
 
-func TestGetRCARResource_NoPolicyAllowsAccess(t *testing.T) {
+func rcarServiceInstance() service {
+	svc, ok := svcInstance.(service)
+	if !ok {
+		panic("svcInstance is not concrete service")
+	}
+	return svc
+}
+
+func TestGetRawRCARResource_NoPolicyAllowsAccess(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	clearResourcePolicy()
@@ -49,12 +51,12 @@ func TestGetRCARResource_NoPolicyAllowsAccess(t *testing.T) {
 	kmipKeyManager.On("TransferKey", mock.Anything).Return([]byte("test-secret"), nil).Once()
 
 	ctx := context.Background()
-	result, err := svcInstance.GetRCARResource(ctx, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
+	result, err := rcarServiceInstance().getRawRCARResource(ctx, nil, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(result).NotTo(gomega.BeEmpty())
 }
 
-func TestGetRCARResource_PolicyDeniesAccess(t *testing.T) {
+func TestGetRawRCARResource_PolicyDeniesAccess(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	setResourcePolicy(`
@@ -65,7 +67,7 @@ default allow = false
 
 	keyID := uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2")
 	ctx := context.Background()
-	_, err := svcInstance.GetRCARResource(ctx, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
+	_, err := rcarServiceInstance().getRawRCARResource(ctx, nil, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
 	g.Expect(err).To(gomega.HaveOccurred())
 
 	handled, ok := err.(*HandledError)
@@ -73,7 +75,7 @@ default allow = false
 	g.Expect(handled.Code).To(gomega.Equal(http.StatusForbidden))
 }
 
-func TestGetRCARResource_PolicyAllowsSpecificResourcePath(t *testing.T) {
+func TestGetRawRCARResource_PolicyAllowsSpecificResourcePath(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	setResourcePolicy(`
@@ -91,12 +93,12 @@ allow {
 	keyID := uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2")
 	kmipKeyManager.On("TransferKey", mock.Anything).Return([]byte("test-secret"), nil).Once()
 	ctx := context.Background()
-	result, err := svcInstance.GetRCARResource(ctx, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
+	result, err := rcarServiceInstance().getRawRCARResource(ctx, nil, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(result).NotTo(gomega.BeEmpty())
 }
 
-func TestGetRCARResource_PolicyDeniesWrongResourcePath(t *testing.T) {
+func TestGetRawRCARResource_PolicyDeniesWrongResourcePath(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	setResourcePolicy(`
@@ -111,9 +113,8 @@ allow {
 `)
 	defer clearResourcePolicy()
 
-	// Different key UUID – should be denied
 	ctx := context.Background()
-	_, err := svcInstance.GetRCARResource(ctx, &model.ResourceAddress{Repository: "default", Type: "key", Tag: uuid.New().String()})
+	_, err := rcarServiceInstance().getRawRCARResource(ctx, nil, &model.ResourceAddress{Repository: "default", Type: "key", Tag: uuid.New().String()})
 	g.Expect(err).To(gomega.HaveOccurred())
 
 	handled, ok := err.(*HandledError)
@@ -121,7 +122,7 @@ allow {
 	g.Expect(handled.Code).To(gomega.Equal(http.StatusForbidden))
 }
 
-func TestGetRCARResource_PolicyEvaluatedWithTokenClaims(t *testing.T) {
+func TestGetRawRCARResource_PolicyEvaluatedWithTokenClaims(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	setResourcePolicy(`
@@ -134,17 +135,17 @@ allow {
 `)
 	defer clearResourcePolicy()
 
-	token := buildJWT(`{"attester_type":"sgx","attester_tcb_status":"OK"}`)
-	ctx := WithRCARAttestationToken(context.Background(), token)
+	verifiedClaims := jwtlib.MapClaims{"attester_type": "sgx", "attester_tcb_status": "OK"}
+	ctx := context.Background()
 
 	keyID := uuid.MustParse("ee37c360-7eae-4250-a677-6ee12adce8e2")
 	kmipKeyManager.On("TransferKey", mock.Anything).Return([]byte("test-secret"), nil).Once()
-	result, err := svcInstance.GetRCARResource(ctx, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
+	result, err := rcarServiceInstance().getRawRCARResource(ctx, verifiedClaims, &model.ResourceAddress{Repository: "default", Type: "key", Tag: keyID.String()})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(result).NotTo(gomega.BeEmpty())
 }
 
-func TestGetRCARResource_PolicyDeniesWhenClaimMismatch(t *testing.T) {
+func TestGetRawRCARResource_PolicyDeniesWhenClaimMismatch(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	setResourcePolicy(`
@@ -157,11 +158,10 @@ allow {
 `)
 	defer clearResourcePolicy()
 
-	// Token says tdx, policy requires sgx → deny
-	token := buildJWT(`{"attester_type":"tdx","attester_tcb_status":"OK"}`)
-	ctx := WithRCARAttestationToken(context.Background(), token)
+	verifiedClaims := jwtlib.MapClaims{"attester_type": "tdx", "attester_tcb_status": "OK"}
+	ctx := context.Background()
 
-	_, err := svcInstance.GetRCARResource(ctx, &model.ResourceAddress{Repository: "default", Type: "key", Tag: uuid.New().String()})
+	_, err := rcarServiceInstance().getRawRCARResource(ctx, verifiedClaims, &model.ResourceAddress{Repository: "default", Type: "key", Tag: uuid.New().String()})
 	g.Expect(err).To(gomega.HaveOccurred())
 
 	handled, ok := err.(*HandledError)

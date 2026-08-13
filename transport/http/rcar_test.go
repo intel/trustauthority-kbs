@@ -175,8 +175,8 @@ func TestRCARResourceWithBearerToken(t *testing.T) {
 	mockSvc := &MockService{}
 	mockSvc.On("VerifyRCARAttestation", mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("*model.RCARAttestationRequest")).
 		Return(mockToken, nil)
-	mockSvc.On("GetRCARResource", mock.Anything, mock.AnythingOfType("*model.ResourceAddress")).
-		Return([]byte("my-secret-resource"), nil)
+	mockSvc.On("GetRCARResource", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("*model.ResourceAddress")).
+		Return(&model.JWEFlattened{Protected: "p", EncryptedKey: "ek", IV: "iv", Ciphertext: "ct", Tag: "tag"}, nil)
 	h := createMockHandler(mockSvc)
 
 	authReq, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader([]byte(`{"version":"0.4.0","tee":"sgx","extra-params":{}}`)))
@@ -247,15 +247,15 @@ func TestRCARResourceNoAuthorizationHeader(t *testing.T) {
 	var problem map[string]interface{}
 	err := json.Unmarshal(resourceRR.Body.Bytes(), &problem)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(problem["detail"]).To(gomega.Equal("missing session cookie or bearer token"))
+	g.Expect(problem["detail"]).To(gomega.Equal("missing session cookie and bearer token"))
 }
 
 func TestRCARResourceStaleCookieFallsBackToBearer(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	mockSvc := &MockService{}
-	mockSvc.On("GetRCARResource", mock.Anything, mock.AnythingOfType("*model.ResourceAddress")).
-		Return([]byte("secret"), nil)
+	mockSvc.On("GetRCARResource", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("*model.ResourceAddress")).
+		Return(&model.JWEFlattened{Protected: "p", EncryptedKey: "ek", IV: "iv", Ciphertext: "ct", Tag: "tag"}, nil)
 	h := createMockHandler(mockSvc)
 
 	// Stale cookie → falls through to bearer; bearer is accepted directly (Trustee pattern).
@@ -267,7 +267,7 @@ func TestRCARResourceStaleCookieFallsBackToBearer(t *testing.T) {
 
 	// Handler proceeds; response is JWE-encrypted (or fails to encrypt with test token, but reaches 200/500)
 	g.Expect(resourceRR.Code).To(gomega.BeElementOf(http.StatusOK, http.StatusInternalServerError))
-	mockSvc.AssertCalled(t, "GetRCARResource", mock.Anything, mock.AnythingOfType("*model.ResourceAddress"))
+	mockSvc.AssertCalled(t, "GetRCARResource", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("*model.ResourceAddress"))
 }
 
 func TestRCARResourcePolicyRequiresAuth(t *testing.T) {

@@ -132,9 +132,8 @@ func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) ht
 			return
 		}
 
-		// Store TEEPubKey from attestation (needed for resource encryption)
-		// and mark session as attested with the token
-		if err := store.StoreAttestationData(cookie.Value, &req.RuntimeData.TEEPubKey, token); err != nil {
+		// Mark session as attested with the token
+		if err := store.StoreAttestationData(cookie.Value, token); err != nil {
 			writeProblem(w, http.StatusInternalServerError, "Internal error", err.Error())
 			return
 		}
@@ -149,10 +148,10 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 	return func(w http.ResponseWriter, r *http.Request) {
 		attestationToken, err := resolveResourceAuthSession(r, store)
 		if err != nil {
-			log.WithError(err).Warn("failed to resolve resource auth session")
+			log.Warnf("%v: fallback to bearer token", err)
 			attestationToken, err = getBearerToken(r)
 			if err != nil {
-				writeProblem(w, http.StatusUnauthorized, "Unauthorized", "missing session cookie or bearer token")
+				writeProblem(w, http.StatusUnauthorized, "Unauthorized", "missing session cookie and bearer token")
 				return
 			}
 		}
@@ -164,30 +163,13 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 			return
 		}
 
-		// Inject the attestation token so the service can evaluate the resource policy
-		// against the token claims without re-parsing the session.
-		resourceCtx := service.WithRCARAttestationToken(r.Context(), attestationToken)
-
-		resource, err := svc.GetRCARResource(resourceCtx, addr)
+		jweResp, err := svc.GetRCARResource(r.Context(), attestationToken, addr)
 		if err != nil {
 			if handled, ok := err.(*service.HandledError); ok {
 				writeProblem(w, handled.Code, "Resource error", handled.Message)
 				return
 			}
 			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to retrieve resource")
-			return
-		}
-
-		teePubKey, err := service.ExtractTEEPubKeyFromToken(attestationToken)
-		if err != nil {
-			writeProblem(w, http.StatusBadRequest, "Invalid TEE pub key in token", err.Error())
-			return
-		}
-
-		jweResp, err := encryptResourceAsFlattenedJWE(teePubKey, resource)
-		if err != nil {
-			log.WithError(err).Error("failed to encrypt resource response")
-			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to encrypt resource response")
 			return
 		}
 

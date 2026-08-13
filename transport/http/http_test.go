@@ -133,9 +133,9 @@ func (svc *MockService) VerifyRCARAttestation(ctx context.Context, req *model.RC
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (svc *MockService) GetRCARResource(ctx context.Context, addr *model.ResourceAddress) ([]byte, error) {
-	args := svc.Called(ctx, addr)
-	return args.Get(0).([]byte), args.Error(1)
+func (svc *MockService) GetRCARResource(ctx context.Context, token string, addr *model.ResourceAddress) (*model.JWEFlattened, error) {
+	args := svc.Called(ctx, token, addr)
+	return args.Get(0).(*model.JWEFlattened), args.Error(1)
 }
 
 func (svc *MockService) SetResourcePolicy(ctx context.Context, policy model.ResourcePolicy) error {

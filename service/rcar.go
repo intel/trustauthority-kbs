@@ -17,7 +17,6 @@ import (
 )
 
 type rcarTEEHintCtxKey struct{}
-type rcarAttestationTokenCtxKey struct{}
 
 // WithRCARTEEHint stores a trusted tee hint from the RCAR auth session.
 func WithRCARTEEHint(ctx context.Context, tee model.Tee) context.Context {
@@ -34,20 +33,6 @@ func rcarTEEHintFromContext(ctx context.Context) (model.Tee, bool) {
 		return "", false
 	}
 	return tee, tee == model.TeeSGX || tee == model.TeeTDX
-}
-
-// WithRCARAttestationToken stores the attested session JWT token in the context.
-func WithRCARAttestationToken(ctx context.Context, token string) context.Context {
-	if token == "" {
-		return ctx
-	}
-	return context.WithValue(ctx, rcarAttestationTokenCtxKey{}, token)
-}
-
-func rcarAttestationTokenFromContext(ctx context.Context) (string, bool) {
-	v := ctx.Value(rcarAttestationTokenCtxKey{})
-	token, ok := v.(string)
-	return token, ok && token != ""
 }
 
 func (mw loggingMiddleware) VerifyRCARAttestation(ctx context.Context, req *model.RCARAttestationRequest) (string, error) {

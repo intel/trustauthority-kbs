@@ -46,7 +46,7 @@ type Service interface {
 	GetVersion(context.Context) (*version.ServiceVersion, error)
 	CreateAuthToken(context.Context, model.AuthTokenRequest, *model.JwtAuthz) (string, error)
 	VerifyRCARAttestation(context.Context, *model.RCARAttestationRequest) (string, error)
-	GetRCARResource(context.Context, *model.ResourceAddress) ([]byte, error)
+	GetRCARResource(context.Context, string, *model.ResourceAddress) (*model.JWEFlattened, error)
 	SetResourcePolicy(context.Context, model.ResourcePolicy) error
 }
 

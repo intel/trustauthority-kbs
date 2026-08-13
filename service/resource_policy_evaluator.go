@@ -9,10 +9,6 @@ package service
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
-	"strings"
-
-	"intel/kbs/v1/model"
 
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage/inmem"
@@ -131,93 +127,4 @@ func decodePolicyBytes(policyB64 string) ([]byte, error) {
 	}
 
 	return nil, errors.New("unsupported base64 encoding")
-}
-
-// ExtractTEEPubKeyFromToken retrieves the tee-pubkey from attester_runtime_data in the token claims.
-// Handles both v1 (top-level) and v2 (nested under tdx/sgx) token layouts.
-func ExtractTEEPubKeyFromToken(token string) (*model.JWK, error) {
-	claims, err := parseTokenClaims(token)
-	if err != nil {
-		return nil, err
-	}
-
-	runtimeRaw := runtimeDataFromClaims(claims)
-	if runtimeRaw == nil {
-		return nil, errors.New("attester_runtime_data not found in token claims")
-	}
-
-	var runtimeBytes []byte
-	switch v := runtimeRaw.(type) {
-	case string:
-		for _, dec := range []func(string) ([]byte, error){
-			base64.RawURLEncoding.DecodeString,
-			base64.URLEncoding.DecodeString,
-			base64.StdEncoding.DecodeString,
-			base64.RawStdEncoding.DecodeString,
-		} {
-			if runtimeBytes, err = dec(v); err == nil {
-				break
-			}
-		}
-		if runtimeBytes == nil {
-			return nil, errors.New("failed to base64-decode attester_runtime_data")
-		}
-	case map[string]interface{}:
-		if runtimeBytes, err = json.Marshal(v); err != nil {
-			return nil, errors.Wrap(err, "failed to marshal attester_runtime_data")
-		}
-	default:
-		return nil, errors.Errorf("unexpected attester_runtime_data type %T", runtimeRaw)
-	}
-
-	var rtd struct {
-		TEEPubKey model.JWK `json:"tee-pubkey"`
-	}
-	if err := json.Unmarshal(runtimeBytes, &rtd); err != nil {
-		return nil, errors.Wrap(err, "failed to parse runtime data")
-	}
-	if err := rtd.TEEPubKey.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid tee-pubkey in runtime data")
-	}
-	return &rtd.TEEPubKey, nil
-}
-
-// runtimeDataFromClaims finds attester_runtime_data at top level (v1) or under tdx/sgx (v2).
-func runtimeDataFromClaims(claims map[string]interface{}) interface{} {
-	if v, ok := claims["attester_runtime_data"]; ok {
-		return v
-	}
-	for _, key := range []string{"tdx", "sgx"} {
-		if sub, ok := claims[key].(map[string]interface{}); ok {
-			if v, ok := sub["attester_runtime_data"]; ok {
-				return v
-			}
-		}
-	}
-	return nil
-}
-
-// parseTokenClaims extracts the JWT payload claims from a raw JWT string without
-// re-verifying the signature (signature already verified during /attest).
-func parseTokenClaims(token string) (map[string]interface{}, error) {
-	if token == "" {
-		return nil, nil
-	}
-
-	parts := strings.Split(token, ".")
-	if len(parts) != 3 {
-		return nil, errors.New("invalid JWT structure")
-	}
-
-	decoded, err := base64.RawURLEncoding.DecodeString(parts[1])
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode JWT payload")
-	}
-
-	var claims map[string]interface{}
-	if err := json.Unmarshal(decoded, &claims); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal JWT claims")
-	}
-
-	return claims, nil
 }

@@ -113,7 +113,7 @@ func (s *InMemoryStore) MarkAttested(id string, token string) error {
 }
 
 // StoreAttestationData stores the attestation token, marking the session as attested.
-func (s *InMemoryStore) StoreAttestationData(id string, teePubKey *model.JWK, token string) error {
+func (s *InMemoryStore) StoreAttestationData(id string, token string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
