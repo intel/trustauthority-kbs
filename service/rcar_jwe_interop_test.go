@@ -4,7 +4,7 @@
  *   SPDX-License-Identifier: BSD-3-Clause
  */
 
-package http
+package service
 
 import (
 	"crypto/aes"
@@ -97,7 +97,7 @@ func TestEncryptResourceAsFlattenedJWE_EC_GuestCompat(t *testing.T) {
 	}
 }
 
-func decryptLikeGuestComponents(jwe *jweFlattened, rsaPriv *rsa.PrivateKey, ecPriv *ecdsa.PrivateKey) ([]byte, error) {
+func decryptLikeGuestComponents(jwe *model.JWEFlattened, rsaPriv *rsa.PrivateKey, ecPriv *ecdsa.PrivateKey) ([]byte, error) {
 	protectedRaw, err := base64.RawURLEncoding.DecodeString(jwe.Protected)
 	if err != nil {
 		return nil, err

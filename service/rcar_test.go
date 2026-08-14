@@ -245,3 +245,98 @@ func TestVerifyRCARAttestationITAFailure(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, http.StatusBadGateway, h.Code)
 }
+
+func TestRCARHintContextAndRuntimeDataLookup(t *testing.T) {
+	ctx := context.Background()
+	_, ok := rcarTEEHintFromContext(ctx)
+	assert.False(t, ok)
+
+	ctx = WithRCARTEEHint(ctx, model.TeeSGX)
+	tee, ok := rcarTEEHintFromContext(ctx)
+	require.True(t, ok)
+	assert.Equal(t, model.TeeSGX, tee)
+
+	ctx = context.Background()
+	ctx = WithRCARTEEHint(ctx, "")
+	_, ok = rcarTEEHintFromContext(ctx)
+	assert.False(t, ok)
+
+	claims := map[string]interface{}{
+		"attester_runtime_data": "eyJ0ZWUtcHVia2V5Ijp7Imt0eSI6IlJTQSIsIm4iOiJtb2QiLCJlIjoiQVFBQiJ9LCJub25jZSI6Im4ifQ==",
+	}
+	assert.NotNil(t, runtimeDataFromClaims(claims))
+
+	nestedClaims := map[string]interface{}{"tdx": map[string]interface{}{"attester_runtime_data": "data"}}
+	assert.Equal(t, "data", runtimeDataFromClaims(nestedClaims))
+	assert.Nil(t, runtimeDataFromClaims(map[string]interface{}{"other": "value"}))
+}
+
+func TestBuildAttestRequest_MultipleRCARBranches(t *testing.T) {
+	quote := json.RawMessage("\"" + base64.StdEncoding.EncodeToString([]byte("sgx-quote")) + "\"")
+	request := &model.RCARAttestationRequest{
+		RuntimeData: model.RuntimeData{
+			Nonce:     "nonce-branch",
+			TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"},
+		},
+		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: quote},
+	}
+
+	reqBody, teeType, nonce, err := buildAttestRequest(request, "")
+	require.NoError(t, err)
+	assert.Equal(t, model.TeeSGX, teeType)
+	assert.Equal(t, "nonce-branch", nonce)
+	require.NotNil(t, reqBody)
+	require.NotNil(t, reqBody.SGX)
+	assert.Equal(t, []byte("sgx-quote"), reqBody.SGX.Quote)
+
+	primary := map[string]interface{}{"quote": []byte("tdx-quote"), "event_log": []byte("eventlog")}
+	primaryRaw, err := json.Marshal(primary)
+	require.NoError(t, err)
+
+	additional := map[string]interface{}{
+		"nvidia": map[string]interface{}{
+			"device_evidence_list": []map[string]string{{"evidence": "ev", "certificate": "cert", "arch": "HOPPER"}},
+		},
+	}
+	additionalRaw, err := json.Marshal(additional)
+	require.NoError(t, err)
+
+	request2 := &model.RCARAttestationRequest{
+		RuntimeData: model.RuntimeData{
+			Nonce:     "nonce-tdx",
+			TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"},
+		},
+		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: primaryRaw, AdditionalEvidence: string(additionalRaw)},
+	}
+
+	reqBody2, teeType2, nonce2, err := buildAttestRequest(request2, "")
+	require.NoError(t, err)
+	assert.Equal(t, model.TeeTDX, teeType2)
+	assert.Equal(t, "nonce-tdx", nonce2)
+	require.NotNil(t, reqBody2)
+	require.NotNil(t, reqBody2.TDX)
+	require.NotNil(t, reqBody2.NVGPU)
+	assert.Equal(t, nvidiaArchHopper, reqBody2.NVGPU.Arch)
+
+	_, _, _, err = buildAttestRequest(&model.RCARAttestationRequest{RuntimeData: model.RuntimeData{Nonce: "bad", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}}, TEEEvidence: model.CompositeEvidence{PrimaryEvidence: json.RawMessage("{\"quote\":\"not-base64\"}")}}, "")
+	assert.Error(t, err)
+
+	_, _, _, err = buildAttestRequest(&model.RCARAttestationRequest{RuntimeData: model.RuntimeData{Nonce: "bad2", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}}, TEEEvidence: model.CompositeEvidence{PrimaryEvidence: json.RawMessage("{\"quote\":\"" + base64.StdEncoding.EncodeToString([]byte("ok")) + "\",\"event_log\":\"data\"}")}}, model.TeeSGX)
+	assert.Error(t, err)
+}
+
+func TestBuildNVGPUAdditionalEvidenceAndFindEntry(t *testing.T) {
+	steadyPayload := `{"nvidia":{"device_evidence_list":[{"evidence":"ev","certificate":"cert","arch":"HOPPER"}]}}`
+	gpu, err := buildNVGPUAdditionalEvidence(steadyPayload, []byte("runtime-data"))
+	require.NoError(t, err)
+	require.NotNil(t, gpu)
+	assert.Equal(t, nvidiaArchHopper, gpu.Arch)
+
+	_, ok := findNVGPUEntry(map[string]json.RawMessage{"nvidia": json.RawMessage("{}")})
+	assert.True(t, ok)
+	_, ok = findNVGPUEntry(map[string]json.RawMessage{"other": json.RawMessage("{}")})
+	assert.False(t, ok)
+
+	_, err = buildNVGPUAdditionalEvidence("{not-json}", nil)
+	assert.Error(t, err)
+}

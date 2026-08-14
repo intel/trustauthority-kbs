@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"intel/kbs/v1/model"
+
 	"github.com/onsi/gomega"
 )
 
@@ -85,4 +87,74 @@ func TestInMemoryStoreConcurrentAccess(t *testing.T) {
 		_, ok := store.Get(id)
 		g.Expect(ok).To(gomega.BeTrue())
 	}
+}
+
+func TestInMemoryStoreDefaultTTLAndCleanup(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	store := NewInMemoryStore(0, 0)
+	defer store.Close()
+
+	g.Expect(store.ttl).To(gomega.Equal(5 * time.Minute))
+	g.Expect(store.cleanupInterval).To(gomega.Equal(time.Minute))
+}
+
+func TestInMemoryStoreCreateWithTEEAndGetMissingSession(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	store := NewInMemoryStore(time.Minute, time.Minute)
+	defer store.Close()
+
+	sess := store.CreateWithTEE("nonce-tee", "sgx")
+	g.Expect(sess.RequestedTEE).To(gomega.Equal(model.Tee("sgx")))
+
+	_, ok := store.Get("missing-id")
+	g.Expect(ok).To(gomega.BeFalse())
+}
+
+func TestInMemoryStoreMarkAttestedAndStoreAttestationData(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	store := NewInMemoryStore(time.Minute, time.Minute)
+	defer store.Close()
+
+	sess := store.Create("nonce-4")
+
+	err := store.MarkAttested(sess.ID, "token-1")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(store.sessions[sess.ID].AttestationToken).To(gomega.Equal("token-1"))
+
+	err = store.StoreAttestationData(sess.ID, "token-2")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(store.sessions[sess.ID].AttestationToken).To(gomega.Equal("token-2"))
+}
+
+func TestInMemoryStoreExpiredAndNotFoundBranches(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	store := NewInMemoryStore(20*time.Millisecond, 10*time.Millisecond)
+	defer store.Close()
+
+	sess := store.Create("nonce-exp")
+	store.Delete(sess.ID)
+	g.Expect(store.sessions).NotTo(gomega.HaveKey(sess.ID))
+
+	err := store.MarkAttested("missing", "token")
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	err = store.StoreAttestationData("missing", "token")
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	newSession := store.Create("nonce-exp-2")
+	store.sessions[newSession.ID].ExpiresAt = time.Now().Add(-time.Second)
+	_, ok := store.Get(newSession.ID)
+	g.Expect(ok).To(gomega.BeFalse())
+
+	store.removeExpired()
+	g.Expect(store.sessions).NotTo(gomega.HaveKey(newSession.ID))
+}
+
+func TestCloneSessionNil(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	g.Expect(cloneSession(nil)).To(gomega.BeNil())
 }
