@@ -20,6 +20,7 @@ import (
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/mod/semver"
 )
 
 const (
@@ -46,16 +47,15 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 			return
 		}
 
-		// Validate version against server support (Trustee compatibility)
-		// For now, accept 0.4.0 and compatible versions
-		if req.Version != constant.ApiVersionV0Supported {
+		if !matchesRCARProtocolVersion(req.Version) {
+			log.Errorf("unsupported protocol version %q, expected %q", req.Version, constant.ApiVersionSupported)
 			writeProblem(w, http.StatusUnauthorized, "Unauthorized", "unsupported protocol version")
 			return
 		}
 
 		nonce, err := generateNonce(32)
 		if err != nil {
-			log.WithError(err).Error("failed to generate RCAR nonce")
+			log.WithError(err).Error("failed to generate challenge")
 			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to generate challenge")
 			return
 		}
@@ -65,7 +65,7 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 		http.SetCookie(w, &http.Cookie{
 			Name:     rcarSessionCookieName,
 			Value:    sess.ID,
-			Path:     "/",
+			Path:     "/kbs/v0",
 			HttpOnly: true,
 			Secure:   true,
 			SameSite: http.SameSiteStrictMode,
@@ -128,6 +128,10 @@ func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) ht
 		token, err := svc.VerifyRCARAttestation(ctx, &req)
 		if err != nil {
 			log.WithError(err).Error("failed to generate attestation token")
+			if handled, ok := err.(*service.HandledError); ok {
+				writeProblem(w, handled.Code, "Attestation error", handled.Message)
+				return
+			}
 			writeProblem(w, http.StatusInternalServerError, "Internal error", "failed to generate attestation token")
 			return
 		}
@@ -148,7 +152,7 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 	return func(w http.ResponseWriter, r *http.Request) {
 		attestationToken, err := resolveResourceAuthSession(r, store)
 		if err != nil {
-			log.Warnf("%v: fallback to bearer token", err)
+			log.Infof("%v: fallback to bearer token", err)
 			attestationToken, err = getBearerToken(r)
 			if err != nil {
 				writeProblem(w, http.StatusUnauthorized, "Unauthorized", "missing session cookie and bearer token")
@@ -165,6 +169,7 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 
 		jweResp, err := svc.GetRCARResource(r.Context(), attestationToken, addr)
 		if err != nil {
+			log.WithError(err).Error("failed to retrieve resource")
 			if handled, ok := err.(*service.HandledError); ok {
 				writeProblem(w, handled.Code, "Resource error", handled.Message)
 				return
@@ -193,6 +198,7 @@ func makeRCARResourcePolicyHandler(svc service.Service) http.HandlerFunc {
 		}
 
 		if err := svc.SetResourcePolicy(r.Context(), req); err != nil {
+			log.WithError(err).Error("failed to set resource policy")
 			if handled, ok := err.(*service.HandledError); ok {
 				writeProblem(w, handled.Code, "Resource policy error", handled.Message)
 				return
@@ -266,6 +272,21 @@ func writeProblem(w http.ResponseWriter, code int, title, detail string) {
 		Status: code,
 		Detail: detail,
 	})
+}
+
+func matchesRCARProtocolVersion(version string) bool {
+	v := strings.TrimSpace(version)
+	if v == "" {
+		return false
+	}
+	if !strings.HasPrefix(v, "v") {
+		v = "v" + v
+	}
+	if !semver.IsValid(v) {
+		return false
+	}
+	required := "v" + constant.ApiVersionSupported
+	return semver.Compare(v, required) == 0
 }
 
 func generateNonce(size int) (string, error) {

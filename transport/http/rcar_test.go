@@ -63,6 +63,48 @@ func TestRCARAuthSetsSessionCookie(t *testing.T) {
 	g.Expect(challenge).NotTo(gomega.HaveKey("version")) // Version field removed from Challenge per Trustee spec
 }
 
+func TestRCARAuthRejectsUnsupportedVersion(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.1","tee":"sgx","extra-params":{}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusUnauthorized))
+}
+
+func TestRCARAuthRejectsInvalidSemverVersion(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"not-a-semver","tee":"sgx","extra-params":{}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusUnauthorized))
+}
+
+func TestRCARAuthAcceptsBuildMetadataOnSupportedVersion(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.0+build.1","tee":"sgx","extra-params":{}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusOK))
+}
+
 func TestRCARAttestRequiresSessionCookie(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 

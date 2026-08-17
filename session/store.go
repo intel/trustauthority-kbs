@@ -95,21 +95,7 @@ func (s *InMemoryStore) Get(id string) (*Session, bool) {
 }
 
 func (s *InMemoryStore) MarkAttested(id string, token string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	sess, ok := s.sessions[id]
-	if !ok {
-		return errors.New("session not found")
-	}
-	if s.now().After(sess.ExpiresAt) {
-		delete(s.sessions, id)
-		return errors.New("session expired")
-	}
-
-	sess.Attested = true
-	sess.AttestationToken = token
-	return nil
+	return s.StoreAttestationData(id, token)
 }
 
 // StoreAttestationData stores the attestation token, marking the session as attested.

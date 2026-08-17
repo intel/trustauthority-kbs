@@ -13,7 +13,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
@@ -50,10 +49,7 @@ func encryptResourceAsFlattenedJWE(teePubKey *model.JWK, payload []byte) (*model
 		if err != nil {
 			return nil, err
 		}
-		if alg != jose.ECDH_ES_A256KW {
-			return nil, errors.Errorf("unsupported ec jwk alg %q", teePubKey.Alg)
-		}
-		return encryptECDHESA256KWAsFlattenedJWE(pk, payload)
+		return encryptECDHESA256KWAsFlattenedJWE(pk, alg, payload)
 	}
 
 	return nil, errors.Errorf("unsupported jwk kty %q", teePubKey.Kty)
@@ -81,8 +77,6 @@ func encryptRSAAsFlattenedJWE(pk *rsa.PublicKey, alg jose.KeyAlgorithm, payload 
 	switch alg {
 	case jose.RSA_OAEP_256:
 		encryptedKey, err = rsa.EncryptOAEP(sha256.New(), rand.Reader, pk, cek, nil)
-	case jose.RSA_OAEP:
-		encryptedKey, err = rsa.EncryptOAEP(sha1.New(), rand.Reader, pk, cek, nil)
 	default:
 		return nil, errors.Errorf("unsupported rsa jwk alg %q", alg)
 	}
@@ -99,13 +93,13 @@ func encryptRSAAsFlattenedJWE(pk *rsa.PublicKey, alg jose.KeyAlgorithm, payload 
 	}, nil
 }
 
-func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, payload []byte) (*model.JWEFlattened, error) {
+func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, alg jose.KeyAlgorithm, payload []byte) (*model.JWEFlattened, error) {
 	ephemeralPriv, err := ecdsa.GenerateKey(pk.Curve, rand.Reader)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate ephemeral ec key")
 	}
 
-	kek := josecipher.DeriveECDHES(string(jose.ECDH_ES_A256KW), []byte{}, []byte{}, ephemeralPriv, pk, 32)
+	kek := josecipher.DeriveECDHES(string(alg), []byte{}, []byte{}, ephemeralPriv, pk, 32)
 	cek, err := randomBytes(32)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate content encryption key")
@@ -127,7 +121,7 @@ func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, payload []byte) (*mo
 	ephemeralY := base64.RawURLEncoding.EncodeToString(bigIntToFixedBytes(ephemeralPriv.PublicKey.Y, coordLen))
 
 	protected, err := marshalProtectedHeader(protectedHeader{
-		Alg: string(jose.ECDH_ES_A256KW),
+		Alg: string(alg),
 		Enc: "A256GCM",
 		EPK: &epkHeader{
 			Crv: curveName,
@@ -237,8 +231,6 @@ func rsaAlgFromJWK(v string) (jose.KeyAlgorithm, error) {
 	switch strings.ToUpper(strings.TrimSpace(v)) {
 	case "", "RSA-OAEP-256":
 		return jose.RSA_OAEP_256, nil
-	case "RSA-OAEP":
-		return jose.RSA_OAEP, nil
 	default:
 		return "", errors.Errorf("unsupported rsa jwk alg %q", v)
 	}

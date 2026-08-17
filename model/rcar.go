@@ -53,7 +53,7 @@ func (k JWK) Validate() error {
 			return errors.New("invalid ec jwk: crv, x and y are required")
 		}
 		switch k.Crv {
-		case "P-256", "P-384":
+		case "P-256", "P-521":
 			return nil
 		default:
 			return errors.Errorf("unsupported ec curve %q", k.Crv)

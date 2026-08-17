@@ -69,7 +69,7 @@ func TestParseJWKPublicKey_UnsupportedCurve(t *testing.T) {
 
 	_, err := ParseJWKPublicKey(model.JWK{
 		Kty: "EC",
-		Crv: "P-521",
+		Crv: "P-384",
 		X:   "AQ",
 		Y:   "AQ",
 	})

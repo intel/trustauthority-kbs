@@ -35,7 +35,7 @@ func TestJWKValidate_RSA_MissingMembers(t *testing.T) {
 func TestJWKValidate_EC_UnsupportedCurve(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	k := JWK{Kty: "EC", Crv: "P-521", X: "x", Y: "y"}
+	k := JWK{Kty: "EC", Crv: "P-384", X: "x", Y: "y"}
 	err := k.Validate()
 
 	g.Expect(err).To(gomega.HaveOccurred())

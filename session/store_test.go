@@ -122,11 +122,15 @@ func TestInMemoryStoreMarkAttestedAndStoreAttestationData(t *testing.T) {
 
 	err := store.MarkAttested(sess.ID, "token-1")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(store.sessions[sess.ID].AttestationToken).To(gomega.Equal("token-1"))
+	fetched, ok := store.Get(sess.ID)
+	g.Expect(ok).To(gomega.BeTrue())
+	g.Expect(fetched.AttestationToken).To(gomega.Equal("token-1"))
 
 	err = store.StoreAttestationData(sess.ID, "token-2")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(store.sessions[sess.ID].AttestationToken).To(gomega.Equal("token-2"))
+	fetched, ok = store.Get(sess.ID)
+	g.Expect(ok).To(gomega.BeTrue())
+	g.Expect(fetched.AttestationToken).To(gomega.Equal("token-2"))
 }
 
 func TestInMemoryStoreExpiredAndNotFoundBranches(t *testing.T) {

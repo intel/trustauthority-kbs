@@ -81,8 +81,8 @@ func ecCurveFromName(name string) (elliptic.Curve, error) {
 	switch name {
 	case "P-256":
 		return elliptic.P256(), nil
-	case "P-384":
-		return elliptic.P384(), nil
+	case "P-521":
+		return elliptic.P521(), nil
 	default:
 		return nil, errors.Errorf("unsupported ec curve %q", name)
 	}
