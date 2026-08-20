@@ -1,4 +1,5 @@
-#Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+#Copyright(C) 2023 Intel Corporation
+#SPDX-License-Identifier: BSD-3-Clause
 
 
 ARG VERSION=v0.0.0
