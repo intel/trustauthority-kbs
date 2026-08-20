@@ -13,8 +13,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ResourcePolicy represents the payload for POST /kbs/v0/resource-policy.
 type ResourcePolicy struct {
+	// Base64-encoded Rego policy module content.
+	// required: true
 	Policy string `json:"policy"`
 }
 

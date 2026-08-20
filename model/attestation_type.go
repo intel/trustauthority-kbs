@@ -32,10 +32,6 @@ func (at AttesterType) Valid() bool {
 	return false
 }
 
-// AttesterTypes is a slice of AttesterType that supports composite policies
-// such as ["TDX","NVGPU"]. It unmarshals from either a JSON string ("TDX")
-// or a JSON array (["TDX","NVGPU"]) to preserve backward compatibility with
-// existing stored policies that use the plain-string form.
 type AttesterTypes []AttesterType
 
 // Contains reports whether the slice contains the given attester type.

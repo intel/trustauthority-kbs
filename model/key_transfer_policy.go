@@ -101,21 +101,22 @@ type TdxAttributes struct {
 type KeyTransferPolicyFilterCriteria struct {
 }
 
-// NvgpuPolicy holds the ITA policy IDs and per-GPU validation attributes
-// that KBS enforces when "NVGPU" is included in attestation_type.
 type NvgpuPolicy struct {
 	// List of ITA Policy IDs that must be matched in the attestation token
+	// example: [ 4517534b-a758-4447-7d2f-3e5606152ed6 ]
 	PolicyIds []uuid.UUID `json:"policy_ids,omitempty"`
 	// Per-GPU validation attributes
 	Attributes *NvgpuAttributes `json:"attributes,omitempty"`
 }
 
-// NvgpuAttributes defines the KBS-enforced NVGPU attestation requirements.
 type NvgpuAttributes struct {
 	// If true, the x-nvidia-overall-att-result claim in the token must be true.
+	// example: true
 	EnforceOverallAttestationResult *bool `json:"enforce_overall_attestation_result,omitempty"`
 	// If true, every GPU's secboot claim must be true.
+	// example: true
 	RequireSecureBoot *bool `json:"require_secure_boot,omitempty"`
 	// If set, every GPU's hwmodel claim must appear in this allowlist.
+	// example: [ H100-SXM, A100-PCIE ]
 	HwModel []string `json:"hwmodel,omitempty"`
 }

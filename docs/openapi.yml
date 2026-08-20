@@ -3,6 +3,11 @@ definitions:
     AttesterType:
         type: string
         x-go-package: intel/kbs/v1/model
+    AttesterTypes:
+        items:
+            $ref: '#/definitions/AttesterType'
+        type: array
+        x-go-package: intel/kbs/v1/model
     AuthTokenRequest:
         properties:
             password:
@@ -18,6 +23,117 @@ definitions:
         required:
             - username
             - password
+        type: object
+        x-go-package: intel/kbs/v1/model
+    CompositeEvidence:
+        properties:
+            additional_evidence:
+                description: Optional additional evidence for secondary devices.
+                type: string
+                x-go-name: AdditionalEvidence
+            primary_evidence:
+                description: Primary TEE evidence blob.
+                x-go-name: PrimaryEvidence
+        required:
+            - primary_evidence
+        type: object
+        x-go-package: intel/kbs/v1/model
+    InitData:
+        properties:
+            body:
+                description: Plaintext init data body.
+                type: string
+                x-go-name: Body
+            format:
+                description: Format of init data payload.
+                example: json
+                type: string
+                x-go-name: Format
+        type: object
+        x-go-package: intel/kbs/v1/model
+    JWEFlattened:
+        properties:
+            aad:
+                description: Optional additional authenticated data.
+                type: string
+                x-go-name: AAD
+            ciphertext:
+                description: Base64url-encoded encrypted payload.
+                type: string
+                x-go-name: Ciphertext
+            encrypted_key:
+                description: Base64url-encoded wrapped content encryption key.
+                type: string
+                x-go-name: EncryptedKey
+            iv:
+                description: Base64url-encoded IV/nonce for content encryption.
+                type: string
+                x-go-name: IV
+            protected:
+                description: Base64url-encoded protected header JSON.
+                type: string
+                x-go-name: Protected
+            tag:
+                description: Base64url-encoded authentication tag.
+                type: string
+                x-go-name: Tag
+        required:
+            - protected
+            - encrypted_key
+            - iv
+            - ciphertext
+            - tag
+        type: object
+        x-go-package: intel/kbs/v1/model
+    JWK:
+        properties:
+            alg:
+                description: JWE key management algorithm.
+                example: RSA-OAEP-256
+                type: string
+                x-go-name: Alg
+            crv:
+                description: EC curve.
+                example: P-256
+                type: string
+                x-go-name: Crv
+            e:
+                description: RSA public exponent (base64url).
+                example: AQAB
+                type: string
+                x-go-name: E
+            kid:
+                description: Key identifier.
+                example: tee-pubkey
+                type: string
+                x-go-name: Kid
+            kty:
+                description: Key type.
+                example: RSA
+                type: string
+                x-go-name: Kty
+            "n":
+                description: RSA modulus (base64url).
+                example: sXch4h0S9aJYpYfH0Ej4w5a5lqC1gJ5cS2C5s8VZ7zU
+                type: string
+                x-go-name: "N"
+            use:
+                description: Public key use.
+                example: enc
+                type: string
+                x-go-name: Use
+            x:
+                description: EC X coordinate (base64url).
+                example: f83OJ3D2xF4X8cG0M4x5HnQOQp2VfQp2G8nVbW8p6lA
+                type: string
+                x-go-name: X
+            "y":
+                description: EC Y coordinate (base64url).
+                example: x_FEzRu9h0vJfR0N9Y5s3mV9mSzW4JY5C7QkV4d1P8E
+                type: string
+                x-go-name: "Y"
+        required:
+            - kty
         type: object
         x-go-package: intel/kbs/v1/model
     KeyInfo:
@@ -57,6 +173,8 @@ definitions:
         properties:
             key_information:
                 $ref: '#/definitions/KeyInfo'
+            oci_information:
+                $ref: '#/definitions/OciInfo'
             transfer_policy_id:
                 description: Universal Unique IDentifier of the Key Transfer Policy
                 example: 4110594b-a753-4457-7d7f-3e52b62f2ed8
@@ -108,7 +226,7 @@ definitions:
     KeyTransferPolicy:
         properties:
             attestation_type:
-                $ref: '#/definitions/AttesterType'
+                $ref: '#/definitions/AttesterTypes'
             created_at:
                 description: Asset creation time
                 example: "0001-01-01T00:00:00Z"
@@ -121,6 +239,8 @@ definitions:
                 format: uuid
                 type: string
                 x-go-name: ID
+            nvgpu:
+                $ref: '#/definitions/NvgpuPolicy'
             sgx:
                 $ref: '#/definitions/SgxPolicy'
             tdx:
@@ -139,7 +259,7 @@ definitions:
                 x-go-name: AttestationToken
             event_log:
                 description: Log of all events that get extended to RTMRs (runtime-extendable measurement registers) . RTMR event log is available through ACPI.
-                example: '[ { "rtmr": {  "index":1....'
+                example: '[ { "rtmr": {  "index":1...'
                 items:
                     format: uint8
                     type: integer
@@ -147,6 +267,11 @@ definitions:
                 x-go-name: EventLog
             nonce:
                 $ref: '#/definitions/VerifierNonce'
+            nvgpu:
+                description: |-
+                    Raw NVGPU SDK attestation evidence, forwarded verbatim to the ITA v2 attest endpoint.
+                    Only present in composite TDX+NVGPU background-mode requests.
+                x-go-name: NVGPU
             quote:
                 description: SGX\TDX Quote to be attested
                 example: AwACAAAAAAAHAAwAk5pyM/ecTKmUCg2zlX8GBxdZqc7ZHvph1dB/Gx0CGGUAAAAABQUMDP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAAAAADnAAAAAAAAADi4Dt0xe3/egf97SCWPr8ncgUiYi9E4SNLWlL0C5rHTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADUEqTwfvg4kqWRX7KrWEvjHhhuWk+Vq19pUP1OuGlNewAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACK0eSGrg5DJjzLRoYjBDpov80TukNTvbsNjnfQy6Ui/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxBAAAA6Yv94bEfYZ0eRjJtx6A5uPehGmdrMCDRHqKDzeKEePZbfVaLvmUS7rCn8SB5trPOA1R8df9nXk2jQ8aRQc6hnmiYobB5ujL44dQWqgg67mqFjIPmJsV0D+nlJMLGwBYnZZklCfDQ+82rFoExN3805BSWUvhkqaAChIJqkvIQfzBQUMDP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQAAAAAAAADnAAAAAAAAAK4SPL+pbCaFYN/V3/5IVM5EPeTg+lHSgRhMlCjXo0D7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACMT1d115ZQPpYTf3fGioKaAFasje1wFAsIGwlEkMV7/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEABwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACjlJOfr4vl+VcNZYWRGfPkCTKi8Upz0gXEsoFD19ltXQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+1txjKVJ2JdwfOtnwK2QGXS/dL3xLnR0/UPemPHtPUYTxNIQi/CLW5lIANsuPt9K0gr2RsuHnO7TUUjSOVCHGiAAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8FAFwOAAAtLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRTh6Q0NCSm1nQXdJQkFnSVZBTGNPM1VWbHRVNnZOL1RTc2liUmcxM0U2c2NkTUFvR0NDcUdTTTQ5QkFNQ01IQXhJakFnQmdOVgpCQU1NR1VsdWRHVnNJRk5IV0NCUVEwc2dVR3hoZEdadmNtMGdRMEV4R2pBWUJnTlZCQW9NRVVsdWRHVnNJRU52Y25CdmNtRjBhVzl1Ck1SUXdFZ1lEVlFRSERBdFRZVzUwWVNCRGJHRnlZVEVMTUFrR0ExVUVDQXdDUTBFeEN6QUpCZ05WQkFZVEFsVlRNQjRYRFRJeU1ETXkKTlRFMU5UVTBObG9YRFRJNU1ETXlOVEUxTlRVME5sb3djREVpTUNBR0ExVUVBd3daU1c1MFpXd2dVMGRZSUZCRFN5QkRaWEowYVdacApZMkYwWlRFYU1CZ0dBMVVFQ2d3UlNXNTBaV3dnUTI5eWNHOXlZWFJwYjI0eEZEQVNCZ05WQkFjTUMxTmhiblJoSUVOc1lYSmhNUXN3CkNRWURWUVFJREFKRFFURUxNQWtHQTFVRUJoTUNWVk13V1RBVEJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVNBbWg4Uy93cU4Kd2wybUt1UzVmaXM1eVlvdWNwZXZTUEVhTHdYem9hdUhnWDgwTDZpYVhpbW9WYXFRZURoQ2o0dThqQTV5OEFOenJOQ0UwTUhybDgzSgpvNElERGpDQ0F3b3dId1lEVlIwakJCZ3dGb0FVbFc5ZHpiMGI0ZWxBU2NuVTlEUE9BVmNMM2xRd2F3WURWUjBmQkdRd1lqQmdvRjZnClhJWmFhSFIwY0hNNkx5OWhjR2t1ZEhKMWMzUmxaSE5sY25acFkyVnpMbWx1ZEdWc0xtTnZiUzl6WjNndlkyVnlkR2xtYVdOaGRHbHYKYmk5Mk15OXdZMnRqY213L1kyRTljR3hoZEdadmNtMG1aVzVqYjJScGJtYzlaR1Z5TUIwR0ExVWREZ1FXQkJTR1U3WkRXbnpOQmhtMwpPV0RqYnZQMXIyUDhIakFPQmdOVkhROEJBZjhFQkFNQ0JzQXdEQVlEVlIwVEFRSC9CQUl3QURDQ0Fqc0dDU3FHU0liNFRRRU5BUVNDCkFpd3dnZ0lvTUI0R0NpcUdTSWI0VFFFTkFRRUVFUEVPeFZJYkNvSFV6ZTV4QVU2MUdSSXdnZ0ZsQmdvcWhraUcrRTBCRFFFQ01JSUIKVlRBUUJnc3Foa2lHK0UwQkRRRUNBUUlCQkRBUUJnc3Foa2lHK0UwQkRRRUNBZ0lCQkRBUUJnc3Foa2lHK0UwQkRRRUNBd0lCQXpBUQpCZ3NxaGtpRytFMEJEUUVDQkFJQkF6QVJCZ3NxaGtpRytFMEJEUUVDQlFJQ0FQOHdFUVlMS29aSWh2aE5BUTBCQWdZQ0FnRC9NQkFHCkN5cUdTSWI0VFFFTkFRSUhBZ0VBTUJBR0N5cUdTSWI0VFFFTkFRSUlBZ0VBTUJBR0N5cUdTSWI0VFFFTkFRSUpBZ0VBTUJBR0N5cUcKU0liNFRRRU5BUUlLQWdFQU1CQUdDeXFHU0liNFRRRU5BUUlMQWdFQU1CQUdDeXFHU0liNFRRRU5BUUlNQWdFQU1CQUdDeXFHU0liNApUUUVOQVFJTkFnRUFNQkFHQ3lxR1NJYjRUUUVOQVFJT0FnRUFNQkFHQ3lxR1NJYjRUUUVOQVFJUEFnRUFNQkFHQ3lxR1NJYjRUUUVOCkFRSVFBZ0VBTUJBR0N5cUdTSWI0VFFFTkFRSVJBZ0VMTUI4R0N5cUdTSWI0VFFFTkFRSVNCQkFFQkFNRC8vOEFBQUFBQUFBQUFBQUEKTUJBR0NpcUdTSWI0VFFFTkFRTUVBZ0FBTUJRR0NpcUdTSWI0VFFFTkFRUUVCakJnYWdBQUFEQVBCZ29xaGtpRytFMEJEUUVGQ2dFQgpNQjRHQ2lxR1NJYjRUUUVOQVFZRUVHV08wU2lPdHBGbDI0ZEZtT3lPVUs0d1JBWUtLb1pJaHZoTkFRMEJCekEyTUJBR0N5cUdTSWI0ClRRRU5BUWNCQVFIL01CQUdDeXFHU0liNFRRRU5BUWNDQVFFQU1CQUdDeXFHU0liNFRRRU5BUWNEQVFIL01Bb0dDQ3FHU000OUJBTUMKQTBnQU1FVUNJRGxqWDRBeDdTNDE1TEdjZG04czRucG14NU9zak4yMkFNMC9XV2hBY2MrdEFpRUE2M3N6ckJaWjZDUUI5ckFwZ3NHSgpMazVNQUVWZ1lwZ3J0blFoYmFxZytQTT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLS0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlDbGpDQ0FqMmdBd0lCQWdJVkFKVnZYYzI5RytIcFFFbkoxUFF6emdGWEM5NVVNQW9HQ0NxR1NNNDlCQU1DCk1HZ3hHakFZQmdOVkJBTU1FVWx1ZEdWc0lGTkhXQ0JTYjI5MElFTkJNUm93R0FZRFZRUUtEQkZKYm5SbGJDQkQKYjNKd2IzSmhkR2x2YmpFVU1CSUdBMVVFQnd3TFUyRnVkR0VnUTJ4aGNtRXhDekFKQmdOVkJBZ01Ba05CTVFzdwpDUVlEVlFRR0V3SlZVekFlRncweE9EQTFNakV4TURVd01UQmFGdzB6TXpBMU1qRXhNRFV3TVRCYU1IQXhJakFnCkJnTlZCQU1NR1VsdWRHVnNJRk5IV0NCUVEwc2dVR3hoZEdadmNtMGdRMEV4R2pBWUJnTlZCQW9NRVVsdWRHVnMKSUVOdmNuQnZjbUYwYVc5dU1SUXdFZ1lEVlFRSERBdFRZVzUwWVNCRGJHRnlZVEVMTUFrR0ExVUVDQXdDUTBFeApDekFKQmdOVkJBWVRBbFZUTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFTlNCLzd0MjFsWFNPCjJDdXpweHc3NGVKQjcyRXlER2dXNXJYQ3R4MnRWVExxNmhLazZ6K1VpUlpDbnFSN3BzT3ZncUZlU3hsbVRsSmwKZVRtaTJXWXozcU9CdXpDQnVEQWZCZ05WSFNNRUdEQVdnQlFpWlF6V1dwMDBpZk9EdEpWU3YxQWJPU2NHckRCUwpCZ05WSFI4RVN6QkpNRWVnUmFCRGhrRm9kSFJ3Y3pvdkwyTmxjblJwWm1sallYUmxjeTUwY25WemRHVmtjMlZ5CmRtbGpaWE11YVc1MFpXd3VZMjl0TDBsdWRHVnNVMGRZVW05dmRFTkJMbVJsY2pBZEJnTlZIUTRFRmdRVWxXOWQKemIwYjRlbEFTY25VOURQT0FWY0wzbFF3RGdZRFZSMFBBUUgvQkFRREFnRUdNQklHQTFVZEV3RUIvd1FJTUFZQgpBZjhDQVFBd0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ1hzVmtpMHcraTZWWUdXM1VGLzIydWFYZTBZSkRqMVVlCm5BK1RqRDFhaTVjQ0lDWWIxU0FtRDV4a2ZUVnB2bzRVb3lpU1l4ckRXTG1VUjRDSTlOS3lmUE4rCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0KLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNqekNDQWpTZ0F3SUJBZ0lVSW1VTTFscWROSW56ZzdTVlVyOVFHemtuQnF3d0NnWUlLb1pJemowRUF3SXcKYURFYU1CZ0dBMVVFQXd3UlNXNTBaV3dnVTBkWUlGSnZiM1FnUTBFeEdqQVlCZ05WQkFvTUVVbHVkR1ZzSUVOdgpjbkJ2Y21GMGFXOXVNUlF3RWdZRFZRUUhEQXRUWVc1MFlTQkRiR0Z5WVRFTE1Ba0dBMVVFQ0F3Q1EwRXhDekFKCkJnTlZCQVlUQWxWVE1CNFhEVEU0TURVeU1URXdORFV4TUZvWERUUTVNVEl6TVRJek5UazFPVm93YURFYU1CZ0cKQTFVRUF3d1JTVzUwWld3Z1UwZFlJRkp2YjNRZ1EwRXhHakFZQmdOVkJBb01FVWx1ZEdWc0lFTnZjbkJ2Y21GMAphVzl1TVJRd0VnWURWUVFIREF0VFlXNTBZU0JEYkdGeVlURUxNQWtHQTFVRUNBd0NRMEV4Q3pBSkJnTlZCQVlUCkFsVlRNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVDNm5Fd01ESVlaT2ovaVBXc0N6YUVLaTcKMU9pT1NMUkZoV0dqYm5CVkpmVm5rWTR1M0lqa0RZWUwwTXhPNG1xc3lZamxCYWxUVll4RlAyc0pCSzV6bEtPQgp1ekNCdURBZkJnTlZIU01FR0RBV2dCUWlaUXpXV3AwMGlmT0R0SlZTdjFBYk9TY0dyREJTQmdOVkhSOEVTekJKCk1FZWdSYUJEaGtGb2RIUndjem92TDJObGNuUnBabWxqWVhSbGN5NTBjblZ6ZEdWa2MyVnlkbWxqWlhNdWFXNTAKWld3dVkyOXRMMGx1ZEdWc1UwZFlVbTl2ZEVOQkxtUmxjakFkQmdOVkhRNEVGZ1FVSW1VTTFscWROSW56ZzdTVgpVcjlRR3prbkJxd3dEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkRXdFQi93UUlNQVlCQWY4Q0FRRXdDZ1lJCktvWkl6ajBFQXdJRFNRQXdSZ0loQU9XLzVRa1IrUzlDaVNEY05vb3dMdVBSTHNXR2YvWWk3R1NYOTRCZ3dUd2cKQWlFQTRKMGxySG9NcytYbzVvL3NYNk85UVd4SFJBdlpVR09kUlE3Y3ZxUlhhcUk9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
@@ -193,20 +318,184 @@ definitions:
             - transfer_policy_id
         type: object
         x-go-package: intel/kbs/v1/model
-    PublicKey:
-        description: |-
-            The value of the modulus N is considered secret by this library and protected
-            from leaking through timing side-channels. However, neither the value of the
-            exponent E nor the precise bit size of N are similarly protected.
+    NvgpuAttributes:
         properties:
-            E:
+            enforce_overall_attestation_result:
+                description: If true, the x-nvidia-overall-att-result claim in the token must be true.
+                example: true
+                type: boolean
+                x-go-name: EnforceOverallAttestationResult
+            hwmodel:
+                description: If set, every GPU's hwmodel claim must appear in this allowlist.
+                example: '[ H100-SXM, A100-PCIE ]'
+                items:
+                    type: string
+                type: array
+                x-go-name: HwModel
+            require_secure_boot:
+                description: If true, every GPU's secboot claim must be true.
+                example: true
+                type: boolean
+                x-go-name: RequireSecureBoot
+        type: object
+        x-go-package: intel/kbs/v1/model
+    NvgpuPolicy:
+        properties:
+            attributes:
+                $ref: '#/definitions/NvgpuAttributes'
+            policy_ids:
+                description: List of ITA Policy IDs that must be matched in the attestation token
+                example: '[ 4517534b-a758-4447-7d2f-3e5606152ed6 ]'
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PolicyIds
+        type: object
+        x-go-package: intel/kbs/v1/model
+    OciInfo:
+        properties:
+            compartment_id:
+                description: The OCID of the compartment where you want to create the secret.
+                example: ocid1.test.oc1..<unique_ID>EXAMPLE-compartmentId-Value
+                type: string
+                x-go-name: CompartmentId
+            key_id:
+                description: The OCID of the master encryption key that is used to encrypt the secret.
+                example: ocid1.test.oc1..<unique_ID>EXAMPLE-keyId-Value
+                type: string
+                x-go-name: KeyId
+            secret_id:
+                description: OCI Secret ID, if the key is already created in OCI backend
+                example: ocid1.test.oc1..<unique_ID>EXAMPLE-secretId-Value
+                type: string
+                x-go-name: SecretId
+            secret_name:
+                description: A user-friendly name for the secret.
+                example: EXAMPLE-secretName-Value
+                type: string
+                x-go-name: SecretName
+            vault_id:
+                description: The OCID of the vault where you want to create the secret.
+                example: ocid1.test.oc1..<unique_ID>EXAMPLE-vaultId-Value
+                type: string
+                x-go-name: VaultId
+        type: object
+        x-go-package: intel/kbs/v1/model
+    ProblemDetails:
+        properties:
+            detail:
+                description: Detailed problem message.
+                example: unsupported protocol version
+                type: string
+                x-go-name: Detail
+            instance:
+                description: URI reference that identifies the specific occurrence.
+                type: string
+                x-go-name: Instance
+            status:
+                description: HTTP status code.
+                example: 401
                 format: int64
                 type: integer
-            "N":
+                x-go-name: Status
+            title:
+                description: Short human-readable summary.
+                example: Unauthorized
                 type: string
-        title: A PublicKey represents the public part of an RSA key.
+                x-go-name: Title
+            type:
+                description: Problem type URI.
+                example: about:blank
+                type: string
+                x-go-name: Type
+        required:
+            - title
+            - status
         type: object
-        x-go-package: crypto/rsa
+        x-go-package: intel/kbs/v1/model
+    RCARAttestationRequest:
+        properties:
+            init-data:
+                $ref: '#/definitions/InitData'
+            runtime-data:
+                $ref: '#/definitions/RuntimeData'
+            tee-evidence:
+                $ref: '#/definitions/CompositeEvidence'
+        required:
+            - runtime-data
+            - tee-evidence
+        type: object
+        x-go-package: intel/kbs/v1/model
+    RCARAttestationResponse:
+        properties:
+            token:
+                description: Attestation token for subsequent resource retrieval.
+                type: string
+                x-go-name: Token
+        required:
+            - token
+        type: object
+        x-go-package: intel/kbs/v1/model
+    RCARAuthRequest:
+        properties:
+            extra-params:
+                additionalProperties: {}
+                description: Optional protocol extensions.
+                type: object
+                x-go-name: ExtraParams
+            tee:
+                $ref: '#/definitions/Tee'
+            version:
+                description: RCAR protocol version.
+                example: 0.4.0
+                type: string
+                x-go-name: Version
+        required:
+            - version
+            - tee
+        type: object
+        x-go-package: intel/kbs/v1/model
+    RCARChallenge:
+        properties:
+            extra-params:
+                additionalProperties: {}
+                description: Extra parameters chosen by server for this session.
+                type: object
+                x-go-name: ExtraParams
+            nonce:
+                description: Server nonce that must be echoed in runtime-data.nonce.
+                example: A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6
+                type: string
+                x-go-name: Nonce
+        required:
+            - nonce
+        type: object
+        x-go-package: intel/kbs/v1/model
+    ResourcePolicy:
+        properties:
+            policy:
+                description: Base64-encoded Rego policy module content.
+                type: string
+                x-go-name: Policy
+        required:
+            - policy
+        type: object
+        x-go-package: intel/kbs/v1/model
+    RuntimeData:
+        properties:
+            nonce:
+                description: Nonce returned by /kbs/v0/auth.
+                example: A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6
+                type: string
+                x-go-name: Nonce
+            tee-pubkey:
+                $ref: '#/definitions/JWK'
+        required:
+            - nonce
+            - tee-pubkey
+        type: object
+        x-go-package: intel/kbs/v1/model
     SgxAttributes:
         properties:
             enforce_tcb_upto_date:
@@ -328,29 +617,9 @@ definitions:
                 x-go-name: PolicyIds
         type: object
         x-go-package: intel/kbs/v1/model
-    TransferKeyRequest:
-        properties:
-            AttestationType:
-                type: string
-            KeyId:
-                format: uuid
-                type: string
-            KeyTransferRequest:
-                $ref: '#/definitions/KeyTransferRequest'
-            PublicKey:
-                $ref: '#/definitions/PublicKey'
-        type: object
-        x-go-package: intel/kbs/v1/service
-    TransferKeyResponse:
-        properties:
-            AttestationType:
-                type: string
-            KeyTransferResponse:
-                $ref: '#/definitions/KeyTransferResponse'
-            Nonce:
-                $ref: '#/definitions/VerifierNonce'
-        type: object
-        x-go-package: intel/kbs/v1/service
+    Tee:
+        type: string
+        x-go-package: intel/kbs/v1/model
     User:
         properties:
             password:
@@ -442,10 +711,130 @@ info:
 
         The key Broker Service (KBS) provides and retains encryption/decryption keys for various purposes. When a TEE workload requests for the decryption key to operate on a resource, the KBS requests the workloads attestation from Intel Trust Authority (ITA), verifies all digital signatures and retains the final control over whether the decryption key is issued. If the workload's attestation meets the policy requirements, the KBS issues a decryption key itself, wrapped using the public key form the workload that was attested, cryptographically ensuring that only the attested workload can decrypt the requested key.
     license:
-        name: Copyright(C) 2022 Intel Corporation. All Rights Reserved.
+        name: Copyright(C) 2022 Intel Corporation. All Rights Reserved
     title: Key Broker Service
     version: 0.3.1
 paths:
+    /kbs/v0/attest:
+        post:
+            consumes:
+                - application/json
+            description: |
+                Submits attestation evidence and runtime data to receive an attestation token.
+            operationId: RCARAttest
+            parameters:
+                - description: Session cookie returned by /kbs/v0/auth (kbs-session-id).
+                  in: header
+                  name: Cookie
+                  required: true
+                  type: string
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/RCARAttestationRequest'
+            produces:
+                - application/json
+            responses:
+                "200":
+                    $ref: '#/responses/RCARAttestResponse'
+                "400":
+                    $ref: '#/responses/RCARProblem'
+                "401":
+                    $ref: '#/responses/RCARProblem'
+                "500":
+                    $ref: '#/responses/RCARProblem'
+            tags:
+                - RCAR
+    /kbs/v0/auth:
+        post:
+            consumes:
+                - application/json
+            description: |
+                Starts RCAR protocol negotiation and returns a nonce challenge.
+            operationId: RCARAuth
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/RCARAuthRequest'
+            produces:
+                - application/json
+            responses:
+                "200":
+                    $ref: '#/responses/RCARAuthResponse'
+                "400":
+                    $ref: '#/responses/RCARProblem'
+                "401":
+                    $ref: '#/responses/RCARProblem'
+                "500":
+                    $ref: '#/responses/RCARProblem'
+            tags:
+                - RCAR
+    /kbs/v0/resource-policy:
+        post:
+            consumes:
+                - application/json
+            description: |
+                Sets a Rego resource policy used to authorize RCAR resource access.
+            operationId: RCARSetResourcePolicy
+            parameters:
+                - in: body
+                  name: request body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/ResourcePolicy'
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Resource policy stored successfully.
+                "400":
+                    $ref: '#/responses/RCARProblem'
+                "401":
+                    $ref: '#/responses/RCARProblem'
+                "500":
+                    $ref: '#/responses/RCARProblem'
+            security:
+                - bearerToken: []
+            tags:
+                - RCAR
+    /kbs/v0/resource/{repository}/{type}/{tag}:
+        get:
+            description: |
+                Retrieves a resource encrypted as flattened JWE for the attested workload.
+            operationId: RCARGetResource
+            parameters:
+                - in: path
+                  name: repository
+                  required: true
+                  type: string
+                - in: path
+                  name: type
+                  required: true
+                  type: string
+                - in: path
+                  name: tag
+                  required: true
+                  type: string
+                - description: Optional Bearer attestation token if session cookie is not used.
+                  in: header
+                  name: Authorization
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    $ref: '#/responses/RCARResourceResponse'
+                "400":
+                    $ref: '#/responses/RCARProblem'
+                "401":
+                    $ref: '#/responses/RCARProblem'
+                "500":
+                    $ref: '#/responses/RCARProblem'
+            tags:
+                - RCAR
     /key-transfer-policies:
         get:
             description: |
@@ -896,13 +1285,17 @@ paths:
 
                 The serialized KeyInformation Go struct object represents the content of the key_information field.
 
-                 | Attribute   | Description |
-                 |-------------|-------------|
-                 | algorithm   | The encryption algorithm used to create or register a key.  The supported algorithms are AES, RSA, and EC. |
-                 | key_length  | The key length used to create a key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for the AES and RSA algorithms. |
-                 | curve_type  | The elliptic curve used to create a key. The supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for the EC algorithm. |
-                 | key_data    | The Base64 encoded private key to be registered.  It is only supported if the key is created locally. |
-                 | kmip_key_id | The unique KMIP identifier of the key to be registered.  It is only supported if the key is created on a KMIP server. |
+                 | Attribute          | Description |
+                 |--------------------|-------------|
+                 | algorithm          | The encryption algorithm used to create or register a key.  The supported algorithms are AES, RSA, and EC. |
+                 | key_length         | The key length used to create a key. Supported key lengths are 128,192,256 bits for AES and 2048,3072,4096,7680 bits for RSA. This parameter must be provided only for the AES and RSA algorithms. |
+                 | curve_type         | The elliptic curve used to create a key. The supported curves are secp256r1, secp384r1, prime256v1 and secp521r1. This parameter must be provided only for the EC algorithm. |
+                 | key_data           | The Base64 encoded private key to be registered.  It is only supported if the key is created locally. |
+                 | kmip_key_id        | The unique KMIP identifier of the key to be registered.  It is only supported if the key is created on a KMIP server. |
+                 | oci_compartment_id | The Oracle Cloud ID (OCID) of the compartment where you want to create the secret. |
+                 | oci_key_id         | The Oracle Cloud ID (OCID) of the master encryption key that is used to encrypt the secret. You must specify a symmetric key to encrypt the secret during import to the vault. You cannot encrypt secrets with asymmetric keys. Furthermore, the key must exist in the vault that you specify. |
+                 | oci_secret_name    | A user-friendly name for the secret. Secret names should be unique within a vault. Avoid entering confidential information. Valid characters are uppercase or lowercase letters, numbers, hyphens, underscores, and periods. |
+                 | oci_vault_id       | The Oracle Cloud ID (OCID) of the vault where you want to create the secret. |
             operationId: CreateKey
             parameters:
                 - in: body
@@ -1120,9 +1513,9 @@ paths:
             consumes:
                 - application/json
             description: |
-                Transfers a wrapped secret and wrapped SWK.
+                Releases a wrapped secret and wrapped SWK after attestation and policy evaluation.
 
-                The serialized KeyRequest Go struct object that represents the content of the request body.
+                The serialized KeyTransferRequest Go struct object that represents the content of the request body.
 
                  | Attribute          | Description |
                  |--------------------|-------------|
@@ -1130,8 +1523,8 @@ paths:
                  | quote              | TEE quote from workload. This attribute is required to retrieve the key in background mode. |
                  | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
                  | user_data          | TEE held data in an attestation token. It is the public key created in the workload that is used to wrap the SWK key. |
-                 | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
-            operationId: TransferKey
+                 | event_log          | Event log from workload. This is a log of all events that get extended to RTMRs (runtime-extendable measurement registers) .. |
+            operationId: TransferKeyWithEvidence
             parameters:
                 - description: The unique ID of the key.
                   format: uuid
@@ -1143,7 +1536,7 @@ paths:
                   name: request body
                   required: true
                   schema:
-                    $ref: '#/definitions/TransferKeyRequest'
+                    $ref: '#/definitions/KeyTransferRequest'
                 - description: Content-Type header.
                   enum:
                     - application/json
@@ -1164,7 +1557,7 @@ paths:
                 "200":
                     description: The key was successfully transferred.
                     schema:
-                        $ref: '#/definitions/TransferKeyResponse'
+                        $ref: '#/definitions/KeyTransferResponse'
                 "400":
                     description: An invalid request body was provided.
                 "401":
@@ -1176,7 +1569,7 @@ paths:
                 "500":
                     description: Internal server error.
             tags:
-                - TransferKey
+                - Keys
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys
             x-sample-call-input: |
                 {
@@ -1282,7 +1675,7 @@ paths:
                 - User
             x-permissions: users:search
             x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/users?username=keysAdmin
-            x-sample-call-output: |
+            x-sample-call-output: |-
                 {
                   "id": "9acad9da-4ef0-4865-9426-f9c5a8be4d62",
                   "created_at": "2022-09-16T03:13:09.503698068Z",
@@ -1540,6 +1933,23 @@ paths:
                  "Version": "v0.0.0-0f0162ea",
                  "Build Date": "2022-03-08T12:17:18+0000"
                 }
+responses:
+    RCARAttestResponse:
+        description: RCARAttest response payload
+        schema:
+            $ref: '#/definitions/RCARAttestationResponse'
+    RCARAuthResponse:
+        description: RCARAuth response payload
+        schema:
+            $ref: '#/definitions/RCARChallenge'
+    RCARProblem:
+        description: RCARProblem error payload
+        schema:
+            $ref: '#/definitions/ProblemDetails'
+    RCARResourceResponse:
+        description: RCARResource response payload
+        schema:
+            $ref: '#/definitions/JWEFlattened'
 securityDefinitions:
     bearerToken:
         description: Enter your bearer token in the format <Bearer Token>

@@ -1,31 +1,100 @@
+/*
+ * Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+ */
 package kbs
 
-import "intel/kbs/v1/service"
+import "intel/kbs/v1/model"
 
 // TransferKey request payload
-// swagger:parameters TransferKeyRequest
-type TransferKeyRequest struct {
+// swagger:parameters KeyTransferRequest
+type KeyTransferRequest struct {
 	// in:body
 	// required: true
-	Body service.TransferKeyRequest
+	Body model.KeyTransferRequest
 }
 
 // TransferKey response payload
-// swagger:parameters TransferKeyResponse
-type TransferKeyResponse struct {
+// swagger:parameters KeyTransferResponse
+type KeyTransferResponse struct {
 	// in:body
 	// required: true
-	Body service.TransferKeyResponse
+	Body model.KeyTransferResponse
 }
 
 // ---
-// swagger:operation POST /keys/{id}/transfer TransferKey TransferKey
+// swagger:operation POST keys/{id} Keys TransferKey
 // ---
 //
 // description: |
-//   Transfers a wrapped secret and wrapped SWK.
+//   Releases a wrapped AES key with the public key provided in the request.
+//   Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
+// x-permissions: keys:transfer
+// security:
+// - bearerToken: []
+// produces:
+// - application/json
+// consumes:
+// - application/x-pem-file
+// parameters:
+// - name: id
+//   description: Unique ID of the key.
+//   in: path
+//   required: true
+//   type: string
+//   format: uuid
+// - name: Content-Type
+//   description: Content-Type header
+//   in: header
+//   type: string
+//   required: true
+//   enum:
+//     - application/x-pem-file
+// - name: Accept
+//   description: Accept header.
+//   in: header
+//   type: string
+//   required: true
+//   enum:
+//     - application/json
+// responses:
+//   '200':
+//     description: The key was successfully transferred.
+//     content:
+//       application/json
+//     schema:
+//       $ref: "#/definitions/KeyTransferResponse"
+//   '404':
+//     description: The key record was not found
+//   '415':
+//     description: Invalid Content-Type/Accept Header in the request.
+//   '500':
+//     description: Internal server error.
 //
-//   The serialized KeyRequest Go struct object that represents the content of the request body.
+// x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
+// x-sample-call-input: |
+//   -----BEGIN PUBLIC KEY-----
+//   MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjtGIk8SxD+OEiBpP2/T
+//   JUAF0upwuKGMk6wH8Rwov88VvzJrVm2NCticTk5FUg+UG5r8JArrV4tJPRHQyvqK
+//   wF4NiksuvOjv3HyIf4oaOhZjT8hDne1Bfv+cFqZJ61Gk0MjANh/T5q9vxER/7TdU
+//   NHKpoRV+NVlKN5bEU/NQ5FQjVXicfswxh6Y6fl2PIFqT2CfjD+FkBPU1iT9qyJYH
+//   A38IRvwNtcitFgCeZwdGPoxiPPh1WHY8VxpUVBv/2JsUtrB/rAIbGqZoxAIWvijJ
+//   Pe9o1TY3VlOzk9ASZ1AeatvOir+iDVJ5OpKmLnzc46QgGPUsjIyo6Sje9dxpGtoG
+//   QQIDAQAB
+//   -----END PUBLIC KEY-----
+// x-sample-call-output: |
+//   {
+//      "wrapped_key": "sKCE8YFz9DON8FghjavoHJCMec0+cPwj5pGxK35FXuMAQaxxECQH/vWTuUdK4eHBgk1/FMcfbSnjPRvIqANYQBWwNWfNrQVQ+NBa+PCP5FstjCjFUUIPYC2ei/taZtnp4RXx25eiljprmGcuboEAP359+J4tjkKJeuppxRnxA7u5ewjB+C4vhOpyWkOyP5Iio6RqXzWVVz6Usn2QIjVArpjLR0vk/HuB2TUCMoohxu3UloXUUeDAeWWGToQ9E9Pqc8jLNKvHlksZzZHuzSAaDz7q601LxD+BFKF2EvuWCVLS/hrScBL68SkB/nvsZIiGYxHbk3mzhFGEGFEVfkAx+g=="
+//   }
+
+// ---
+
+// swagger:operation POST /keys/{id}/transfer Keys TransferKeyWithEvidence
+// ---
+//
+// description: |
+//   Releases a wrapped secret and wrapped SWK after attestation and policy evaluation.
+//
+//   The serialized KeyTransferRequest Go struct object that represents the content of the request body.
 //
 //    | Attribute          | Description |
 //    |--------------------|-------------|
@@ -33,7 +102,7 @@ type TransferKeyResponse struct {
 //    | quote              | TEE quote from workload. This attribute is required to retrieve the key in background mode. |
 //    | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
 //    | user_data          | TEE held data in an attestation token. It is the public key created in the workload that is used to wrap the SWK key. |
-//    | nonce              | Verifier nonce from Intel Trust Authority. This is a serialized Go struct "VerifierNonce" in the Intel Trust Authority connector. |
+//    | event_log          | Event log from workload. This is a log of all events that get extended to RTMRs (runtime-extendable measurement registers) .. |
 //
 // produces:
 // - application/json
@@ -50,7 +119,7 @@ type TransferKeyResponse struct {
 //   required: true
 //   in: body
 //   schema:
-//    "$ref": "#/definitions/TransferKeyRequest"
+//    "$ref": "#/definitions/KeyTransferRequest"
 // - name: Content-Type
 //   description: Content-Type header.
 //   in: header
@@ -71,7 +140,7 @@ type TransferKeyResponse struct {
 //     content:
 //       application/json
 //     schema:
-//       $ref: "#/definitions/TransferKeyResponse"
+//       $ref: "#/definitions/KeyTransferResponse"
 //   '401':
 //     description: Failed to authenticate the attestation token.
 //   '404':

@@ -32,14 +32,6 @@ type KeyCollection struct {
 	Body KeyResponses
 }
 
-// KeyTransfer response payload
-// swagger:parameters KeyTransferResponse
-type KeyTransferResponse struct {
-	// in:body
-	// required: true
-	Body model.KeyTransferResponse
-}
-
 // Key update payload
 // swagger:parameters KeyUpdateRequest
 type KeyUpdateRequest struct {
@@ -195,71 +187,6 @@ type KeyUpdateRequest struct {
 //        "created_at": "2020-09-23T11:16:26.738467277Z"
 //    }
 
-// ---
-
-// swagger:operation POST keys/{id} Keys TransferKey
-// ---
-//
-// description: |
-//   Releases a wrapped AES key with the public key provided in the request.
-//   Returns - The serialized KeyTransferResponse Go struct object that was retrieved.
-// x-permissions: keys:transfer
-// security:
-// - bearerToken: []
-// produces:
-// - application/json
-// consumes:
-// - application/x-pem-file
-// parameters:
-// - name: id
-//   description: Unique ID of the key.
-//   in: path
-//   required: true
-//   type: string
-//   format: uuid
-// - name: Content-Type
-//   description: Content-Type header
-//   in: header
-//   type: string
-//   required: true
-//   enum:
-//     - application/x-pem-file
-// - name: Accept
-//   description: Accept header.
-//   in: header
-//   type: string
-//   required: true
-//   enum:
-//     - application/json
-// responses:
-//   '200':
-//     description: The key was successfully transferred.
-//     content:
-//       application/json
-//     schema:
-//       $ref: "#/definitions/KeyTransferResponse"
-//   '404':
-//     description: The key record was not found
-//   '415':
-//     description: Invalid Content-Type/Accept Header in the request.
-//   '500':
-//     description: Internal server error.
-//
-// x-sample-call-endpoint: https://kbs.com:9443/kbs/v1/keys/fc0cc779-22b6-4741-b0d9-e2e69635ad1e
-// x-sample-call-input: |
-//   -----BEGIN PUBLIC KEY-----
-//   MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjtGIk8SxD+OEiBpP2/T
-//   JUAF0upwuKGMk6wH8Rwov88VvzJrVm2NCticTk5FUg+UG5r8JArrV4tJPRHQyvqK
-//   wF4NiksuvOjv3HyIf4oaOhZjT8hDne1Bfv+cFqZJ61Gk0MjANh/T5q9vxER/7TdU
-//   NHKpoRV+NVlKN5bEU/NQ5FQjVXicfswxh6Y6fl2PIFqT2CfjD+FkBPU1iT9qyJYH
-//   A38IRvwNtcitFgCeZwdGPoxiPPh1WHY8VxpUVBv/2JsUtrB/rAIbGqZoxAIWvijJ
-//   Pe9o1TY3VlOzk9ASZ1AeatvOir+iDVJ5OpKmLnzc46QgGPUsjIyo6Sje9dxpGtoG
-//   QQIDAQAB
-//   -----END PUBLIC KEY-----
-// x-sample-call-output: |
-//   {
-//      "wrapped_key": "sKCE8YFz9DON8FghjavoHJCMec0+cPwj5pGxK35FXuMAQaxxECQH/vWTuUdK4eHBgk1/FMcfbSnjPRvIqANYQBWwNWfNrQVQ+NBa+PCP5FstjCjFUUIPYC2ei/taZtnp4RXx25eiljprmGcuboEAP359+J4tjkKJeuppxRnxA7u5ewjB+C4vhOpyWkOyP5Iio6RqXzWVVz6Usn2QIjVArpjLR0vk/HuB2TUCMoohxu3UloXUUeDAeWWGToQ9E9Pqc8jLNKvHlksZzZHuzSAaDz7q601LxD+BFKF2EvuWCVLS/hrScBL68SkB/nvsZIiGYxHbk3mzhFGEGFEVfkAx+g=="
-//   }
 // ---
 
 // swagger:operation DELETE /keys/{id} Keys DeleteKey

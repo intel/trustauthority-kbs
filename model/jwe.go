@@ -6,13 +6,22 @@
 
 package model
 
-// JWEFlattened represents a flattened JWE JSON serialization used for RCAR
-// encrypted resource responses.
 type JWEFlattened struct {
-	Protected    string `json:"protected"`
+	// Base64url-encoded protected header JSON.
+	// required: true
+	Protected string `json:"protected"`
+	// Base64url-encoded wrapped content encryption key.
+	// required: true
 	EncryptedKey string `json:"encrypted_key"`
-	AAD          string `json:"aad,omitempty"`
-	IV           string `json:"iv"`
-	Ciphertext   string `json:"ciphertext"`
-	Tag          string `json:"tag"`
+	// Optional additional authenticated data.
+	AAD string `json:"aad,omitempty"`
+	// Base64url-encoded IV/nonce for content encryption.
+	// required: true
+	IV string `json:"iv"`
+	// Base64url-encoded encrypted payload.
+	// required: true
+	Ciphertext string `json:"ciphertext"`
+	// Base64url-encoded authentication tag.
+	// required: true
+	Tag string `json:"tag"`
 }
