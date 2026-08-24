@@ -204,11 +204,6 @@ func buildNVGPUAdditionalEvidence(additional string, runtimeData []byte) (*NVGPU
 	// If client already sends ITA nvgpu shape, pass it through after basic decode validation.
 	var existing NVGPURequest
 	if err := json.Unmarshal(nvgpuRaw, &existing); err == nil && len(existing.EvidenceList) > 0 {
-		/*normalized, err := json.Marshal(existing)
-		if err != nil {
-			return nil, errors.New("invalid nvgpu evidence")
-		}
-		return json.RawMessage(normalized), nil*/
 		return &existing, nil
 	}
 
@@ -248,11 +243,6 @@ func buildNVGPUAdditionalEvidence(additional string, runtimeData []byte) (*NVGPU
 		})
 	}
 
-	/*encoded, err := json.Marshal(itaReq)
-	if err != nil {
-		return nil, errors.New("invalid nvgpu evidence")
-	}
-	return json.RawMessage(encoded), nil*/
 	return &itaReq, nil
 }
 

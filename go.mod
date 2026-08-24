@@ -1,7 +1,7 @@
 // Copyright(C) 2023 Intel Corporation. All Rights Reserved.
 module intel/kbs/v1
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/gemalto/kmip-go v0.0.6

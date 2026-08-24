@@ -76,10 +76,12 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 		// Return Challenge with nonce and extra_params (no version field per Trustee spec)
 		extraParams := make(map[string]interface{})
 		extraParams["selected-hash-algorithm"] = "sha512"
-		_ = json.NewEncoder(w).Encode(&model.RCARChallenge{
+		if err := json.NewEncoder(w).Encode(&model.RCARChallenge{
 			Nonce:       nonce,
 			ExtraParams: extraParams,
-		})
+		}); err != nil {
+			log.WithError(err).Error("failed to encode challenge response")
+		}
 	}
 }
 
@@ -101,7 +103,9 @@ func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) ht
 		if sess.Attested {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			_ = json.NewEncoder(w).Encode(&model.RCARAttestationResponse{Token: sess.AttestationToken})
+			if err := json.NewEncoder(w).Encode(&model.RCARAttestationResponse{Token: sess.AttestationToken}); err != nil {
+				log.WithError(err).Error("failed to encode attestation response")
+			}
 			return
 		}
 
@@ -144,7 +148,9 @@ func makeRCARAttestHandler(svc service.Service, store *session.InMemoryStore) ht
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(&model.RCARAttestationResponse{Token: token})
+		if err := json.NewEncoder(w).Encode(&model.RCARAttestationResponse{Token: token}); err != nil {
+			log.WithError(err).Error("failed to encode attestation response")
+		}
 	}
 }
 
@@ -180,7 +186,9 @@ func makeRCARResourceHandler(svc service.Service, store *session.InMemoryStore) 
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(jweResp)
+		if err := json.NewEncoder(w).Encode(jweResp); err != nil {
+			log.WithError(err).Error("failed to encode resource response")
+		}
 	}
 }
 
@@ -266,12 +274,14 @@ func decodeJSONBody(r *http.Request, out interface{}) error {
 func writeProblem(w http.ResponseWriter, code int, title, detail string) {
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(&model.ProblemDetails{
+	if err := json.NewEncoder(w).Encode(&model.ProblemDetails{
 		Type:   model.ProblemTypeAboutBlank,
 		Title:  title,
 		Status: code,
 		Detail: detail,
-	})
+	}); err != nil {
+		log.WithError(err).Error("failed to encode problem details")
+	}
 }
 
 func matchesRCARProtocolVersion(version string) bool {

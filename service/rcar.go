@@ -63,16 +63,13 @@ func (svc service) VerifyRCARAttestation(ctx context.Context, req *model.RCARAtt
 		teeType = hint
 	}
 
-	reqBody, effectiveTEEType, requestID, err := buildAttestRequest(req, teeType)
+	reqBody, _, requestID, err := buildAttestRequest(req, teeType)
 	if err != nil {
 		return "", &HandledError{Code: http.StatusBadRequest, Message: err.Error()}
 	}
 
 	token, err := svc.getTokenV2FromRequest(reqBody, requestID, "ITA RCAR attest request failed")
 	if err != nil {
-		if effectiveTEEType == model.TeeTDX {
-			return "", &HandledError{Code: http.StatusBadGateway, Message: err.Error()}
-		}
 		return "", &HandledError{Code: http.StatusBadGateway, Message: err.Error()}
 	}
 	return token, nil
