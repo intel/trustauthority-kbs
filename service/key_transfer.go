@@ -415,6 +415,15 @@ func createSwk() ([]byte, error) {
 
 // AesEncrypt encrypts plain bytes using AES key passed as param
 func AesEncrypt(data, key []byte) ([]byte, []byte, error) {
+	return aesEncrypt(data, key, nil)
+}
+
+// AesEncryptWithAAD encrypts bytes using AES-GCM and authenticates additional data.
+func AesEncryptWithAAD(data, key, aad []byte) ([]byte, []byte, error) {
+	return aesEncrypt(data, key, aad)
+}
+
+func aesEncrypt(data, key, aad []byte) ([]byte, []byte, error) {
 
 	// generate a new aes cipher using key
 	block, err := aes.NewCipher(key)
@@ -441,7 +450,7 @@ func AesEncrypt(data, key []byte) ([]byte, []byte, error) {
 	}
 
 	// here we encrypt data using the Seal function
-	return gcm.Seal(nil, nonce, data, nil), nonce, nil
+	return gcm.Seal(nil, nonce, data, aad), nonce, nil
 }
 
 // getPolicyIDsForAttestationTypes collects PolicyIds from the sub-policies that

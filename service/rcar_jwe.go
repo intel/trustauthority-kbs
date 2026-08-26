@@ -8,7 +8,6 @@ package service
 
 import (
 	"crypto/aes"
-	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -26,6 +25,8 @@ import (
 	josecipher "github.com/go-jose/go-jose/v4/cipher"
 	"github.com/pkg/errors"
 )
+
+const gcmTagSize = 16
 
 func encryptResourceAsFlattenedJWE(teePubKey *model.JWK, payload []byte) (*model.JWEFlattened, error) {
 	if teePubKey.IsRSA() {
@@ -64,7 +65,7 @@ func encryptRSAAsFlattenedJWE(pk *rsa.PublicKey, alg jose.KeyAlgorithm, payload 
 		return nil, errors.Wrap(err, "failed to serialize protected header")
 	}
 
-	cek, err := randomBytes(32)
+	cek, err := createSwk()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate content encryption key")
 	}
@@ -76,12 +77,18 @@ func encryptRSAAsFlattenedJWE(pk *rsa.PublicKey, alg jose.KeyAlgorithm, payload 
 	var encryptedKey []byte
 	switch alg {
 	case jose.RSA_OAEP_256:
-		encryptedKey, err = rsa.EncryptOAEP(sha256.New(), rand.Reader, pk, cek, nil)
+		wrappedKey, _, wrapErr := wrapKey(pk, cek, sha256.New(), nil)
+		if wrapErr != nil {
+			return nil, wrapErr
+		}
+
+		var ok bool
+		encryptedKey, ok = wrappedKey.([]byte)
+		if !ok {
+			return nil, errors.New("failed to convert wrapped key bytes")
+		}
 	default:
 		return nil, errors.Errorf("unsupported rsa jwk alg %q", alg)
-	}
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to wrap content encryption key")
 	}
 
 	return &model.JWEFlattened{
@@ -100,7 +107,7 @@ func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, alg jose.KeyAlgorith
 	}
 
 	kek := josecipher.DeriveECDHES(string(alg), []byte{}, []byte{}, ephemeralPriv, pk, 32)
-	cek, err := randomBytes(32)
+	cek, err := createSwk()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate content encryption key")
 	}
@@ -149,37 +156,17 @@ func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, alg jose.KeyAlgorith
 }
 
 func encryptA256GCM(cek []byte, aad []byte, payload []byte) ([]byte, []byte, []byte, error) {
-	iv, err := randomBytes(12)
+	sealed, iv, err := AesEncryptWithAAD(payload, cek, aad)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to generate iv")
+		return nil, nil, nil, errors.Wrap(err, "failed to encrypt payload")
 	}
-
-	block, err := aes.NewCipher(cek)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to initialize content cipher")
-	}
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to initialize gcm cipher")
-	}
-
-	sealed := gcm.Seal(nil, iv, payload, aad)
-	tagSize := gcm.Overhead()
-	if len(sealed) < tagSize {
+	if len(sealed) < gcmTagSize {
 		return nil, nil, nil, errors.New("invalid gcm output")
 	}
 
-	ciphertext := sealed[:len(sealed)-tagSize]
-	tag := sealed[len(sealed)-tagSize:]
+	ciphertext := sealed[:len(sealed)-gcmTagSize]
+	tag := sealed[len(sealed)-gcmTagSize:]
 	return iv, ciphertext, tag, nil
-}
-
-func randomBytes(size int) ([]byte, error) {
-	b := make([]byte, size)
-	if _, err := rand.Read(b); err != nil {
-		return nil, err
-	}
-	return b, nil
 }
 
 func marshalProtectedHeader(h protectedHeader) (string, error) {
@@ -272,6 +259,10 @@ func rsaPublicKeyFromJWK(jwk *model.JWK) (*rsa.PublicKey, error) {
 		return nil, errors.New("invalid rsa exponent")
 	}
 
+	// imposing lower limit on the size of the public key for enhanced security reasons
+	if n.BitLen() <= 2048 {
+		return nil, errors.New("RSA key size must be greater than 2048 bits")
+	}
 	return &rsa.PublicKey{N: n, E: e}, nil
 }
 

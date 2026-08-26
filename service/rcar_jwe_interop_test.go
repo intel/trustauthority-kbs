@@ -26,7 +26,7 @@ import (
 )
 
 func TestEncryptResourceAsFlattenedJWE_RSA_GuestCompat(t *testing.T) {
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	priv, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
 		t.Fatalf("generate rsa key: %v", err)
 	}
