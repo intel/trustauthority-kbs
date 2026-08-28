@@ -60,7 +60,99 @@ func TestRCARAuthSetsSessionCookie(t *testing.T) {
 	err := json.Unmarshal(rr.Body.Bytes(), &challenge)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(challenge).To(gomega.HaveKey("nonce"))
+	g.Expect(challenge).To(gomega.HaveKey("extra-params"))
 	g.Expect(challenge).NotTo(gomega.HaveKey("version")) // Version field removed from Challenge per Trustee spec
+}
+
+func TestRCARAuthChallengeFallbackWithoutSupportedHashAlgorithms(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.0","tee":"sgx","extra-params":{}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusOK))
+
+	var challenge map[string]interface{}
+	err := json.Unmarshal(rr.Body.Bytes(), &challenge)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(challenge["extra-params"]).To(gomega.Equal(map[string]interface{}{}))
+}
+
+func TestRCARAuthChallengeSelectsSHA256ForSGX(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.0","tee":"sgx","extra-params":{"supported-hash-algorithms":["sha256","sha512"]}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusOK))
+
+	var challenge map[string]interface{}
+	err := json.Unmarshal(rr.Body.Bytes(), &challenge)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	extra, ok := challenge["extra-params"].(map[string]interface{})
+	g.Expect(ok).To(gomega.BeTrue())
+	g.Expect(extra["selected-hash-algorithm"]).To(gomega.Equal("sha256"))
+}
+
+func TestRCARAuthChallengeSelectsSHA512ForTDX(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.0","tee":"tdx","extra-params":{"supported-hash-algorithms":["sha512"]}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusOK))
+
+	var challenge map[string]interface{}
+	err := json.Unmarshal(rr.Body.Bytes(), &challenge)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	extra, ok := challenge["extra-params"].(map[string]interface{})
+	g.Expect(ok).To(gomega.BeTrue())
+	g.Expect(extra["selected-hash-algorithm"]).To(gomega.Equal("sha512"))
+}
+
+func TestRCARAuthChallengeRejectsUnsupportedSGXAlgorithm(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.0","tee":"sgx","extra-params":{"supported-hash-algorithms":["sha512"]}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusBadRequest))
+}
+
+func TestRCARAuthChallengeRejectsNonArrayHashAlgorithms(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	h := createMockHandler(&MockService{})
+	body := []byte(`{"version":"0.4.0","tee":"sgx","extra-params":{"supported-hash-algorithms":"sha256"}}`)
+	req, _ := http.NewRequest(http.MethodPost, "/kbs/v0/auth", bytes.NewReader(body))
+	req.Header.Set("Content-Type", HTTPMediaTypeJson)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(gomega.Equal(http.StatusBadRequest))
 }
 
 func TestRCARAuthRejectsUnsupportedVersion(t *testing.T) {

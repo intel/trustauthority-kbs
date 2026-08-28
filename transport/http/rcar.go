@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -60,6 +61,13 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 			return
 		}
 
+		extraParams, err := challengeExtraParams(req.TEE, req.ExtraParams)
+		if err != nil {
+			log.WithError(err).Error("failed to negotiate challenge extra params")
+			writeProblem(w, http.StatusBadRequest, "Invalid request", err.Error())
+			return
+		}
+
 		// Persist requested TEE from /auth for use during attestation verification.
 		sess := store.CreateWithTEE(nonce, req.TEE)
 		http.SetCookie(w, &http.Cookie{
@@ -74,8 +82,6 @@ func makeRCARAuthHandler(store *session.InMemoryStore) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Return Challenge with nonce and extra_params (no version field per Trustee spec)
-		extraParams := make(map[string]interface{})
-		extraParams["selected-hash-algorithm"] = "sha512"
 		if err := json.NewEncoder(w).Encode(&model.RCARChallenge{
 			Nonce:       nonce,
 			ExtraParams: extraParams,
@@ -305,4 +311,52 @@ func generateNonce(size int) (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func challengeExtraParams(tee model.Tee, teeParameters map[string]interface{}) (map[string]interface{}, error) {
+	if teeParameters == nil {
+		return map[string]interface{}{}, nil
+	}
+
+	rawAlgorithms, found := teeParameters["supported-hash-algorithms"]
+	if !found {
+		return map[string]interface{}{}, nil
+	}
+
+	list, ok := rawAlgorithms.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("expected array for supported-hash-algorithms, found %T", rawAlgorithms)
+	}
+
+	supported := make(map[string]struct{}, len(list))
+	for _, value := range list {
+		s, ok := value.(string)
+		if !ok {
+			continue
+		}
+		s = strings.ToLower(strings.TrimSpace(s))
+		if s != "" {
+			supported[s] = struct{}{}
+		}
+	}
+
+	if len(supported) == 0 {
+		return nil, fmt.Errorf("tee does not support any hash algorithms")
+	}
+
+	var required string
+	switch tee {
+	case model.TeeSGX:
+		required = "sha256"
+	case model.TeeTDX:
+		required = "sha512"
+	default:
+		return nil, fmt.Errorf("unknown tee specified")
+	}
+
+	if _, ok := supported[required]; !ok {
+		return nil, fmt.Errorf("%s tee does not support %s", strings.ToUpper(string(tee)), required)
+	}
+
+	return map[string]interface{}{"selected-hash-algorithm": required}, nil
 }
