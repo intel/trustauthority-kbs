@@ -166,6 +166,7 @@ func decodeCreateUserHTTPRequest(_ context.Context, r *http.Request) (interface{
 		if err != nil {
 			return nil, err
 		}
+		normalizeKeyTransferPolicyPermissions(userCreateReq.Permissions)
 	}
 
 	return userCreateReq, nil
@@ -216,6 +217,7 @@ func decodeUpdateUserHTTPRequest(_ context.Context, r *http.Request) (interface{
 		if err != nil {
 			return nil, err
 		}
+		normalizeKeyTransferPolicyPermissions(user.Permissions)
 	}
 
 	userUpdateReq := &model.UpdateUserRequest{
@@ -288,4 +290,13 @@ func validateUserPermissions(permissions []string) error {
 		}
 	}
 	return nil
+}
+
+// normalizeKeyTransferPolicyPermissions converts the HTTP API's hyphenated
+// resource name into the underscored scope name used when permissions are
+// persisted and later added to JWT tokens.
+func normalizeKeyTransferPolicyPermissions(permissions []string) {
+	for i, permission := range permissions {
+		permissions[i] = strings.Replace(permission, "key-transfer-policies:", "key_transfer_policies:", 1)
+	}
 }

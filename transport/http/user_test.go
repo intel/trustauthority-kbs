@@ -8,6 +8,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"intel/kbs/v1/model"
 	"io"
@@ -437,6 +438,38 @@ func TestUserCreateHandler(t *testing.T) {
 		t.Errorf("expected error to be nil got %v", err)
 	}
 	g.Expect(recorder.Code).To(gomega.Equal(http.StatusCreated))
+}
+
+func TestDecodeUserRequestsNormalizesKeyTransferPolicyPermissions(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	createRequest, _ := http.NewRequest(http.MethodPost, "/kbs/v1/users", bytes.NewReader([]byte(`{
+        "username": "userName",
+        "password": "password@123",
+        "permissions": ["key-transfer-policies:create", "keys:search"]
+    }`)))
+	createRequest.Header.Set("Accept", HTTPMediaTypeJson)
+	createRequest.Header.Set("Content-type", HTTPMediaTypeJson)
+
+	decodedCreate, err := decodeCreateUserHTTPRequest(context.Background(), createRequest)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(decodedCreate.(*model.User).Permissions).To(gomega.Equal([]string{
+		"key_transfer_policies:create", "keys:search",
+	}))
+
+	userID := uuid.New().String()
+	updateRequest, _ := http.NewRequest(http.MethodPut, "/kbs/v1/users/"+userID, bytes.NewReader([]byte(`{
+        "permissions": ["key-transfer-policies:search"]
+    }`)))
+	updateRequest = mux.SetURLVars(updateRequest, map[string]string{"id": userID})
+	updateRequest.Header.Set("Accept", HTTPMediaTypeJson)
+	updateRequest.Header.Set("Content-type", HTTPMediaTypeJson)
+
+	decodedUpdate, err := decodeUpdateUserHTTPRequest(context.Background(), updateRequest)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(decodedUpdate.(*model.UpdateUserRequest).UpdateUser.Permissions).To(gomega.Equal([]string{
+		"key_transfer_policies:search",
+	}))
 }
 
 func TestUserUpdateHandlerInvalidHeaders(t *testing.T) {
