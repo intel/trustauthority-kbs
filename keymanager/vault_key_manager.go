@@ -245,9 +245,5 @@ func generateECKeyPair(curveType string) (crypto.PrivateKey, crypto.PublicKey, e
 	}
 
 	public := &private.PublicKey
-	if !curve.IsOnCurve(public.X, public.Y) {
-		return nil, nil, errors.New("public key invalid")
-	}
-
 	return private, public, nil
 }

@@ -7,6 +7,7 @@
 package crypt
 
 import (
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"math/big"
 )
@@ -41,4 +42,14 @@ func ZeroizeRSAPrivateKey(privateKey *rsa.PrivateKey) {
 	for _, bigInt := range privateKey.Primes {
 		ZeroizeBigInt(bigInt)
 	}
+}
+
+// ZeroizeECDSAPrivateKey clears the private key's "D" values.
+// This function will panic if the privateKey parameter is nil.
+func ZeroizeECDSAPrivateKey(privateKey *ecdsa.PrivateKey) {
+	if privateKey == nil {
+		panic("The private key parameter cannot be nil")
+	}
+
+	ZeroizeBigInt(privateKey.D)
 }

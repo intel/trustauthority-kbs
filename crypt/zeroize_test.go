@@ -7,6 +7,8 @@
 package crypt
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"math/big"
@@ -45,5 +47,14 @@ func TestZeroizeRSAPrivateKey(t *testing.T) {
 		if prime.Cmp(big.NewInt(0)) != 0 {
 			t.Errorf("Prime %d is not zero after zeroization", i)
 		}
+	}
+}
+
+func TestZeroizeECDSAPrivateKey(t *testing.T) {
+	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	ZeroizeECDSAPrivateKey(privateKey)
+
+	if privateKey.D.Cmp(big.NewInt(0)) != 0 {
+		t.Error("Private key D is not zero after zeroization")
 	}
 }

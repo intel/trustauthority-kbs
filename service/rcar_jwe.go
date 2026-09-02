@@ -19,6 +19,7 @@ import (
 	"math/big"
 	"strings"
 
+	"intel/kbs/v1/crypt"
 	"intel/kbs/v1/model"
 
 	jose "github.com/go-jose/go-jose/v4"
@@ -69,6 +70,7 @@ func encryptRSAAsFlattenedJWE(pk *rsa.PublicKey, alg jose.KeyAlgorithm, payload 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate content encryption key")
 	}
+	defer crypt.ZeroizeByteArray(cek)
 	iv, ciphertext, tag, err := encryptA256GCM(cek, []byte(protected), payload)
 	if err != nil {
 		return nil, err
@@ -105,12 +107,15 @@ func encryptECDHESA256KWAsFlattenedJWE(pk *ecdsa.PublicKey, alg jose.KeyAlgorith
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate ephemeral ec key")
 	}
+	defer crypt.ZeroizeECDSAPrivateKey(ephemeralPriv)
 
 	kek := josecipher.DeriveECDHES(string(alg), []byte{}, []byte{}, ephemeralPriv, pk, 32)
+	defer crypt.ZeroizeByteArray(kek)
 	cek, err := createSwk()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate content encryption key")
 	}
+	defer crypt.ZeroizeByteArray(cek)
 	block, err := aes.NewCipher(kek)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize key wrap cipher")
@@ -285,13 +290,25 @@ func ecPublicKeyFromJWK(jwk *model.JWK) (*ecdsa.PublicKey, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid ec jwk y")
 	}
-	x := new(big.Int).SetBytes(xBytes)
-	y := new(big.Int).SetBytes(yBytes)
-	if !curve.IsOnCurve(x, y) {
-		return nil, errors.New("ec jwk point is not on curve")
+	byteLen := (curve.Params().BitSize + 7) / 8
+
+	// Allocate a single slice for the uncompressed key: 1 byte prefix + X + Y
+	uncompressedBytes := make([]byte, 1+byteLen*2)
+
+	// Set the SEC 1 uncompressed format prefix
+	uncompressedBytes[0] = 0x04
+
+	// Copy X and Y bytes into their respective padded positions
+	copy(uncompressedBytes[1:1+byteLen], xBytes)
+	copy(uncompressedBytes[1+byteLen:1+byteLen*2], yBytes)
+
+	// Parse using the recommended API
+	public, err := ecdsa.ParseUncompressedPublicKey(curve, uncompressedBytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse public key")
 	}
 
-	return &ecdsa.PublicKey{Curve: curve, X: x, Y: y}, nil
+	return public, nil
 }
 
 func decodeB64URL(v string) ([]byte, error) {
