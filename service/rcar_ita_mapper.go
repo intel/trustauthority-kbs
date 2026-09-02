@@ -69,29 +69,20 @@ type AttestRequest struct {
 	NVGPU           *NVGPURequest    `json:"nvgpu,omitempty"`
 }
 
-func buildAttestRequest(req *model.RCARAttestationRequest, teeHint model.Tee) (*AttestRequest, model.Tee, string, error) {
-	primary, inferredTEEType, err := parseTrusteePrimaryEvidence(req.TEEEvidence.PrimaryEvidence)
+func buildAttestRequest(req *model.RCARAttestationRequest, teeType model.Tee) (*AttestRequest, string, error) {
+	primary, err := parseTrusteePrimaryEvidence(req.TEEEvidence.PrimaryEvidence)
 	if err != nil {
-		return nil, "", "", err
+		return nil, "", err
 	}
 
 	kbsEvidenceRuntimeData, err := json.Marshal(req.RuntimeData)
 	if err != nil {
-		return nil, "", "", errors.New("failed to serialize runtime-data")
+		return nil, "", errors.New("failed to serialize runtime-data")
 	}
 
 	nvgpu, err := buildNVGPUAdditionalEvidence(req.TEEEvidence.AdditionalEvidence, kbsEvidenceRuntimeData)
 	if err != nil {
-		return nil, "", "", err
-	}
-	if nvgpu != nil {
-		// Trustee models Nvidia evidence as additional evidence that accompanies TDX.
-		inferredTEEType = model.TeeTDX
-	}
-
-	effectiveTEEType := inferredTEEType
-	if teeHint == model.TeeSGX || teeHint == model.TeeTDX {
-		effectiveTEEType = teeHint
+		return nil, "", err
 	}
 
 	runtimeData := struct {
@@ -106,15 +97,15 @@ func buildAttestRequest(req *model.RCARAttestationRequest, teeHint model.Tee) (*
 
 	rawRuntimeData, err := json.Marshal(runtimeData)
 	if err != nil {
-		return nil, "", "", errors.New("failed to serialize primary runtime-data")
+		return nil, "", errors.New("failed to serialize primary runtime-data")
 	}
 	primaryRuntimeData, err := jcs.Transform(rawRuntimeData)
 	if err != nil {
-		return nil, "", "", errors.New("failed to canonicalize primary runtime-data")
+		return nil, "", errors.New("failed to canonicalize primary runtime-data")
 	}
 
 	reqBody := AttestRequest{}
-	switch effectiveTEEType {
+	switch teeType {
 	case model.TeeTDX:
 		eventLog := primary.EventLog
 		if len(eventLog) == 0 {
@@ -130,10 +121,10 @@ func buildAttestRequest(req *model.RCARAttestationRequest, teeHint model.Tee) (*
 		}
 	case model.TeeSGX:
 		if nvgpu != nil {
-			return nil, "", "", errors.New("nvgpu evidence is not valid with sgx evidence")
+			return nil, "", errors.New("nvgpu evidence is not valid with sgx evidence")
 		}
 		if len(primary.EventLog) > 0 || len(primary.CCEventLog) > 0 {
-			return nil, "", "", errors.New("sgx evidence is not valid with event log")
+			return nil, "", errors.New("sgx evidence is not valid with event log")
 		}
 		reqBody = AttestRequest{
 			SGX: &DCAPTEEEvidence{
@@ -142,15 +133,15 @@ func buildAttestRequest(req *model.RCARAttestationRequest, teeHint model.Tee) (*
 			},
 		}
 	default:
-		return nil, "", "", errors.New("unsupported tee evidence")
+		return nil, "", errors.New("unsupported tee evidence")
 	}
 
-	return &reqBody, effectiveTEEType, req.RuntimeData.Nonce, nil
+	return &reqBody, req.RuntimeData.Nonce, nil
 }
 
-func parseTrusteePrimaryEvidence(raw json.RawMessage) (*DCAPTEEEvidence, model.Tee, error) {
+func parseTrusteePrimaryEvidence(raw json.RawMessage) (*DCAPTEEEvidence, error) {
 	if len(raw) == 0 {
-		return nil, "", errors.New("tee-evidence.primary_evidence is required")
+		return nil, errors.New("tee-evidence.primary_evidence is required")
 	}
 
 	// Compatibility with lightweight payloads where primary_evidence is a
@@ -161,29 +152,24 @@ func parseTrusteePrimaryEvidence(raw json.RawMessage) (*DCAPTEEEvidence, model.T
 		if err != nil {
 			quote, err = base64.RawStdEncoding.DecodeString(quoteOnly)
 			if err != nil {
-				return nil, "", errors.New("failed to decode primary_evidence quote")
+				return nil, errors.New("failed to decode primary_evidence quote")
 			}
 		}
 		if len(quote) == 0 {
-			return nil, "", errors.New("primary_evidence quote is required")
+			return nil, errors.New("primary_evidence quote is required")
 		}
-		return &DCAPTEEEvidence{Quote: quote}, model.TeeSGX, nil
+		return &DCAPTEEEvidence{Quote: quote}, nil
 	}
 
 	var ev DCAPTEEEvidence
 	if err := json.Unmarshal(raw, &ev); err != nil {
-		return nil, "", errors.Wrap(err, "invalid primary_evidence")
+		return nil, errors.Wrap(err, "invalid primary_evidence")
 	}
 	if len(ev.Quote) == 0 {
-		return nil, "", errors.New("primary_evidence quote is required")
+		return nil, errors.New("primary_evidence quote is required")
 	}
 
-	// Trustee TDX evidence usually contains an event log field (event_log or
-	// cc_eventlog). If absent, treat as SGX unless additional evidence overrides.
-	if len(ev.EventLog) > 0 || len(ev.CCEventLog) > 0 {
-		return &ev, model.TeeTDX, nil
-	}
-	return &ev, model.TeeSGX, nil
+	return &ev, nil
 }
 
 func buildNVGPUAdditionalEvidence(additional string, runtimeData []byte) (*NVGPURequest, error) {

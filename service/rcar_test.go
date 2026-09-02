@@ -25,7 +25,7 @@ import (
 )
 
 func TestVerifyRCARAttestationSGXPrimaryQuoteString(t *testing.T) {
-	ctx := context.Background()
+	ctx := WithRCARTEEHint(context.Background(), model.TeeSGX)
 	mockITA := mocks.NewMockClient()
 
 	runtimeData := model.RuntimeData{
@@ -64,7 +64,7 @@ func TestVerifyRCARAttestationSGXPrimaryQuoteString(t *testing.T) {
 }
 
 func TestVerifyRCARAttestationTDXWithAdditionalNVGPU(t *testing.T) {
-	ctx := context.Background()
+	ctx := WithRCARTEEHint(context.Background(), model.TeeTDX)
 	mockITA := mocks.NewMockClient()
 
 	primary := map[string]interface{}{
@@ -115,7 +115,7 @@ func TestVerifyRCARAttestationTDXWithAdditionalNVGPU(t *testing.T) {
 }
 
 func TestVerifyRCARAttestationTransformsTrusteeNvidiaEvidence(t *testing.T) {
-	ctx := context.Background()
+	ctx := WithRCARTEEHint(context.Background(), model.TeeTDX)
 	mockITA := mocks.NewMockClient()
 
 	primary := map[string]interface{}{
@@ -177,41 +177,6 @@ func TestVerifyRCARAttestationTransformsTrusteeNvidiaEvidence(t *testing.T) {
 	mockITA.AssertExpectations(t)
 }
 
-func TestVerifyRCARAttestationTEEHintOverridesInference(t *testing.T) {
-	ctx := WithRCARTEEHint(context.Background(), model.TeeTDX)
-	mockITA := mocks.NewMockClient()
-
-	primary := map[string]interface{}{
-		"quote": []byte("tdx-quote-no-eventlog"),
-	}
-	primaryRaw, err := json.Marshal(primary)
-	require.NoError(t, err)
-
-	runtimeData := model.RuntimeData{
-		Nonce:     "nonce-hint",
-		TEEPubKey: model.JWK{Kty: "RSA", N: "abc", E: "AQAB"},
-	}
-
-	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-hint").
-		Run(func(args mock.Arguments) {
-			reqBody := args.Get(0).(*AttestRequest)
-			require.NotNil(t, reqBody.TDX)
-			assert.Nil(t, reqBody.SGX)
-		}).
-		Return(itaConnector.AttestResponse{Token: "ita-token-hint"}, nil)
-
-	svc := service{itaClient: mockITA}
-	req := &model.RCARAttestationRequest{
-		RuntimeData: runtimeData,
-		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: primaryRaw},
-	}
-
-	token, err := svc.VerifyRCARAttestation(ctx, req)
-	require.NoError(t, err)
-	assert.Equal(t, "ita-token-hint", token)
-	mockITA.AssertExpectations(t)
-}
-
 func TestVerifyRCARAttestationNilRequest(t *testing.T) {
 	svc := service{itaClient: mocks.NewMockClient()}
 	token, err := svc.VerifyRCARAttestation(context.Background(), nil)
@@ -223,7 +188,7 @@ func TestVerifyRCARAttestationNilRequest(t *testing.T) {
 }
 
 func TestVerifyRCARAttestationITAFailure(t *testing.T) {
-	ctx := context.Background()
+	ctx := WithRCARTEEHint(context.Background(), model.TeeSGX)
 	mockITA := mocks.NewMockClient()
 
 	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-3").
@@ -271,34 +236,26 @@ func TestRCARHintContextAndRuntimeDataLookup(t *testing.T) {
 	assert.Nil(t, runtimeDataFromClaims(map[string]interface{}{"other": "value"}))
 }
 
-func TestBuildAttestRequest_MultipleRCARBranches(t *testing.T) {
+func TestBuildAttestRequest_ValidSGXAndTDXBranches(t *testing.T) {
 	quote := json.RawMessage("\"" + base64.StdEncoding.EncodeToString([]byte("sgx-quote")) + "\"")
 	request := &model.RCARAttestationRequest{
 		RuntimeData: model.RuntimeData{
-			Nonce:     "nonce-branch",
+			Nonce:     "nonce-sgx",
 			TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"},
 		},
 		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: quote},
 	}
 
-	reqBody, teeType, nonce, err := buildAttestRequest(request, "")
+	reqBody, nonce, err := buildAttestRequest(request, model.TeeSGX)
 	require.NoError(t, err)
-	assert.Equal(t, model.TeeSGX, teeType)
-	assert.Equal(t, "nonce-branch", nonce)
+	assert.Equal(t, "nonce-sgx", nonce)
 	require.NotNil(t, reqBody)
 	require.NotNil(t, reqBody.SGX)
 	assert.Equal(t, []byte("sgx-quote"), reqBody.SGX.Quote)
+	assert.Nil(t, reqBody.TDX)
 
 	primary := map[string]interface{}{"quote": []byte("tdx-quote"), "event_log": []byte("eventlog")}
 	primaryRaw, err := json.Marshal(primary)
-	require.NoError(t, err)
-
-	additional := map[string]interface{}{
-		"nvidia": map[string]interface{}{
-			"device_evidence_list": []map[string]string{{"evidence": "ev", "certificate": "cert", "arch": "HOPPER"}},
-		},
-	}
-	additionalRaw, err := json.Marshal(additional)
 	require.NoError(t, err)
 
 	request2 := &model.RCARAttestationRequest{
@@ -306,22 +263,46 @@ func TestBuildAttestRequest_MultipleRCARBranches(t *testing.T) {
 			Nonce:     "nonce-tdx",
 			TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"},
 		},
-		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: primaryRaw, AdditionalEvidence: string(additionalRaw)},
+		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: primaryRaw},
 	}
 
-	reqBody2, teeType2, nonce2, err := buildAttestRequest(request2, "")
+	reqBody2, nonce2, err := buildAttestRequest(request2, model.TeeTDX)
 	require.NoError(t, err)
-	assert.Equal(t, model.TeeTDX, teeType2)
 	assert.Equal(t, "nonce-tdx", nonce2)
 	require.NotNil(t, reqBody2)
 	require.NotNil(t, reqBody2.TDX)
-	require.NotNil(t, reqBody2.NVGPU)
-	assert.Equal(t, nvidiaArchHopper, reqBody2.NVGPU.Arch)
+	assert.Equal(t, []byte("eventlog"), reqBody2.TDX.EventLog)
+	assert.Nil(t, reqBody2.SGX)
+}
 
-	_, _, _, err = buildAttestRequest(&model.RCARAttestationRequest{RuntimeData: model.RuntimeData{Nonce: "bad", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}}, TEEEvidence: model.CompositeEvidence{PrimaryEvidence: json.RawMessage("{\"quote\":\"not-base64\"}")}}, "")
+func TestBuildAttestRequest_RejectsInvalidEvidenceCombinations(t *testing.T) {
+	reqWithBadBase64 := &model.RCARAttestationRequest{
+		RuntimeData: model.RuntimeData{Nonce: "bad", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}},
+		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: json.RawMessage("{\"quote\":\"not-base64\"}")},
+	}
+	_, _, err := buildAttestRequest(reqWithBadBase64, model.TeeSGX)
 	assert.Error(t, err)
 
-	_, _, _, err = buildAttestRequest(&model.RCARAttestationRequest{RuntimeData: model.RuntimeData{Nonce: "bad2", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}}, TEEEvidence: model.CompositeEvidence{PrimaryEvidence: json.RawMessage("{\"quote\":\"" + base64.StdEncoding.EncodeToString([]byte("ok")) + "\",\"event_log\":\"data\"}")}}, model.TeeSGX)
+	eventLogPrimary := map[string]interface{}{"quote": []byte("ok"), "event_log": []byte("data")}
+	primaryRaw, err := json.Marshal(eventLogPrimary)
+	require.NoError(t, err)
+
+	_, _, err = buildAttestRequest(&model.RCARAttestationRequest{
+		RuntimeData: model.RuntimeData{Nonce: "bad2", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}},
+		TEEEvidence: model.CompositeEvidence{PrimaryEvidence: primaryRaw},
+	}, model.TeeSGX)
+	assert.Error(t, err)
+
+	nvgpuPrimary := map[string]interface{}{"quote": []byte("ok")}
+	nvgpuRaw, err := json.Marshal(nvgpuPrimary)
+	require.NoError(t, err)
+	_, _, err = buildAttestRequest(&model.RCARAttestationRequest{
+		RuntimeData: model.RuntimeData{Nonce: "bad3", TEEPubKey: model.JWK{Kty: "RSA", N: "mod", E: "AQAB"}},
+		TEEEvidence: model.CompositeEvidence{
+			PrimaryEvidence:    nvgpuRaw,
+			AdditionalEvidence: `{"nvidia":{"device_evidence_list":[{"evidence":"ev","certificate":"cert","arch":"HOPPER"}]}}`,
+		},
+	}, model.TeeSGX)
 	assert.Error(t, err)
 }
 

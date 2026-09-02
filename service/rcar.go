@@ -32,7 +32,7 @@ func rcarTEEHintFromContext(ctx context.Context) (model.Tee, bool) {
 	if !ok {
 		return "", false
 	}
-	return tee, tee == model.TeeSGX || tee == model.TeeTDX
+	return tee, true
 }
 
 func (mw loggingMiddleware) VerifyRCARAttestation(ctx context.Context, req *model.RCARAttestationRequest) (string, error) {
@@ -63,7 +63,7 @@ func (svc service) VerifyRCARAttestation(ctx context.Context, req *model.RCARAtt
 		teeType = hint
 	}
 
-	reqBody, _, requestID, err := buildAttestRequest(req, teeType)
+	reqBody, requestID, err := buildAttestRequest(req, teeType)
 	if err != nil {
 		return "", &HandledError{Code: http.StatusBadRequest, Message: err.Error()}
 	}
