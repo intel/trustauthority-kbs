@@ -87,18 +87,23 @@ func SetupAuthZ(jwtKeeper *jwtStrategy.StaticSecret) (*model.JwtAuthz, error) {
 	cache := libcache.FIFO.New(0)
 	cache.SetTTL(time.Minute * 5)
 
-	opt := token.SetScopes(token.NewScope(constant.KeyTransferPolicyCreate, "/key-transfer-policies", "POST"),
-		token.NewScope(constant.KeyTransferPolicySearch, "/key-transfer-policies", "GET"),
-		token.NewScope(constant.KeyTransferPolicyDelete, "/key-transfer-policies", "DELETE"),
-		token.NewScope(constant.KeyCreate, "/keys", "POST"),
-		token.NewScope(constant.KeySearch, "/keys", "GET"),
-		token.NewScope(constant.KeyDelete, "/keys", "DELETE"),
-		token.NewScope(constant.KeyUpdate, "/keys", "PUT"),
-		token.NewScope(constant.KeyTransfer, "/keys/"+constant.UUIDReg, "POST"),
-		token.NewScope(constant.UserCreate, "/users", "POST"),
-		token.NewScope(constant.UserSearch, "/users", "GET"),
-		token.NewScope(constant.UserUpdate, "/users", "PUT"),
-		token.NewScope(constant.UserDelete, "/users", "DELETE"))
+	apiPathPrefix := "^/" + constant.ServiceName + "/" + constant.ApiVersion
+	keyIDPath := apiPathPrefix + "/keys/" + constant.UUIDReg
+	policyIDPath := apiPathPrefix + "/key-transfer-policies/" + constant.UUIDReg
+	userIDPath := apiPathPrefix + "/users/" + constant.UUIDReg
+
+	opt := token.SetScopes(token.NewScope(constant.KeyTransferPolicyCreate, apiPathPrefix+"/key-transfer-policies$", "^POST$"),
+		token.NewScope(constant.KeyTransferPolicySearch, apiPathPrefix+"/key-transfer-policies(?:/"+constant.UUIDReg+")?$", "^GET$"),
+		token.NewScope(constant.KeyTransferPolicyDelete, "^"+policyIDPath+"$", "^DELETE$"),
+		token.NewScope(constant.KeyCreate, apiPathPrefix+"/keys$", "^POST$"),
+		token.NewScope(constant.KeySearch, apiPathPrefix+"/keys(?:/"+constant.UUIDReg+")?$", "^GET$"),
+		token.NewScope(constant.KeyDelete, "^"+keyIDPath+"$", "^DELETE$"),
+		token.NewScope(constant.KeyUpdate, "^"+keyIDPath+"$", "^PUT$"),
+		token.NewScope(constant.KeyTransfer, "^"+keyIDPath+"(?:/transfer)?$", "^POST$"),
+		token.NewScope(constant.UserCreate, apiPathPrefix+"/users$", "^POST$"),
+		token.NewScope(constant.UserSearch, apiPathPrefix+"/users(?:/"+constant.UUIDReg+")?$", "^GET$"),
+		token.NewScope(constant.UserUpdate, "^"+userIDPath+"$", "^PUT$"),
+		token.NewScope(constant.UserDelete, "^"+userIDPath+"$", "^DELETE$"))
 	strategy := jwtStrategy.New(cache, jwtKeeper, opt)
 
 	jwtAuth := model.JwtAuthz{
