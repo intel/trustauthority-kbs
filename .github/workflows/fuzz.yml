@@ -1,0 +1,104 @@
+# Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+# Fuzz Testing — 2.4
+# Triggers: scheduled nightly (01:00 UTC) and optional PR label
+
+name: Fuzz Testing
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # Nightly 01:00 UTC
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      fuzz_time:
+        description: 'Fuzz duration per target (e.g. 60s, 5m)'
+        required: false
+        default: '120s'
+
+permissions:
+  contents: read
+  # Allows uploading fuzz corpus artifacts
+  actions: write
+
+env:
+  # Default fuzz duration; overridden by workflow_dispatch input
+  FUZZ_TIME: ${{ inputs.fuzz_time || '120s' }}
+
+jobs:
+  # Gate: on pull_request events only run when labelled 'fuzz'
+  labelled-gate:
+    if: github.event_name != 'pull_request' || contains(github.event.label.name, 'fuzz')
+    runs-on: ubuntu-latest
+    outputs:
+      run: 'true'
+    steps:
+      - run: echo "Fuzz gate passed"
+
+  fuzz:
+    name: Go Fuzz — ${{ matrix.target }}
+    needs: [labelled-gate]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: FuzzValidateStrings
+            pkg: ./transport/http
+          - target: FuzzValidateSha256HexString
+            pkg: ./transport/http
+          - target: FuzzValidateSha384HexString
+            pkg: ./transport/http
+          - target: FuzzAttestationTokenClaims
+            pkg: ./service
+          - target: FuzzJWTTokenParsing
+            pkg: ./service
+          - target: FuzzKeyTransferPolicyJSON
+            pkg: ./service
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      # Restore any previously found corpus from the artifact store so the
+      # fuzzer immediately starts from a richer seed rather than zero.
+      - name: Restore fuzz corpus
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ matrix.pkg }}/testdata/fuzz/${{ matrix.target }}
+          key: fuzz-corpus-${{ matrix.target }}-${{ github.sha }}
+          restore-keys: |
+            fuzz-corpus-${{ matrix.target }}-
+
+      - name: Run fuzzer — ${{ matrix.target }}
+        # go test -fuzz works on a single package; each matrix entry specifies its pkg
+        run: |
+          go test ${{ matrix.pkg }} \
+            -run=^$ \
+            -fuzz=^${{ matrix.target }}$ \
+            -fuzztime=${{ env.FUZZ_TIME }} \
+            -v
+        # Any panic / crash found by the fuzzer exits non-zero → job fails
+
+      # Save corpus so subsequent runs benefit from previously found inputs
+      - name: Save fuzz corpus
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ matrix.pkg }}/testdata/fuzz/${{ matrix.target }}
+          key: fuzz-corpus-${{ matrix.target }}-${{ github.sha }}
+
+      # Upload any crash reproducer files so developers can replay failures
+      - name: Upload crash reproducers
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crash-${{ matrix.target }}
+          path: ${{ matrix.pkg }}/testdata/fuzz/${{ matrix.target }}/
+          retention-days: 14

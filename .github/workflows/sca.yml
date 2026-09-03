@@ -1,0 +1,104 @@
+# Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+# Dependency & Supply-Chain Security (SCA) — 2.2
+# Triggers: pull_request, scheduled weekly (Monday 03:00 UTC)
+
+name: SCA
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.step1.outputs.runner }}
+    steps:
+      - name: Detect runner
+        id: step1
+        run: |
+          if [ ${{ github.repository }} == 'intel/trustauthority-kbs' ]; then
+            echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
+          else
+            echo "runner=self-hosted" >> $GITHUB_OUTPUT
+          fi
+
+  # ── govulncheck — official Go CVE scanner ───────────────────────────────────
+  govulncheck:
+    name: govulncheck
+    needs: [setup]
+    runs-on: ${{ needs.setup.outputs.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: '1.24'
+          go-package: ./...
+
+  # ── License compliance ───────────────────────────────────────────────────────
+  license-check:
+    name: License Compliance
+    needs: [setup]
+    runs-on: ${{ needs.setup.outputs.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Install go-licenses
+        run: go install github.com/google/go-licenses@latest
+
+      - name: Check licenses
+        # Disallow licenses incompatible with BSD-3-Clause (the project's license).
+        # AGPL/GPL/LGPL copyleft licenses are flagged; adjust the list as needed.
+        run: |
+          go-licenses check ./... \
+            --disallowed_types=forbidden,restricted \
+            --ignore intel/kbs/v1
+
+      - name: Generate license report
+        if: always()
+        run: go-licenses report ./... --ignore intel/kbs/v1 > licenses.csv
+
+      - name: Upload license report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: licenses.csv
+          retention-days: 30
+
+  # ── OSV-Scanner — broader CVE / advisory database ───────────────────────────
+  osv-scan:
+    name: OSV Scanner
+    needs: [setup]
+    runs-on: ${{ needs.setup.outputs.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+
+      - name: Run OSV-Scanner
+        # Install and run osv-scanner directly — avoids action version uncertainty.
+        # Findings are printed to stdout; non-zero exit means vulnerabilities found.
+        run: |
+          go install github.com/google/osv-scanner/cmd/osv-scanner@latest
+          osv-scanner scan --lockfile=go.sum --recursive . || true

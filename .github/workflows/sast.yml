@@ -1,0 +1,119 @@
+# Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+# Static Application Security Testing (SAST) — 2.1
+# Triggers: pull_request, scheduled weekly (Monday 02:00 UTC)
+
+name: SAST
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 2 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.step1.outputs.runner }}
+    steps:
+      - name: Detect runner
+        id: step1
+        run: |
+          if [ ${{ github.repository }} == 'intel/trustauthority-kbs' ]; then
+            echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
+          else
+            echo "runner=self-hosted" >> $GITHUB_OUTPUT
+          fi
+
+  # ── CodeQL ──────────────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Analysis
+    needs: [setup]
+    runs-on: ${{ needs.setup.outputs.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: go
+          # security-extended adds more security queries on top of the default set;
+          # security-and-quality adds quality checks (e.g. dead code, unused returns)
+          queries: security-extended,security-and-quality
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:go
+
+  # ── golangci-lint (gosec + staticcheck + semgrep-style rules) ───────────────
+  golangci-lint:
+    name: golangci-lint
+    needs: [setup]
+    runs-on: ${{ needs.setup.outputs.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          args: --config=.golangci.yml --timeout=10m
+
+  # ── Semgrep ─────────────────────────────────────────────────────────────────
+  semgrep:
+    name: Semgrep SAST
+    needs: [setup]
+    runs-on: ${{ needs.setup.outputs.runner }}
+    container:
+      image: semgrep/semgrep:latest
+    # Semgrep does not need Go toolchain — runs on raw source
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config "p/golang" \
+            --config "p/secrets" \
+            --config "p/jwt" \
+            --config "p/owasp-top-ten" \
+            --sarif \
+            --output semgrep.sarif \
+            --error
+        env:
+          # Optional: set SEMGREP_APP_TOKEN for Semgrep Cloud Platform
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Upload Semgrep SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep

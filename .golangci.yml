@@ -1,0 +1,99 @@
+# Copyright(C) 2023 Intel Corporation. All Rights Reserved.
+# golangci-lint configuration — security-focused linter set
+# Docs: https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 10m
+  go: '1.24'
+
+
+linters:
+  disable-all: true
+  enable:
+    # ── Security ──────────────────────────────────────────────────────────────
+    - gosec          # Go security checks (CWE-20, CWE-89, CWE-798, …)
+    - govet          # Detect suspicious constructs (shadow, printf, …)
+    - staticcheck    # Comprehensive static analysis (SA*, S1*, QF*)
+    - errcheck       # Unchecked errors → silent failure paths
+    - bodyclose      # HTTP response body leak (resource exhaustion)
+    - noctx          # HTTP requests without context → DoS risk
+    - rowserrcheck   # sql.Rows.Err() not checked
+    - sqlclosecheck  # sql.Rows / sql.Stmt not closed
+
+    # ── Correctness ───────────────────────────────────────────────────────────
+    - typecheck      # Compilation errors
+    - unused         # Unused code
+    - ineffassign    # Assignments whose value is never used
+    - misspell       # Spelling mistakes in comments / strings
+
+    # ── Style (baseline parity with existing gofmt check) ────────────────────
+    - gofmt
+    - goimports
+
+linters-settings:
+  gosec:
+    # Minimum severity to report: low, medium, or high
+    severity: medium
+    confidence: medium
+    # Explicitly include high-impact rule groups:
+    includes:
+      - G101   # Hard-coded credentials
+      - G102   # Bind to all interfaces
+      - G103   # Use of unsafe.Pointer
+      - G104   # Errors unhandled
+      - G106   # Use of ssh InsecureIgnoreHostKey
+      - G107   # URL from variable (SSRF)
+      - G108   # Profiling endpoint auto-registered
+      - G110   # Decompression bomb
+      - G201   # SQL query construction using format string
+      - G202   # SQL query construction using string concat
+      - G203   # Use of unescaped data in HTML templates
+      - G204   # Subprocess launched with variable
+      - G301   # Poor file permissions (mkdir)
+      - G302   # Poor file permissions (chmod / OpenFile)
+      - G303   # Creating tempfile in a shared directory
+      - G304   # File path provided as taint input
+      - G305   # File path traversal
+      - G306   # Poor file permissions (WriteFile)
+      - G401   # Use of weak cryptographic primitive (MD5/SHA1)
+      - G402   # TLS MinVersion not set
+      - G403   # Use of weak RSA key length
+      - G404   # Use of weak random number generator
+      - G501   # Import of crypto/md5
+      - G502   # Import of crypto/des
+      - G503   # Import of crypto/rc4
+      - G504   # Import of net/http/cgi
+      - G601   # Implicit memory aliasing in a for loop (Go < 1.22)
+
+  staticcheck:
+    checks:
+      - "all"
+      - "-ST1000"  # allow package-level doc comment to be missing
+      - "-ST1020"  # allow exported function comments to be missing
+
+  govet:
+    enable:
+      - shadow      # Variable shadowing can hide security-relevant errors
+      - printf
+      - structtag
+      - unusedresult
+
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+issues:
+  # Show all issues, not just the first 3 per linter
+  max-issues-per-linter: 0
+  max-same-issues: 0  # Skip vendored/generated code
+  exclude-dirs:
+    - vendor
+    - docs
+  exclude-files:
+    - '.*_mock.*\.go'
+    - 'mock_.*\.go'
+  exclude-rules:
+    - path: '_test\.go'
+      linters:
+        - errcheck
+        - gosec
