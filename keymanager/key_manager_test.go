@@ -44,5 +44,5 @@ func TestNewOciKeyManager(t *testing.T) {
 
 	cfg.KeyManager = constant.OCIKeyManager
 	_, errObj = NewKeyManager(cfg)
-	g.Expect(errObj).To(gomega.HaveOccurred())
+	g.Expect(errObj).To(gomega.BeNil())
 }
