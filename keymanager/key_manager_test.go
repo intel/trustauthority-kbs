@@ -7,6 +7,7 @@
 package keymanager
 
 import (
+	"errors"
 	"intel/kbs/v1/config"
 	"intel/kbs/v1/constant"
 	"intel/kbs/v1/ociclient"
@@ -52,5 +53,16 @@ func TestNewOciKeyManager(t *testing.T) {
 	})
 	g.Expect(errObj).To(gomega.BeNil())
 	g.Expect(keyManager).To(gomega.BeAssignableToTypeOf(&OCIManager{}))
+	mockClient.AssertExpectations(t)
+
+	initializationErr := errors.New("failed to initialize OCI client")
+	mockClient = ociclient.NewMockOCIClient()
+	mockClient.On("InitializeClient").Return(initializationErr).Once()
+
+	keyManager, errObj = newKeyManager(cfg, func() ociclient.OCIClient {
+		return mockClient
+	})
+	g.Expect(errObj).To(gomega.MatchError(gomega.ContainSubstring(initializationErr.Error())))
+	g.Expect(keyManager).To(gomega.BeNil())
 	mockClient.AssertExpectations(t)
 }
