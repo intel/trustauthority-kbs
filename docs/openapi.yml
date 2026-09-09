@@ -800,6 +800,7 @@ paths:
                 - bearerToken: []
             tags:
                 - RCAR
+            x-permissions: resource_policy:set
     /kbs/v0/resource/{repository}/{type}/{tag}:
         get:
             description: |

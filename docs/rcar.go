@@ -162,6 +162,7 @@ type RCARProblem struct {
 // - application/json
 // consumes:
 // - application/json
+// x-permissions: resource_policy:set
 // security:
 // - bearerToken: []
 // parameters:

@@ -44,6 +44,48 @@ The workload (key requester) makes a request to the KBS to retrieve a particular
 - If all the token claims match against the policy, KBS creates an SWK and wraps the secret/key Key with SWK, and SWK is wrapped with a public key received in the request (runtime-data).
 - KBS responds with both wrapped requested key and wrapped SWK to the key requestor.
 
+### Request-Challenge-Attestation-Response (RCAR) Protocol
+
+The `trustauthority-kbs` service implements the **RCAR (Request-Challenge-Attestation-Response)** handshake protocol to mutually authenticate Key Broker Clients (KBC) running in Trusted Execution Environments (TEEs) and broker secrets validated against Intel® Trust Authority.
+
+#### Protocol Sequence
+
+| Step | Phase | Actor | Endpoint | Description |
+|---|---|---|---|---|
+| 1 | **Request** | KBC ➔ KBS | `POST /kbs/v0/auth` | KBC initiates session with supported TEE type and ephemeral public key (`tee-pub-key`). |
+| 2 | **Challenge** | KBS ➔ KBC | HTTP `200 OK` | KBS generates and returns a cryptographic challenge (`nonce`) and session cookie/token. |
+| 3 | **Attestation** | KBC ➔ KBS | `POST /kbs/v0/attest` | KBC presents TEE hardware evidence (Quote) with the challenge nonce embedded in `report_data`. |
+| 4 | **Verification** | KBS ➔ Trust Authority | REST API | KBS forwards the evidence to Intel® Trust Authority Attestation Service for appraisal. |
+| 5 | **Response** | KBS ➔ KBC | HTTP `200 OK` | KBS evaluates Trust Authority JWT against policies and grants an authenticated session token. |
+| 6 | **Resource Delivery** | KBC ➔ KBS | `GET /kbs/v0/resource/...` | KBC requests secrets; KBS encrypts payloads via JWE using the client's verified public key. |
+
+#### RCAR protocol outline
+
+1. The client sends a POST request to `/kbs/v0/auth` with the protocol version and the requested TEE type (`sgx` or `tdx`).
+2. The KBS validates the protocol version and generates a server nonce. It also negotiates protocol `extra-params` such as the supported hash algorithm.
+3. The KBS creates a session tied to the nonce and requested TEE and returns a challenge payload containing the nonce and negotiated `extra-params`.
+4. The client echoes the nonce in `runtime-data.nonce` and provides the workload public key in `runtime-data.tee-pubkey`.
+5. The client sends the attestation bundle to `/kbs/v0/attest` with `tee-evidence.primary_evidence` and optional `tee-evidence.additional_evidence`.
+6. The KBS binds the attestation to the session cookie, validates nonce matching, and uses the trusted TEE hint from the session to route evidence to the correct SGX/TDX path.
+7. The KBS converts the Trustee RCAR evidence into the ITA v2 attestation request format, including SGX or TDX primary evidence and optional NVGPU evidence transformation.
+8. If the evidence validates successfully, the KBS obtains an attestation token from Intel Trust Authority and stores it for the session.
+9. The client retrieves a protected resource via `/kbs/v0/resource/{repository}/{type}/{tag}` using the session cookie or a bearer token. The resource is returned as a JWE encrypted for the workload public key from the attestation request.
+
+#### RCAR request flow
+
+- `/kbs/v0/auth` creates the challenge and stores the requested TEE in the session.
+- `/kbs/v0/attest` verifies nonce binding and converts the evidence bundle into an ITA attestation request.
+- `/kbs/v0/resource/{repository}/{type}/{tag}` fetches a resource only after the attestation token has been established.
+- `/kbs/v0/resource-policy` can be used to define which resource paths and claims are allowed for a given policy context.
+
+#### RCAR security properties
+
+- Nonce binding ties each attestation to the original `/auth` challenge and prevents replay.
+- The TEE hint from the session is used to keep SGX and TDX evidence routing deterministic.
+- The attestation request is built with the same structure expected by Intel Trust Authority v2 appraisal APIs.
+- NVGPU evidence is transformed into the ITA `nvgpu` request form when present.
+- Returned resource content is JWE-wrapped for the workload key, ensuring only the attested TEE can decrypt it.
+
 ## Key Broker System Installation
 
 Installing the Intel Key Broker System requires a Key Management System to be installed first. The process is as follows:
@@ -469,6 +511,122 @@ The admin user leverages the `POST /users` API to create other KBS users.
   "username": "testUser"
 }
 ```
+
+## RCAR API reference
+
+The RCAR endpoints are available under `/kbs/v0`. Requests use JSON unless otherwise noted. The client must preserve the `kbs-session-id` cookie returned by `/auth` and send it with the subsequent `/attest` and resource requests.
+
+### POST /kbs/v0/auth
+
+Starts an RCAR session and returns a challenge nonce. The request must include a supported RCAR protocol version and the requested TEE type, either `sgx` or `tdx`.
+
+**Request**
+
+```json
+{
+    "version": "0.4.0",
+    "tee": "tdx",
+    "extra-params": {
+        "supported-hash-algorithms": ["sha-256", "sha-512"]
+    }
+}
+```
+
+The server returns `200 OK`, sets the `kbs-session-id` cookie, and returns the negotiated challenge. The `selected-hash-algorithm` is included when hash algorithm negotiation was requested.
+
+**Response**
+
+```json
+{
+    "nonce": "<base64-encoded-challenge-nonce>",
+    "extra-params": {
+        "selected-hash-algorithm": "sha-256"
+    }
+}
+```
+
+Invalid JSON or TEE values return `400 Bad Request`. An unsupported protocol version returns `401 Unauthorized`.
+
+### POST /kbs/v0/attest
+
+Submits the attestation evidence for the challenge. Send the `kbs-session-id` cookie returned by `/auth`. The `runtime-data.nonce` value must exactly match the challenge nonce.
+
+**Request**
+
+```json
+{
+    "runtime-data": {
+        "nonce": "<challenge-nonce>",
+        "tee-pubkey": {
+            "kty": "RSA",
+            "n": "<base64url-rsa-modulus>",
+            "e": "AQAB"
+        }
+    },
+    "tee-evidence": {
+        "primary_evidence": {
+            "quote": "<base64-encoded-quote>",
+            "event_log": "<base64-encoded-event-log>"
+        },
+        "additional_evidence": "{\"nvidia\":{\"device_evidence_list\":[{\"evidence\":\"<gpu-evidence>\",\"certificate\":\"<gpu-certificate>\",\"arch\":\"HOPPER\"}]}}"
+    }
+}
+```
+
+For SGX evidence, `primary_evidence` may be a JSON string containing a base64-encoded quote. For TDX evidence, it is normally an object containing `quote` and `event_log` or `cc_eventlog`. `additional_evidence` is optional and is used for secondary evidence such as NVGPU evidence. `init-data` may also be supplied when supported by the client, but it is not required by the KBS attestation request.
+
+On success, the server returns `200 OK` and caches the attestation token in the session:
+
+```json
+{
+    "token": "<ITA-attestation-token>"
+}
+```
+
+The endpoint returns `401 Unauthorized` for a missing, invalid, or expired session cookie; `400 Bad Request` for invalid evidence or a nonce mismatch; and `502 Bad Gateway` when the attestation authority cannot be reached or rejects the request.
+
+### GET /kbs/v0/resource/{repository}/{type}/{tag}
+
+Retrieves a protected resource after attestation. The supported resource type is currently `key`, and `tag` is the resource identifier. The request may use the attested session cookie or an ITA token in the `Authorization` header:
+
+```http
+GET /kbs/v0/resource/default/key/<key-id> HTTP/1.1
+Cookie: kbs-session-id=<session-id>
+```
+
+Alternatively:
+
+```http
+Authorization: Bearer <ITA-attestation-token>
+```
+
+On success, the response is a flattened JWE encrypted to the `tee-pubkey` from the attestation token:
+
+```json
+{
+    "protected": "<base64url-protected-header>",
+    "encrypted_key": "<base64url-encrypted-key>",
+    "iv": "<base64url-initialization-vector>",
+    "ciphertext": "<base64url-encrypted-resource>",
+    "tag": "<base64url-authentication-tag>"
+}
+```
+
+The endpoint returns `401 Unauthorized` when neither a valid session nor bearer token is provided, `404 Not Found` when the resource does not exist, and `403 Forbidden` when a configured resource policy denies access.
+
+### POST /kbs/v0/resource-policy
+
+Stores the Rego policy used to authorize RCAR resource access. This endpoint requires a KBS bearer token with the appropriate administrative permission.
+
+**Request**
+
+```json
+{
+    "policy": "<base64-encoded-rego-policy>"
+}
+```
+
+The policy receives the resource path and verified attestation claims as input. A policy must return `allow = true` for the resource request to proceed. The endpoint returns `200 OK` after the policy is stored.
 
 > [!Note]
 > Please use the [openapi.yml](docs/openapi.yml)swagger docs to refer to each of the APIs mentioned above to create a token, keys, etc.

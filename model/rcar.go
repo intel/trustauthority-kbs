@@ -239,7 +239,7 @@ const (
 
 type ResourceAddress struct {
 	// Resource repository segment.
-	// example: repository
+	// example: default
 	Repository string
 	// Resource type segment.
 	// example: key
