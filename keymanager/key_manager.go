@@ -19,14 +19,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ociClientFactory func() ociclient.OCIClient
-
 func NewKeyManager(cfg *config.Configuration) (KeyManager, error) {
-	return newKeyManager(cfg, ociclient.NewOCIClient)
-}
-
-func newKeyManager(cfg *config.Configuration, newOCIClient ociClientFactory) (KeyManager, error) {
-
 	if strings.ToLower(cfg.KeyManager) == constant.KmipKeyManager {
 		kmipClient := kmipclient.NewKmipClient()
 		err := kmipClient.InitializeClient(cfg.Kmip.Version, cfg.Kmip.ServerIP, cfg.Kmip.ServerPort, cfg.Kmip.Hostname, cfg.Kmip.Username, cfg.Kmip.Password, cfg.Kmip.ClientKeyFilePath, cfg.Kmip.ClientCertificateFilePath, cfg.Kmip.RootCertificateFilePath)
@@ -35,7 +28,7 @@ func newKeyManager(cfg *config.Configuration, newOCIClient ociClientFactory) (Ke
 		}
 		return NewKmipManager(kmipClient), nil
 	} else if strings.ToLower(cfg.KeyManager) == constant.OCIKeyManager {
-		ociClient := newOCIClient()
+		ociClient := ociclient.NewOCIClient()
 		err := ociClient.InitializeClient()
 		if err != nil {
 			return nil, errors.Wrap(err, "keymanager/key_manager:NewKeyManager() Failed to initialize OCI client")
