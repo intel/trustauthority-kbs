@@ -38,7 +38,7 @@ func TestNewVaultKeyManager(t *testing.T) {
 
 func TestNewOciKeyManager(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	t.Setenv("OCI_CONFIG_FILE", "testdata/oci-config")
+	t.Setenv("OCI_CONFIG_FILE", "../test/resource/oci-config")
 
 	cfg := &config.Configuration{}
 	_, errObj := NewKeyManager(cfg)
