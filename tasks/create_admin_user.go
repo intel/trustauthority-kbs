@@ -7,13 +7,14 @@
 package tasks
 
 import (
+	"intel/kbs/v1/constant"
+	"intel/kbs/v1/model"
+	"intel/kbs/v1/repository"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"intel/kbs/v1/constant"
-	"intel/kbs/v1/model"
-	"intel/kbs/v1/repository"
 )
 
 type CreateAdminUser struct {
@@ -28,20 +29,29 @@ func (ac *CreateAdminUser) CreateAdminUser() error {
 		return errors.New("Admin username or password cannot be empty")
 	}
 
-	// check if a user with same name exists already
-	existingUsers, err := ac.UserStore.Search(&model.UserFilterCriteria{Username: ac.AdminUsername})
-	if len(existingUsers) != 0 {
-		log.Warnf("Failed to create admin user. User with same username %s already exists", ac.AdminUsername)
-		return nil
-	} else if err != nil {
-		log.WithError(err).Errorf("Error search for a user with given username %s", ac.AdminUsername)
-		return errors.New("Error searching for a user before creating a new admin user")
-	}
-
 	// generate the hash of the password
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(ac.AdminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return errors.Wrap(err, "Error while generating the hash of the password")
+	}
+
+	// check if a user with same name exists already
+	existingUsers, err := ac.UserStore.Search(&model.UserFilterCriteria{Username: ac.AdminUsername})
+	if err != nil {
+		log.WithError(err).Errorf("Error search for a user with given username %s", ac.AdminUsername)
+		return errors.New("Error searching for a user before creating a new admin user")
+	}
+	if len(existingUsers) != 0 {
+		log.Warnf("User with same username %s already exists. Updating the existing admin user", ac.AdminUsername)
+		existingUser := &existingUsers[0]
+		existingUser.PasswordHash = passwordHash
+		existingUser.PasswordCost = bcrypt.DefaultCost
+		existingUser.Permissions = constant.AdminPermissions
+		_, err = ac.UserStore.Update(existingUser)
+		if err != nil {
+			return errors.Wrap(err, "Error updating the existing admin user")
+		}
+		return nil
 	}
 
 	user := &model.UserInfo{
