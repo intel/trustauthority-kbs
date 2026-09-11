@@ -20,7 +20,6 @@ import (
 )
 
 func NewKeyManager(cfg *config.Configuration) (KeyManager, error) {
-
 	if strings.ToLower(cfg.KeyManager) == constant.KmipKeyManager {
 		kmipClient := kmipclient.NewKmipClient()
 		err := kmipClient.InitializeClient(cfg.Kmip.Version, cfg.Kmip.ServerIP, cfg.Kmip.ServerPort, cfg.Kmip.Hostname, cfg.Kmip.Username, cfg.Kmip.Password, cfg.Kmip.ClientKeyFilePath, cfg.Kmip.ClientCertificateFilePath, cfg.Kmip.RootCertificateFilePath)

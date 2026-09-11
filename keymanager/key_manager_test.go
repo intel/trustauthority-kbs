@@ -38,11 +38,14 @@ func TestNewVaultKeyManager(t *testing.T) {
 
 func TestNewOciKeyManager(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
+	t.Setenv("OCI_CONFIG_FILE", "../test/resource/oci-config")
+
 	cfg := &config.Configuration{}
 	_, errObj := NewKeyManager(cfg)
 	g.Expect(errObj).To(gomega.HaveOccurred())
 
 	cfg.KeyManager = constant.OCIKeyManager
-	_, errObj = NewKeyManager(cfg)
-	g.Expect(errObj).To(gomega.HaveOccurred())
+	keyManager, errObj := NewKeyManager(cfg)
+	g.Expect(errObj).To(gomega.BeNil())
+	g.Expect(keyManager).To(gomega.BeAssignableToTypeOf(&OCIManager{}))
 }
