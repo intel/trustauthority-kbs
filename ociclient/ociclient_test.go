@@ -13,7 +13,7 @@ import (
 )
 
 func TestInitializeClient(t *testing.T) {
-	t.Setenv("OCI_CONFIG_FILE", "testdata/oci-config")
+	t.Setenv("OCI_CONFIG_FILE", "../test/resource/oci-config")
 
 	client := NewOCIClient()
 	err := client.InitializeClient()
