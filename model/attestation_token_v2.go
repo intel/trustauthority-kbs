@@ -11,12 +11,10 @@ import "github.com/google/uuid"
 // AttestationTokenV2Claim represents the claims in an ITA v2 attestation token
 // (ver: "2.0.0").  In v2, TDX and NVGPU evidence are nested as sub-objects.
 type AttestationTokenV2Claim struct {
-	Ver                 string        `json:"ver"`
 	PolicyIdsMatched    []PolicyClaim `json:"policy_ids_matched,omitempty"`
 	PolicyIdsUnmatched  []PolicyClaim `json:"policy_ids_unmatched,omitempty"`
-	AttesterTcbStatus   string        `json:"attester_tcb_status"`
-	AttesterAdvisoryIds []string      `json:"attester_advisory_ids,omitempty"`
 	VerifierInstanceIds []uuid.UUID   `json:"verifier_instance_ids,omitempty"`
+	Version             string        `json:"ver"`
 	IntUse              string        `json:"intuse,omitempty"`
 	EatProfile          string        `json:"eat_profile,omitempty"`
 
@@ -32,7 +30,9 @@ type AttestationTokenV2Claim struct {
 // live here (not at the top level) in V2 tokens.
 type TDXClaimV2 struct {
 	AttesterHeldData    string      `json:"attester_held_data,omitempty"`
+	AttesterUserData    interface{} `json:"attester_user_data,omitempty"` // Claim for Azure TD only
 	AttesterTcbStatus   string      `json:"attester_tcb_status,omitempty"`
+	AttesterTcbDate     string      `json:"attester_tcb_date,omitempty"`
 	AttesterAdvisoryIds []string    `json:"attester_advisory_ids,omitempty"`
 	DbgStat             string      `json:"dbgstat,omitempty"`
 	AttesterRuntime     interface{} `json:"attester_runtime_data,omitempty"`
@@ -45,6 +45,7 @@ type TDXClaimV2 struct {
 type SGXClaimV2 struct {
 	AttesterHeldData    string      `json:"attester_held_data,omitempty"`
 	AttesterTcbStatus   string      `json:"attester_tcb_status,omitempty"`
+	AttesterTcbDate     string      `json:"attester_tcb_date,omitempty"`
 	AttesterAdvisoryIds []string    `json:"attester_advisory_ids,omitempty"`
 	DbgStat             string      `json:"dbgstat,omitempty"`
 	AttesterRuntime     interface{} `json:"attester_runtime_data,omitempty"`
@@ -66,7 +67,7 @@ type NVGPUClaimV2 struct {
 //   - SGX and NVGPU are mutually exclusive; a token with both is treated as SGX-only.
 func (v2 *AttestationTokenV2Claim) ToAttestationTokenClaim() *AttestationTokenClaim {
 	flat := &AttestationTokenClaim{
-		Version:             v2.Ver,
+		Version:             v2.Version,
 		PolicyIdsMatched:    v2.PolicyIdsMatched,
 		PolicyIdsUnmatched:  v2.PolicyIdsUnmatched,
 		VerifierInstanceIds: v2.VerifierInstanceIds,
@@ -82,15 +83,18 @@ func (v2 *AttestationTokenV2Claim) ToAttestationTokenClaim() *AttestationTokenCl
 		flat.AttesterType = SGX
 		// In V2 tokens these fields are nested inside the TEE sub-object.
 		flat.AttesterTcbStatus = v2.SGX.AttesterTcbStatus
+		flat.AttesterTcbDate = v2.SGX.AttesterTcbDate
 		flat.AttesterAdvisoryIds = v2.SGX.AttesterAdvisoryIds
 		flat.DbgStat = v2.SGX.DbgStat
 		flat.AttesterRuntime = v2.SGX.AttesterRuntime
 	} else if v2.TDX != nil {
 		flat.TDXClaims = v2.TDX.TDXClaims
 		flat.AttesterHeldData = v2.TDX.AttesterHeldData
+		flat.AttesterUserData = v2.TDX.AttesterUserData
 		flat.AttesterType = TDX
 		// In V2 tokens these fields are nested inside the TEE sub-object.
 		flat.AttesterTcbStatus = v2.TDX.AttesterTcbStatus
+		flat.AttesterTcbDate = v2.TDX.AttesterTcbDate
 		flat.AttesterAdvisoryIds = v2.TDX.AttesterAdvisoryIds
 		flat.DbgStat = v2.TDX.DbgStat
 		flat.AttesterRuntime = v2.TDX.AttesterRuntime

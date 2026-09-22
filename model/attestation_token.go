@@ -14,19 +14,24 @@ import (
 type AttestationTokenClaim struct {
 	*SGXClaims
 	*TDXClaims
-	AttesterHeldData string                 `json:"attester_held_data,omitempty"` // Is this finalized?
 	AttesterInittime map[string]interface{} `json:"attester_inittime_data,omitempty"`
 	// attester_runtime_data is a JSON object when the workload submits structured
 	// runtime_data, or a plain string when it submits opaque/binary runtime_data.
 	// interface{} accepts both forms without custom unmarshalling.
 	AttesterRuntime       interface{}                 `json:"attester_runtime_data,omitempty"`
+	AttesterHeldData      string                      `json:"attester_held_data,omitempty"`
+	AttesterUserData      interface{}                 `json:"attester_user_data,omitempty"` // Claim for Azure TD only
 	VerifierNonce         *itaConnector.VerifierNonce `json:"verifier_nonce,omitempty"`
 	PolicyIdsMatched      []PolicyClaim               `json:"policy_ids_matched,omitempty"`
 	PolicyIdsUnmatched    []PolicyClaim               `json:"policy_ids_unmatched,omitempty"`
 	PolicyDefinedClaims   *map[string]interface{}     `json:"policy_defined_claims,omitempty"`
 	AttesterTcbStatus     string                      `json:"attester_tcb_status"`
+	AttesterTcbDate       string                      `json:"attester_tcb_date"`
 	AttesterAdvisoryIds   []string                    `json:"attester_advisory_ids,omitempty"`
 	AttesterType          AttesterType                `json:"attester_type"`
+	SgxTcbCompSvn         string                      `json:"sgx_tcb_comp_svn"`
+	PceSvn                uint16                      `json:"pce_svn"`
+	PlatformInstanceID    string                      `json:"platform_instance_id,omitempty"`
 	VerifierInstanceIds   []uuid.UUID                 `json:"verifier_instance_ids"`
 	DbgStat               string                      `json:"dbgstat,omitempty"`     // EAT claims
 	EatProfile            string                      `json:"eat_profile,omitempty"` // EAT claims
@@ -63,13 +68,17 @@ type TDXClaims struct {
 	TdxRTMR2              string                       `json:"tdx_rtmr2"`
 	TdxRTMR3              string                       `json:"tdx_rtmr3"`
 	TdxReportData         string                       `json:"tdx_report_data,omitempty"`
+	TdxTeeTcbSvn2         string                       `json:"tdx_tee_tcb_svn2,omitempty"`
+	TdxMrServiceTD        string                       `json:"tdx_mrservicetd,omitempty"`
 	TdxSeamSvn            uint16                       `json:"tdx_seamsvn"`
 	TdxTDAttributeDebug   bool                         `json:"tdx_td_attributes_debug"`
 	TdxTDAttributesSeptVe bool                         `json:"tdx_td_attributes_septve_disable"`
+	TdxTDAttributeMigrate bool                         `json:"tdx_td_attributes_migratable"`
 	TdxTDAttributePKS     bool                         `json:"tdx_td_attributes_protection_keys"`
 	TdxTDAttributeKL      bool                         `json:"tdx_td_attributes_key_locker"`
 	TdxTDAttributePerfmon bool                         `json:"tdx_td_attributes_perfmon"`
 	TdxIsDebuggable       bool                         `json:"tdx_is_debuggable"`
+	TdxIsMigratable       bool                         `json:"tdx_is_migratable"`
 	TdxCollateral         *QuoteVerificationCollateral `json:"tdx_collateral,omitempty"`
 }
 

@@ -57,6 +57,7 @@ const tdxV2TokenPayload = `{
   "intuse": "generic",
   "tdx": {
     "attester_held_data": "dGVzdC1oZWxkLWRhdGE=",
+    "attester_tcb_date": "2021-11-10T00:00:00Z",
     "attester_tcb_status": "UpToDate",
     "attester_advisory_ids": ["INTEL-SA-00001"],
     "dbgstat": "disabled",
@@ -97,10 +98,6 @@ func TestToAttestationTokenClaim_SGXV2(t *testing.T) {
 		t.Fatalf("failed to unmarshal SGX V2 token: %v", err)
 	}
 
-	// Verify raw V2 parse: top-level AttesterTcbStatus must be empty (it's nested in sgx).
-	if v2.AttesterTcbStatus != "" {
-		t.Errorf("expected top-level AttesterTcbStatus to be empty, got %q", v2.AttesterTcbStatus)
-	}
 	if v2.SGX == nil {
 		t.Fatal("expected SGX sub-object to be present")
 	}
@@ -169,9 +166,6 @@ func TestToAttestationTokenClaim_TDXV2(t *testing.T) {
 		t.Fatalf("failed to unmarshal TDX V2 token: %v", err)
 	}
 
-	if v2.AttesterTcbStatus != "" {
-		t.Errorf("expected top-level AttesterTcbStatus to be empty, got %q", v2.AttesterTcbStatus)
-	}
 	if v2.TDX == nil {
 		t.Fatal("expected TDX sub-object to be present")
 	}
