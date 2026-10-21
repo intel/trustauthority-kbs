@@ -80,6 +80,12 @@ func buildAttestRequest(req *model.RCARAttestationRequest, teeType model.Tee) (*
 		return nil, "", errors.New("failed to serialize runtime-data")
 	}
 
+	// The guest hashes RFC 8785 canonical JSON of {nonce, tee-pubkey} for the GPU nonce.
+	kbsEvidenceRuntimeData, err = jcs.Transform(kbsEvidenceRuntimeData)
+	if err != nil {
+		return nil, "", errors.New("failed to canonicalize runtime-data")
+	}
+
 	nvgpu, err := buildNVGPUAdditionalEvidence(req.TEEEvidence.AdditionalEvidence, kbsEvidenceRuntimeData)
 	if err != nil {
 		return nil, "", err

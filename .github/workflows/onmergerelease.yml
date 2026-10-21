@@ -22,7 +22,7 @@ jobs:
           if [ ${{ github.repository }} == 'intel/trustauthority-kbs' ]; then
             echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
           else
-            echo "runner=self-hosted" >> $GITHUB_OUTPUT
+            echo "runner=innersource.prod.amr.dind" >> $GITHUB_OUTPUT
           fi
 
   build-test-scan:
@@ -45,6 +45,11 @@ jobs:
              echo "Atleast 1 file need formatting"
              exit 1
           fi
+
+      - name: Install Make
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
 
       - name: Unit Test Coverage
         run: |

@@ -140,9 +140,8 @@ func TestVerifyRCARAttestationTransformsTrusteeNvidiaEvidence(t *testing.T) {
 		Nonce:     "nonce-nv",
 		TEEPubKey: model.JWK{Kty: "RSA", N: "abc", E: "AQAB"},
 	}
-	expectedRuntime, err := json.Marshal(runtimeData)
-	require.NoError(t, err)
-	h := sha512.Sum512(expectedRuntime)
+	expectedCanonicalRuntime := `{"nonce":"nonce-nv","tee-pubkey":{"e":"AQAB","kty":"RSA","n":"abc"}}`
+	h := sha512.Sum512([]byte(expectedCanonicalRuntime))
 	expectedNonce := hex.EncodeToString(h[:32])
 
 	mockITA.On("AttestEvidence", mock.Anything, "", "nonce-nv").

@@ -17,14 +17,14 @@ jobs:
           if [ ${{ github.repository }} == 'intel/trustauthority-kbs' ]; then
             echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
           else
-            echo "runner=self-hosted" >> $GITHUB_OUTPUT
+            echo "runner=innersource.prod.amr.dind" >> $GITHUB_OUTPUT
           fi
 
   security-file-check:
     needs: [setup]
     runs-on: ${{ needs.setup.outputs.runner }}
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -55,6 +55,11 @@ jobs:
              echo "Atleast 1 file need formatting"
              exit 1
           fi
+
+      - name: Install Make
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
 
       - name: Unit Test Coverage
         run: |
